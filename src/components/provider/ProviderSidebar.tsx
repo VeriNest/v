@@ -1,4 +1,4 @@
-import { Home, Inbox, Building2, CreditCard, Calendar, LogOut, Settings } from "lucide-react";
+import { Home, Inbox, Building2, CreditCard, Calendar, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
