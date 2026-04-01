@@ -1,83 +1,70 @@
 
 
-# Dwello Landing Page — Pixel-Perfect Clone
+# Admin Dashboard — Dwello Real Estate Platform
 
-## Overview
-Build an exact replica of the Dwello real estate landing page from the uploaded screenshot. Every section, color, spacing, and detail will be matched as closely as possible.
+## What I Understand
 
-## Sections & Components (top to bottom)
+You uploaded a detailed UI/UX research brief for a **Nigerian reverse-marketplace real estate platform** where tenants post needs and verified providers respond with offers. You want an **admin dashboard** that shares the same Dwello purple design template as the existing frontend landing page.
 
-### 1. Navbar (`src/components/Navbar.tsx`)
-- Logo: "Dwello" with purple house icon
-- Links: Rent, Buy, Sell, Manage Property (dropdown arrow), Resources (dropdown arrow)
-- Right: "Login" text link, purple "Sign up" button (rounded)
+The dashboard will cover all four areas: property listings, user/provider management, transactions/payments, and disputes/moderation — all with mock/static data for now.
 
-### 2. Hero (`src/components/Hero.tsx`)
-- Left: Large bold heading "Buy, rent, or sell your property easily", subtitle paragraph
-- Rent/Buy/Sell tab switcher (underline active on Rent)
-- Search bar: Location "Barcelona, Spain" + "Select Move-in Date" with calendar icon + purple "Browse Properties" button
-- Stats: "50k+ renters" with icon, "10k+ properties" with icon
-- Right: Property card stack with house image, "Minal Villa" card overlay, price "$1,500", "Excellent" trust badge with 5 stars
+## Architecture
 
-### 3. Features (`src/components/Features.tsx`)
-- Left column: "The new way to find your new home" heading, subtitle, house image with purple "Browse Properties" button overlay
-- Right 2x2 grid: Property Insurance, Best Price, Lowest Commission, Overall Control — each with circular purple icon, title, description
-
-### 4. Property Listings (`src/components/PropertyListings.tsx`)
-- Heading: "Based on your location", subtitle
-- Tabs: Rent (active, purple), Buy, Sell, Search icon
-- 2x3 grid of property cards: image, "POPULAR" purple badge, price/month, heart icon, property name, address, beds/baths/sqft icons
-- Purple outlined "Browse more properties" button centered
-
-### 5. Value Proposition (`src/components/ValueProposition.tsx`)
-- Dark navy background section
-- Left: "We make it easy for **tenants** and **landowners**." (italic on key words)
-- Right: description paragraph
-- Horizontal scrollable cards: "Virtual home tour" (purple bg), "Find the best deal" (white bg), third card partially visible
-- Stats row: 7.4% Property Return Rate | 3,856 Property in Sell & Rent | 2,540 Daily Completed Transactions
-
-### 6. Newsletter (`src/components/Newsletter.tsx`)
-- "No Spam Promise" purple badge
-- "Are you a landowner?" heading, subtitle
-- Email input + purple "Submit" button
-- Small text below about subscribers
-
-### 7. Footer (`src/components/Footer.tsx`)
-- Logo "Dwello", columns: SELL A HOME, BUY A HOME, BUY RENT OWNER, TERMS & PRIVACY, ABOUT, RESOURCES
-- Copyright line, social icons (Facebook, Instagram, Twitter, LinkedIn)
-
-## Design Tokens
-- Primary purple: `#7C3AED` / `#6C3AEF` (violet-600 range)
-- Dark section bg: `#1A1046` / `#0F0A2A`
-- Body text: `#6B7280` (gray-500)
-- Headings: `#1F2937` (gray-800/900)
-- Card shadows: subtle `shadow-md`
-- Border radius: `rounded-lg` on cards, `rounded-full` on badges/buttons
-- Font: system sans-serif (Inter-like)
-
-## File Structure
-```
-src/components/Navbar.tsx
-src/components/Hero.tsx
-src/components/Features.tsx
-src/components/PropertyListings.tsx
-src/components/ValueProposition.tsx
-src/components/Newsletter.tsx
-src/components/Footer.tsx
-src/pages/Index.tsx (assembles all sections)
-src/index.css (updated CSS variables for purple primary)
+```text
+/admin              → Dashboard overview (stats cards + charts)
+/admin/properties   → Property listings table + management
+/admin/users        → Users & providers table + verification status
+/admin/transactions → Payments, escrow, payouts table
+/admin/disputes     → Dispute queue + fraud alerts
 ```
 
-## Images
-- Property photos: Unsplash URLs for houses/real estate
-- Icons: Lucide React icons (Home, Search, Calendar, Heart, Bed, Bath, Maximize, Shield, DollarSign, etc.)
+All admin routes share a sidebar layout component. The landing page (`/`) stays untouched.
 
-## Key Details to Match
-- Purple gradient/solid buttons with white text
-- "POPULAR" badges positioned top-left on property images
-- Heart favorite icons top-right on property cards
-- Stats with vertical dividers in the value proposition
-- Exact card layouts with price, name, address, and amenity icons
-- Trust badge with star rating in hero section
-- Property card preview overlapping the hero image on the right
+## File Plan
+
+| File | Purpose |
+|------|---------|
+| `src/components/admin/AdminLayout.tsx` | Sidebar + header wrapper using existing SidebarProvider |
+| `src/components/admin/AdminSidebar.tsx` | Purple-themed sidebar with nav links |
+| `src/pages/admin/Dashboard.tsx` | Overview: stat cards (total properties, users, revenue, disputes), mini charts |
+| `src/pages/admin/Properties.tsx` | Table of listings with status badges, search, filters |
+| `src/pages/admin/Users.tsx` | Users/providers table with verification badges, role chips |
+| `src/pages/admin/Transactions.tsx` | Payments table with escrow status, amounts, payout tracking |
+| `src/pages/admin/Disputes.tsx` | Dispute queue with priority, status, type filters |
+| `src/App.tsx` | Add `/admin/*` routes |
+
+## Design Approach
+
+- **Same purple primary** (`#7C3AED`) and design tokens as the frontend
+- Sidebar: dark purple/navy background with white text, active state highlighted
+- Cards, tables, badges, buttons all reuse existing shadcn/ui components
+- Stats cards with icons and trend indicators
+- Tables use the existing `Table` component with sorting and status badges
+- Mock data arrays for all entities (properties, users, transactions, disputes)
+- Responsive: sidebar collapses on smaller screens
+
+## Dashboard Overview Page
+
+Four stat cards at top:
+- Total Properties (with trend %)
+- Active Users
+- Monthly Revenue
+- Open Disputes
+
+Below: Recent activity table + quick action buttons
+
+## Key UI Elements
+
+- **Property cards**: Status (Active/Pending/Rejected), location, price, agent name
+- **User rows**: Name, role (Tenant/Agent/Landlord), verification status (Verified/Pending/Unverified), join date
+- **Transaction rows**: ID, amount, type (Rent/Deposit/Short-let), status (Completed/Pending/Escrow/Failed), date
+- **Dispute rows**: ID, type (Fraud/Quality/Cancellation), priority badge, status, assigned to
+
+## Technical Details
+
+- Uses existing shadcn components: `Table`, `Card`, `Badge`, `Button`, `Sidebar`
+- `NavLink` component for active route highlighting in sidebar
+- Lucide icons throughout (LayoutDashboard, Building2, Users, CreditCard, AlertTriangle)
+- No backend needed — all static/mock data
+- 7 new files, 1 modified file (App.tsx)
 
