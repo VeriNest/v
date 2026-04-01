@@ -65,7 +65,7 @@ const App = () => (
             <Route path="offers" element={<Offers />} />
             <Route path="bookings" element={<Bookings />} />
             <Route path="saved" element={<Saved />} />
-            <Route path="settings" element={<SeekerSettings />} />
+            
           </Route>
 
           {/* Provider (Agent/Landlord) Dashboard */}
