@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, Users, CreditCard, AlertTriangle, Home } from "lucide-react";
+import { LayoutDashboard, Building2, Users, CreditCard, AlertTriangle, Home, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -62,14 +62,22 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Back to site */}
-        <div className="mt-auto p-4">
+        {/* Bottom actions */}
+        <div className="mt-auto p-4 space-y-1">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <NavLink to="/" className="text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
                   <Home className="mr-2 h-4 w-4 shrink-0" />
                   {!collapsed && <span>Back to Site</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <NavLink to="/login" className="text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                  <LogOut className="mr-2 h-4 w-4 shrink-0" />
+                  {!collapsed && <span>Sign Out</span>}
                 </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>

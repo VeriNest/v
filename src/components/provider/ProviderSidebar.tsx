@@ -1,4 +1,4 @@
-import { Home, Inbox, Building2, CreditCard, Calendar } from "lucide-react";
+import { Home, Inbox, Building2, CreditCard, Calendar, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -59,13 +59,21 @@ export function ProviderSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mt-auto p-4">
+        <div className="mt-auto p-4 space-y-1">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
                 <NavLink to="/" className="text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
                   <Home className="mr-2 h-4 w-4 shrink-0" />
                   {!collapsed && <span>Back to Site</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <NavLink to="/login" className="text-red-400/70 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
+                  <LogOut className="mr-2 h-4 w-4 shrink-0" />
+                  {!collapsed && <span>Sign Out</span>}
                 </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
