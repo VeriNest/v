@@ -75,6 +75,7 @@ const App = () => (
             <Route path="listings" element={<Listings />} />
             <Route path="payouts" element={<Payouts />} />
             <Route path="calendar" element={<ProviderCalendar />} />
+            <Route path="settings" element={<ProviderSettings />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

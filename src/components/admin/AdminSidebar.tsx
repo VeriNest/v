@@ -19,6 +19,7 @@ const items = [
   { title: "Users", url: "/admin/users", icon: Users },
   { title: "Transactions", url: "/admin/transactions", icon: CreditCard },
   { title: "Disputes", url: "/admin/disputes", icon: AlertTriangle },
+  { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
 
 export function AdminSidebar() {

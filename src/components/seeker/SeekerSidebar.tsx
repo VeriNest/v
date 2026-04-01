@@ -18,6 +18,7 @@ const items = [
   { title: "My Offers", url: "/seeker/offers", icon: Inbox },
   { title: "Bookings", url: "/seeker/bookings", icon: CalendarCheck },
   { title: "Saved", url: "/seeker/saved", icon: Bookmark },
+  { title: "Settings", url: "/seeker/settings", icon: Settings },
 ];
 
 export function SeekerSidebar() {
