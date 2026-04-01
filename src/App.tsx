@@ -24,6 +24,7 @@ import PostNeed from "./pages/seeker/PostNeed.tsx";
 import Offers from "./pages/seeker/Offers.tsx";
 import Bookings from "./pages/seeker/Bookings.tsx";
 import Saved from "./pages/seeker/Saved.tsx";
+import SeekerSettings from "./pages/seeker/Settings.tsx";
 
 // Provider
 import ProviderLayout from "./components/provider/ProviderLayout.tsx";
