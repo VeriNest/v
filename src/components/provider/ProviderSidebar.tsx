@@ -18,7 +18,6 @@ const items = [
   { title: "My Listings", url: "/provider/listings", icon: Building2 },
   { title: "Payouts", url: "/provider/payouts", icon: CreditCard },
   { title: "Calendar", url: "/provider/calendar", icon: Calendar },
-  { title: "Settings", url: "/provider/settings", icon: Settings },
 ];
 
 export function ProviderSidebar() {
