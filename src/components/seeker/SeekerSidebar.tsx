@@ -1,4 +1,4 @@
-import { Home, FileText, Inbox, CalendarCheck, Bookmark, LogOut, Settings } from "lucide-react";
+import { Home, FileText, Inbox, CalendarCheck, Bookmark, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
