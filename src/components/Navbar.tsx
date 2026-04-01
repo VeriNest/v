@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 
 const Navbar = () => {
   return (
-    <nav className="flex items-center justify-between px-20 py-4 bg-[hsl(240,60%,97%)]">
-      <div className="flex items-center gap-8">
+    <nav className="flex items-center justify-between px-16 py-4 bg-[hsl(240,50%,97%)] border-b border-[hsl(240,30%,93%)]">
+      <div className="flex items-center gap-10">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <Home className="w-4 h-4 text-primary-foreground" />
@@ -12,7 +12,7 @@ const Navbar = () => {
           <span className="text-lg font-bold text-foreground">Dwello</span>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-7">
           <a href="#" className="text-sm text-foreground font-medium hover:text-primary transition-colors">Rent</a>
           <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Buy</a>
           <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sell</a>
@@ -25,9 +25,9 @@ const Navbar = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-5">
         <a href="#" className="text-sm text-foreground font-medium hover:text-primary transition-colors">Login</a>
-        <Button className="rounded-lg px-6 bg-primary text-primary-foreground hover:bg-primary/90 text-sm">Sign up</Button>
+        <Button className="rounded-lg px-6 bg-primary text-primary-foreground hover:bg-primary/90 text-sm h-9">Sign up</Button>
       </div>
     </nav>
   );
