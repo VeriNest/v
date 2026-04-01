@@ -55,7 +55,7 @@ const App = () => (
             <Route path="users" element={<UsersPage />} />
             <Route path="transactions" element={<Transactions />} />
             <Route path="disputes" element={<Disputes />} />
-            <Route path="settings" element={<AdminSettings />} />
+            
           </Route>
 
           {/* Seeker (Tenant) Dashboard */}
