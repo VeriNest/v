@@ -86,7 +86,7 @@ export default function Offers() {
                           {offer.match}% match
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground">⚡ {offer.responseTime}</p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-0.5"><Zap className="h-3 w-3" /> {offer.responseTime}</p>
                     </div>
                   </div>
                   <div className="flex gap-2 mt-4 pt-3 border-t">

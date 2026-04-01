@@ -83,7 +83,7 @@ export default function Dashboard() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
         <div className="absolute bottom-0 left-1/2 w-48 h-48 bg-white/5 rounded-full translate-y-1/2" />
         <div className="relative">
-          <h2 className="text-2xl font-bold">Welcome back, Admin 👋</h2>
+          <h2 className="text-2xl font-bold">Welcome back, Admin</h2>
           <p className="text-white/70 mt-1 max-w-lg">Here's what's happening across the Dwello platform today. You have <span className="text-white font-semibold">24 open disputes</span> and <span className="text-white font-semibold">6 pending verifications</span> to review.</p>
         </div>
         <div className="relative mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">

@@ -41,7 +41,7 @@ export default function SeekerDashboard() {
         <div className="absolute bottom-0 left-1/2 w-48 h-48 bg-white/5 rounded-full translate-y-1/2" />
         <div className="relative flex items-start justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Welcome back! 🏠</h2>
+            <h2 className="text-2xl font-bold">Welcome back!</h2>
             <p className="text-white/70 mt-1 max-w-lg">Here's what's happening with your property search. You have <span className="text-white font-semibold">12 new offers</span> and <span className="text-white font-semibold">2 viewings</span> this week.</p>
           </div>
           <Button asChild className="bg-white text-[hsl(263,70%,58%)] hover:bg-white/90 shrink-0">

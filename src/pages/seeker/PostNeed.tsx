@@ -127,7 +127,7 @@ export default function PostNeed() {
             </div>
 
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-              <p className="font-medium mb-1">⚖️ Lagos Tenancy Law</p>
+              <p className="font-medium mb-1 flex items-center gap-1.5"><ShieldCheck className="h-4 w-4" /> Lagos Tenancy Law</p>
               <p className="text-xs">Landlords cannot demand more than 1 year advance rent for yearly tenants. All rent payments must come with a receipt.</p>
             </div>
 
