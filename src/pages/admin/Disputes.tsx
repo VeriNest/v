@@ -1,9 +1,10 @@
-import { Search, AlertTriangle, AlertCircle, MessageSquare } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Search, AlertTriangle, AlertCircle, MessageSquare, Filter, Shield, CheckCircle2, Flame } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 
 const disputes = [
   { id: "D-101", title: "Fake property listing reported", type: "Fraud", priority: "High", status: "Open", reporter: "Fatima Abdullahi", assigned: "Admin A", date: "2024-03-15" },
@@ -14,25 +15,32 @@ const disputes = [
   { id: "D-106", title: "Misleading photos on listing", type: "Quality", priority: "Medium", status: "Resolved", reporter: "Chioma Okafor", assigned: "Admin B", date: "2024-03-10" },
 ];
 
-const priorityColors: Record<string, string> = {
-  Critical: "bg-red-600 text-white",
-  High: "bg-red-100 text-red-700",
-  Medium: "bg-yellow-100 text-yellow-700",
-  Low: "bg-green-100 text-green-700",
+const priorityStyles: Record<string, { color: string; bg: string; dot: string }> = {
+  Critical: { color: "text-white", bg: "bg-red-600", dot: "bg-white" },
+  High: { color: "text-red-700", bg: "bg-red-50 border border-red-200", dot: "bg-red-500" },
+  Medium: { color: "text-amber-700", bg: "bg-amber-50 border border-amber-200", dot: "bg-amber-500" },
+  Low: { color: "text-emerald-700", bg: "bg-emerald-50 border border-emerald-200", dot: "bg-emerald-500" },
 };
 
-const statusVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  Open: "destructive",
-  "In Review": "secondary",
-  Escalated: "destructive",
-  Resolved: "outline",
+const statusStyles: Record<string, string> = {
+  Open: "bg-red-500/10 text-red-600 border-red-500/20",
+  "In Review": "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  Escalated: "bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] border-[hsl(263,70%,58%)]/20",
+  Resolved: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
 };
 
-const typeIcon: Record<string, React.ReactNode> = {
-  Fraud: <AlertTriangle className="h-4 w-4 text-red-500" />,
-  Quality: <AlertCircle className="h-4 w-4 text-yellow-500" />,
-  Cancellation: <MessageSquare className="h-4 w-4 text-blue-500" />,
+const typeIcon: Record<string, { icon: typeof AlertTriangle; color: string; bg: string }> = {
+  Fraud: { icon: AlertTriangle, color: "text-red-500", bg: "bg-red-50" },
+  Quality: { icon: AlertCircle, color: "text-amber-500", bg: "bg-amber-50" },
+  Cancellation: { icon: MessageSquare, color: "text-blue-500", bg: "bg-blue-50" },
 };
+
+const summaryCards = [
+  { label: "Open", value: 8, icon: Flame, color: "text-red-600", bg: "bg-red-500/10", progress: 32, total: "of 25 target" },
+  { label: "In Review", value: 12, icon: Shield, color: "text-amber-600", bg: "bg-amber-500/10", progress: 48, total: "avg 2.1d resolution" },
+  { label: "Escalated", value: 4, icon: AlertTriangle, color: "text-[hsl(263,70%,58%)]", bg: "bg-[hsl(263,70%,58%)]/10", progress: 16, total: "needs attention" },
+  { label: "Resolved (MTD)", value: 45, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-500/10", progress: 90, total: "+18% vs last month" },
+];
 
 export default function Disputes() {
   return (
@@ -43,62 +51,96 @@ export default function Disputes() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">Open</p><p className="text-2xl font-bold text-red-500">8</p></CardContent></Card>
-        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">In Review</p><p className="text-2xl font-bold text-yellow-600">12</p></CardContent></Card>
-        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">Escalated</p><p className="text-2xl font-bold text-red-600">4</p></CardContent></Card>
-        <Card><CardContent className="pt-6"><p className="text-sm text-muted-foreground">Resolved (MTD)</p><p className="text-2xl font-bold text-green-600">45</p></CardContent></Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {summaryCards.map((c) => (
+          <Card key={c.label} className="border-0 shadow-sm">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div className={`p-2 rounded-xl ${c.bg}`}>
+                  <c.icon className={`h-4 w-4 ${c.color}`} />
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">{c.label}</p>
+              <p className={`text-2xl font-bold mt-0.5 ${c.color}`}>{c.value}</p>
+              <p className="text-xs text-muted-foreground mt-1 mb-2">{c.total}</p>
+              <Progress value={c.progress} className="h-1.5" />
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search disputes..." className="pl-9" />
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <CardTitle className="text-lg">All Disputes</CardTitle>
+              <CardDescription>6 disputes requiring attention</CardDescription>
             </div>
-            <Button variant="outline" size="sm">All</Button>
-            <Button variant="outline" size="sm">Fraud</Button>
-            <Button variant="outline" size="sm">Quality</Button>
-            <Button variant="outline" size="sm">Cancellation</Button>
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search disputes..." className="pl-9 w-[260px]" />
+              </div>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Filter className="h-3.5 w-3.5" />
+                Filter
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Issue</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Reporter</TableHead>
-                <TableHead>Assigned</TableHead>
-                <TableHead>Date</TableHead>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Issue</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Type</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Priority</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Status</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Assigned</TableHead>
+                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Date</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {disputes.map((d) => (
-                <TableRow key={d.id}>
-                  <TableCell className="font-mono text-xs">{d.id}</TableCell>
-                  <TableCell className="font-medium max-w-[200px] truncate">{d.title}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5">
-                      {typeIcon[d.type]}
-                      <span>{d.type}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${priorityColors[d.priority]}`}>
-                      {d.priority}
-                    </span>
-                  </TableCell>
-                  <TableCell><Badge variant={statusVariant[d.status]}>{d.status}</Badge></TableCell>
-                  <TableCell>{d.reporter}</TableCell>
-                  <TableCell className="text-muted-foreground">{d.assigned}</TableCell>
-                  <TableCell className="text-muted-foreground">{d.date}</TableCell>
-                </TableRow>
-              ))}
+              {disputes.map((d) => {
+                const p = priorityStyles[d.priority];
+                const t = typeIcon[d.type];
+                const TIcon = t.icon;
+                return (
+                  <TableRow key={d.id} className="group">
+                    <TableCell className="font-mono text-xs text-muted-foreground">{d.id}</TableCell>
+                    <TableCell>
+                      <div className="max-w-[220px]">
+                        <p className="font-medium text-sm truncate">{d.title}</p>
+                        <p className="text-xs text-muted-foreground">{d.reporter}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${t.bg} ${t.color}`}>
+                        <TIcon className="h-3.5 w-3.5" />
+                        {d.type}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${p.bg} ${p.color}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${p.dot}`} />
+                        {d.priority}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusStyles[d.status]}`}>
+                        {d.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`text-sm ${d.assigned === "Unassigned" ? "text-red-500 font-medium" : "text-muted-foreground"}`}>
+                        {d.assigned}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{d.date}</TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
