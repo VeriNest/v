@@ -5,7 +5,7 @@ const features = [
   {
     icon: Shield,
     title: "Property Insurance",
-    description: "We offer our customer property protection of liability coverage and target it at home.",
+    description: "We offer our customer property protection of liability coverage and insurance for a better life.",
   },
   {
     icon: DollarSign,
@@ -20,42 +20,41 @@ const features = [
   {
     icon: SlidersHorizontal,
     title: "Overall Control",
-    description: "Get a virtual tour, and get accurate information about your property, saving your time.",
+    description: "Get a virtual tour, and be accurate details before you rent a any properties. You get overall control.",
   },
 ];
 
 const Features = () => {
   return (
-    <section className="px-20 py-20 bg-secondary/50">
-      <div className="flex gap-12 items-start">
+    <section className="px-20 py-20">
+      <div className="flex gap-10 items-start">
         {/* Left */}
-        <div className="flex-1 max-w-md">
-          <p className="text-primary text-sm font-semibold mb-2 uppercase tracking-wider">—</p>
-          <h2 className="text-3xl font-bold text-foreground mb-3 leading-tight">
+        <div className="w-[280px] shrink-0">
+          <h2 className="text-2xl font-bold text-foreground mb-3 leading-tight">
             The new way to find<br />your new home
           </h2>
-          <p className="text-muted-foreground text-sm mb-8">
+          <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
             Find your dream place to live in with more than 10k+ properties listed.
           </p>
           <div className="relative rounded-2xl overflow-hidden">
             <img
-              src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&fit=crop"
+              src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=300&h=260&fit=crop"
               alt="Modern house"
-              className="w-full h-[280px] object-cover"
+              className="w-full h-[220px] object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-            <Button className="absolute bottom-6 left-6 rounded-full px-6 bg-primary text-primary-foreground hover:bg-primary/90">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            <Button className="absolute bottom-5 left-5 rounded-lg px-5 bg-primary text-primary-foreground hover:bg-primary/90 text-xs">
               Browse Properties
             </Button>
           </div>
         </div>
 
         {/* Right 2x2 Grid */}
-        <div className="flex-1 grid grid-cols-2 gap-6">
+        <div className="flex-1 grid grid-cols-2 gap-x-8 gap-y-10">
           {features.map((feature) => (
-            <div key={feature.title} className="bg-background rounded-2xl p-6 shadow-sm">
+            <div key={feature.title}>
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <feature.icon className="w-6 h-6 text-primary" />
+                <feature.icon className="w-5 h-5 text-primary" />
               </div>
               <h3 className="text-base font-semibold text-foreground mb-2">{feature.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
