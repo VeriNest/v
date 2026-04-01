@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, Users, CreditCard, AlertTriangle, Home, LogOut, Settings } from "lucide-react";
+import { LayoutDashboard, Building2, Users, CreditCard, AlertTriangle, Home, LogOut } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
