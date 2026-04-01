@@ -24,7 +24,7 @@ export default function AdminLayout() {
                 <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
               </Button>
               <div className="h-6 w-px bg-border" />
-              <Link to="/admin/settings" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity cursor-pointer">
+              <div className="flex items-center gap-2.5">
                 <Avatar className="h-8 w-8 border-2 border-[hsl(263,70%,58%)]/20">
                   <AvatarFallback className="text-xs bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] font-medium">
                     AD
@@ -34,7 +34,7 @@ export default function AdminLayout() {
                   <p className="text-sm font-medium leading-none">Admin</p>
                   <p className="text-xs text-muted-foreground">Super Admin</p>
                 </div>
-              </Link>
+              </div>
             </div>
           </header>
           <main className="flex-1 p-6 overflow-auto">
