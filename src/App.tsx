@@ -7,12 +7,30 @@ import Index from "./pages/Index.tsx";
 import Login from "./pages/Login.tsx";
 import Signup from "./pages/Signup.tsx";
 import NotFound from "./pages/NotFound.tsx";
+
+// Admin
 import AdminLayout from "./components/admin/AdminLayout.tsx";
-import Dashboard from "./pages/admin/Dashboard.tsx";
+import AdminDashboard from "./pages/admin/Dashboard.tsx";
 import Properties from "./pages/admin/Properties.tsx";
 import UsersPage from "./pages/admin/Users.tsx";
 import Transactions from "./pages/admin/Transactions.tsx";
 import Disputes from "./pages/admin/Disputes.tsx";
+
+// Seeker
+import SeekerLayout from "./components/seeker/SeekerLayout.tsx";
+import SeekerDashboard from "./pages/seeker/Dashboard.tsx";
+import PostNeed from "./pages/seeker/PostNeed.tsx";
+import Offers from "./pages/seeker/Offers.tsx";
+import Bookings from "./pages/seeker/Bookings.tsx";
+import Saved from "./pages/seeker/Saved.tsx";
+
+// Provider
+import ProviderLayout from "./components/provider/ProviderLayout.tsx";
+import ProviderDashboard from "./pages/provider/Dashboard.tsx";
+import LeadInbox from "./pages/provider/Inbox.tsx";
+import Listings from "./pages/provider/Listings.tsx";
+import Payouts from "./pages/provider/Payouts.tsx";
+import ProviderCalendar from "./pages/provider/Calendar.tsx";
 
 const queryClient = new QueryClient();
 
@@ -26,13 +44,34 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+
+          {/* Admin Dashboard */}
           <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<Dashboard />} />
+            <Route index element={<AdminDashboard />} />
             <Route path="properties" element={<Properties />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="transactions" element={<Transactions />} />
             <Route path="disputes" element={<Disputes />} />
           </Route>
+
+          {/* Seeker (Tenant) Dashboard */}
+          <Route path="/seeker" element={<SeekerLayout />}>
+            <Route index element={<SeekerDashboard />} />
+            <Route path="post" element={<PostNeed />} />
+            <Route path="offers" element={<Offers />} />
+            <Route path="bookings" element={<Bookings />} />
+            <Route path="saved" element={<Saved />} />
+          </Route>
+
+          {/* Provider (Agent/Landlord) Dashboard */}
+          <Route path="/provider" element={<ProviderLayout />}>
+            <Route index element={<ProviderDashboard />} />
+            <Route path="inbox" element={<LeadInbox />} />
+            <Route path="listings" element={<Listings />} />
+            <Route path="payouts" element={<Payouts />} />
+            <Route path="calendar" element={<ProviderCalendar />} />
+          </Route>
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

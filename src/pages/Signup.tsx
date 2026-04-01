@@ -1,19 +1,27 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Home, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { Home, Mail, Lock, Eye, EyeOff, User, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
+type Role = "tenant" | "agent" | "landlord";
+
 export default function Signup() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<"agent" | "landlord">("agent");
+  const [role, setRole] = useState<Role>("tenant");
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/admin");
+    navigate(role === "tenant" ? "/seeker" : "/provider");
   };
+
+  const roles: { value: Role; icon: React.ReactNode; label: string; desc: string }[] = [
+    { value: "tenant", icon: <Search className="h-5 w-5" />, label: "Tenant", desc: "Post needs & find properties" },
+    { value: "agent", icon: <User className="h-5 w-5" />, label: "Agent", desc: "List & manage for clients" },
+    { value: "landlord", icon: <Home className="h-5 w-5" />, label: "Landlord", desc: "List your own properties" },
+  ];
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4 py-8">
@@ -26,40 +34,30 @@ export default function Signup() {
             <span className="text-2xl font-bold text-foreground">Dwello</span>
           </Link>
           <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>Join as an agent or landlord</CardDescription>
+          <CardDescription>Join as a tenant, agent, or landlord</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
             {/* Role selector */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">I am a</label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setRole("agent")}
-                  className={`flex flex-col items-center gap-1.5 p-4 rounded-lg border-2 transition-colors ${
-                    role === "agent"
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50"
-                  }`}
-                >
-                  <User className="h-5 w-5" />
-                  <span className="text-sm font-medium">Agent</span>
-                  <span className="text-xs text-center">List & manage properties for clients</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole("landlord")}
-                  className={`flex flex-col items-center gap-1.5 p-4 rounded-lg border-2 transition-colors ${
-                    role === "landlord"
-                      ? "border-primary bg-primary/5 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/50"
-                  }`}
-                >
-                  <Home className="h-5 w-5" />
-                  <span className="text-sm font-medium">Landlord</span>
-                  <span className="text-xs text-center">List your own properties directly</span>
-                </button>
+              <div className="grid grid-cols-3 gap-3">
+                {roles.map((r) => (
+                  <button
+                    key={r.value}
+                    type="button"
+                    onClick={() => setRole(r.value)}
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-colors ${
+                      role === r.value
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    {r.icon}
+                    <span className="text-sm font-medium">{r.label}</span>
+                    <span className="text-[10px] text-center leading-tight">{r.desc}</span>
+                  </button>
+                ))}
               </div>
             </div>
 

@@ -5,13 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
+type Role = "tenant" | "agent" | "landlord" | "admin";
+
 export default function Login() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState<Role>("tenant");
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/admin");
+    const routes: Record<Role, string> = {
+      tenant: "/seeker",
+      agent: "/provider",
+      landlord: "/provider",
+      admin: "/admin",
+    };
+    navigate(routes[role]);
   };
 
   return (
@@ -29,6 +38,27 @@ export default function Login() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
+            {/* Role selector */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">I am a</label>
+              <div className="grid grid-cols-4 gap-2">
+                {(["tenant", "agent", "landlord", "admin"] as Role[]).map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRole(r)}
+                    className={`py-2 px-3 rounded-lg border-2 text-sm font-medium capitalize transition-colors ${
+                      role === r
+                        ? "border-primary bg-primary/5 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Email</label>
               <div className="relative">
