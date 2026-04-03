@@ -122,9 +122,9 @@ export default function Onboarding() {
             <div className="space-y-2">
               <p className="text-xs font-medium text-primary tracking-widest uppercase">Step 2 of 3</p>
               <h1 className="text-3xl font-bold text-foreground tracking-tight">
-                {role === "tenant" ? "Where are you looking?" : "Tell us about yourself"}
+                {role === "tenant" ? "Let's find your match" : "A few quick details"}
               </h1>
-              <p className="text-muted-foreground text-sm">We'll use this to personalize your experience.</p>
+              <p className="text-muted-foreground text-sm">This helps us tailor your experience — takes 30 seconds.</p>
             </div>
 
             {/* ── Contact & Location ── */}
