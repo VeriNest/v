@@ -28,7 +28,7 @@ const statusStyles: Record<string, { color: string; bg: string; dot: string }> =
 export default function ProviderCalendar() {
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(263,70%,58%)] to-[hsl(263,70%,35%)] p-6 text-white">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/70 p-6 text-white">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
         <div className="relative flex items-center gap-3">
           <div className="p-2.5 bg-white/10 rounded-xl">
@@ -64,7 +64,7 @@ export default function ProviderCalendar() {
                         <div
                           className={`absolute inset-x-1 top-1 rounded-lg p-1.5 text-xs ${
                             booking.status === "Confirmed"
-                              ? "bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] border border-[hsl(263,70%,58%)]/20"
+                              ? "bg-primary/10 text-primary border border-primary/20"
                               : "bg-amber-50 text-amber-700 border border-amber-200"
                           }`}
                           style={{ height: `${booking.duration * 44 - 4}px`, zIndex: 1 }}
@@ -94,7 +94,7 @@ export default function ProviderCalendar() {
               <div key={b.id} className="flex items-center justify-between p-4 rounded-xl border bg-background hover:shadow-md transition-all duration-200">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
-                    <AvatarFallback className="text-xs bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] font-medium">
+                    <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">
                       {b.initials}
                     </AvatarFallback>
                   </Avatar>

@@ -20,12 +20,12 @@ const statusStyles: Record<string, { color: string; bg: string; dot: string }> =
 };
 
 const typeStyles: Record<string, string> = {
-  Rent: "text-[hsl(263,70%,58%)]",
+  Rent: "text-primary",
   "Short-let": "text-amber-600",
 };
 
 const summaryCards = [
-  { label: "Total Listings", value: "5", color: "text-[hsl(263,70%,58%)]", bg: "bg-[hsl(263,70%,58%)]/10", icon: Building2, progress: 100 },
+  { label: "Total Listings", value: "5", color: "text-primary", bg: "bg-primary/10", icon: Building2, progress: 100 },
   { label: "Total Views", value: "178", color: "text-blue-600", bg: "bg-blue-500/10", icon: Eye, progress: 72 },
   { label: "Offers Received", value: "12", color: "text-emerald-600", bg: "bg-emerald-500/10", icon: Inbox, progress: 48 },
 ];
@@ -38,7 +38,7 @@ export default function Listings() {
           <h2 className="text-2xl font-bold text-foreground">My Listings</h2>
           <p className="text-muted-foreground">Manage your property listings</p>
         </div>
-        <Button className="bg-[hsl(263,70%,58%)] hover:bg-[hsl(263,70%,48%)] gap-2">
+        <Button className="bg-primary hover:bg-primary/90 gap-2">
           <Plus className="h-4 w-4" />
           Add Listing
         </Button>
@@ -99,8 +99,8 @@ export default function Listings() {
                   <TableRow key={l.id} className="group">
                     <TableCell>
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-lg bg-[hsl(263,70%,58%)]/5 flex items-center justify-center shrink-0">
-                          <Building2 className="h-4 w-4 text-[hsl(263,70%,58%)]" />
+                        <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center shrink-0">
+                          <Building2 className="h-4 w-4 text-primary" />
                         </div>
                         <span className="font-medium text-sm">{l.title}</span>
                       </div>
@@ -128,7 +128,7 @@ export default function Listings() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className={`text-sm font-medium ${l.offers > 0 ? "text-[hsl(263,70%,58%)]" : "text-muted-foreground"}`}>{l.offers}</span>
+                      <span className={`text-sm font-medium ${l.offers > 0 ? "text-primary" : "text-muted-foreground"}`}>{l.offers}</span>
                     </TableCell>
                     <TableCell>
                       <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">

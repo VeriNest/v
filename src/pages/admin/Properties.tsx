@@ -27,7 +27,7 @@ const statusDot: Record<string, string> = {
 };
 
 const summaryCards = [
-  { label: "Total Listings", value: "2,847", change: "+42 this week", color: "text-[hsl(263,70%,58%)]", bg: "bg-[hsl(263,70%,58%)]/10" },
+  { label: "Total Listings", value: "2,847", change: "+42 this week", color: "text-primary", bg: "bg-primary/10" },
   { label: "Active", value: "2,104", change: "73.9% of total", color: "text-emerald-600", bg: "bg-emerald-500/10" },
   { label: "Pending Review", value: "389", change: "12 urgent", color: "text-amber-600", bg: "bg-amber-500/10" },
   { label: "Rejected", value: "354", change: "-8% vs last month", color: "text-red-600", bg: "bg-red-500/10" },
@@ -41,7 +41,7 @@ export default function Properties() {
           <h2 className="text-2xl font-bold text-foreground">Properties</h2>
           <p className="text-muted-foreground">Manage all property listings across the platform</p>
         </div>
-        <Button className="bg-[hsl(263,70%,58%)] hover:bg-[hsl(263,70%,48%)] gap-2">
+        <Button className="bg-primary hover:bg-primary/90 gap-2">
           <Plus className="h-4 w-4" />
           Add Property
         </Button>
@@ -102,8 +102,8 @@ export default function Properties() {
                   <TableCell className="font-mono text-xs text-muted-foreground">{p.id}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-[hsl(263,70%,58%)]/5 flex items-center justify-center shrink-0">
-                        <Building2 className="h-4 w-4 text-[hsl(263,70%,58%)]" />
+                      <div className="w-10 h-10 rounded-lg bg-primary/5 flex items-center justify-center shrink-0">
+                        <Building2 className="h-4 w-4 text-primary" />
                       </div>
                       <span className="font-medium text-sm max-w-[200px] truncate">{p.title}</span>
                     </div>

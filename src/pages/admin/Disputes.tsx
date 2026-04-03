@@ -25,7 +25,7 @@ const priorityStyles: Record<string, { color: string; bg: string; dot: string }>
 const statusStyles: Record<string, string> = {
   Open: "bg-red-500/10 text-red-600 border-red-500/20",
   "In Review": "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  Escalated: "bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] border-[hsl(263,70%,58%)]/20",
+  Escalated: "bg-primary/10 text-primary border-primary/20",
   Resolved: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
 };
 
@@ -38,7 +38,7 @@ const typeIcon: Record<string, { icon: typeof AlertTriangle; color: string; bg: 
 const summaryCards = [
   { label: "Open", value: 8, icon: Flame, color: "text-red-600", bg: "bg-red-500/10", progress: 32, total: "of 25 target" },
   { label: "In Review", value: 12, icon: Shield, color: "text-amber-600", bg: "bg-amber-500/10", progress: 48, total: "avg 2.1d resolution" },
-  { label: "Escalated", value: 4, icon: AlertTriangle, color: "text-[hsl(263,70%,58%)]", bg: "bg-[hsl(263,70%,58%)]/10", progress: 16, total: "needs attention" },
+  { label: "Escalated", value: 4, icon: AlertTriangle, color: "text-primary", bg: "bg-primary/10", progress: 16, total: "needs attention" },
   { label: "Resolved (MTD)", value: 45, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-500/10", progress: 90, total: "+18% vs last month" },
 ];
 

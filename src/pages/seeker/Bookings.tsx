@@ -19,7 +19,7 @@ const statusStyles: Record<string, { color: string; bg: string; dot: string }> =
 };
 
 const summaryCards = [
-  { label: "Active Bookings", value: "2", icon: CalendarCheck, color: "text-[hsl(263,70%,58%)]", bg: "bg-[hsl(263,70%,58%)]/10", progress: 66 },
+  { label: "Active Bookings", value: "2", icon: CalendarCheck, color: "text-primary", bg: "bg-primary/10", progress: 66 },
   { label: "In Escrow", value: "₦2,500,000", icon: Lock, color: "text-amber-600", bg: "bg-amber-500/10", progress: 45 },
   { label: "Completed", value: "1", icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-500/10", progress: 33 },
 ];
@@ -27,7 +27,7 @@ const summaryCards = [
 export default function Bookings() {
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(263,70%,58%)] to-[hsl(263,70%,35%)] p-6 text-white">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/70 p-6 text-white">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
         <div className="relative">
           <h2 className="text-xl font-bold">Bookings & Escrow</h2>
@@ -77,8 +77,8 @@ export default function Bookings() {
                     <TableCell className="font-mono text-xs text-muted-foreground">{b.id}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[hsl(263,70%,58%)]/5 flex items-center justify-center">
-                          <Building2 className="h-3.5 w-3.5 text-[hsl(263,70%,58%)]" />
+                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                          <Building2 className="h-3.5 w-3.5 text-primary" />
                         </div>
                         <span className="font-medium text-sm">{b.property}</span>
                       </div>

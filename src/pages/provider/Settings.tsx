@@ -16,7 +16,7 @@ const activityLog = [
 ];
 
 const typeStyles: Record<string, string> = {
-  Offer: "bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] border-[hsl(263,70%,58%)]/20",
+  Offer: "bg-primary/10 text-primary border-primary/20",
   Listing: "bg-blue-500/10 text-blue-600 border-blue-500/20",
   Payout: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
   Lead: "bg-amber-500/10 text-amber-600 border-amber-500/20",
@@ -26,7 +26,7 @@ const typeStyles: Record<string, string> = {
 export default function ProviderSettings() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(263,70%,58%)] to-[hsl(263,70%,35%)] p-6 text-white">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/70 p-6 text-white">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
         <div className="relative flex items-center gap-3">
           <div className="p-2.5 bg-white/10 rounded-xl"><Settings className="h-5 w-5" /></div>
@@ -45,14 +45,14 @@ export default function ProviderSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-[hsl(263,70%,58%)]/20">
-              <AvatarFallback className="text-lg bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] font-semibold">AJ</AvatarFallback>
+            <Avatar className="h-16 w-16 border-2 border-primary/20">
+              <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">AJ</AvatarFallback>
             </Avatar>
             <div>
               <p className="font-semibold">Adebayo Johnson</p>
               <p className="text-sm text-muted-foreground">adebayo@dwello.ng</p>
               <div className="flex gap-1.5 mt-1">
-                <Badge className="bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] border-[hsl(263,70%,58%)]/20" variant="outline">Agent</Badge>
+                <Badge className="bg-primary/10 text-primary border-primary/20" variant="outline">Agent</Badge>
                 <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200" variant="outline">Verified</Badge>
               </div>
             </div>
@@ -63,7 +63,7 @@ export default function ProviderSettings() {
             <div className="space-y-1.5"><label className="text-sm font-medium">Phone</label><Input defaultValue="+234 803 456 7890" /></div>
             <div className="space-y-1.5"><label className="text-sm font-medium">Company</label><Input defaultValue="Lagos Homes Ltd" /></div>
           </div>
-          <Button className="bg-[hsl(263,70%,58%)] hover:bg-[hsl(263,70%,48%)]">Save Changes</Button>
+          <Button className="bg-primary hover:bg-primary/90">Save Changes</Button>
         </CardContent>
       </Card>
 
@@ -109,7 +109,7 @@ export default function ProviderSettings() {
               </select>
             </div>
           </div>
-          <Button className="bg-[hsl(263,70%,58%)] hover:bg-[hsl(263,70%,48%)]">Update Payout Details</Button>
+          <Button className="bg-primary hover:bg-primary/90">Update Payout Details</Button>
         </CardContent>
       </Card>
 

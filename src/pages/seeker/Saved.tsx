@@ -11,7 +11,7 @@ const saved = [
 export default function Saved() {
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(263,70%,58%)] to-[hsl(263,70%,35%)] p-6 text-white">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/70 p-6 text-white">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
         <div className="relative flex items-center gap-3">
           <div className="p-2.5 bg-white/10 rounded-xl">
@@ -34,7 +34,7 @@ export default function Saved() {
                 <Heart className="w-4 h-4 text-red-500 fill-red-500" />
               </button>
               <div className="absolute bottom-3 left-3">
-                <span className="bg-[hsl(263,70%,58%)] text-white px-2.5 py-1 rounded-full text-xs font-semibold">
+                <span className="bg-primary text-white px-2.5 py-1 rounded-full text-xs font-semibold">
                   {item.match}% match
                 </span>
               </div>
@@ -53,7 +53,7 @@ export default function Saved() {
               <p className="text-xs text-muted-foreground">by {item.provider}</p>
               <div className="flex items-center justify-between pt-2 border-t">
                 <p className="text-lg font-bold text-foreground">{item.price}</p>
-                <Button size="sm" className="bg-[hsl(263,70%,58%)] hover:bg-[hsl(263,70%,48%)]">View Offer</Button>
+                <Button size="sm" className="bg-primary hover:bg-primary/90">View Offer</Button>
               </div>
             </CardContent>
           </Card>

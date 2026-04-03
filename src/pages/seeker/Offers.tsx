@@ -13,13 +13,13 @@ const offers = [
 ];
 
 const statusStyles: Record<string, string> = {
-  New: "bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] border-[hsl(263,70%,58%)]/20",
+  New: "bg-primary/10 text-primary border-primary/20",
   Viewed: "bg-slate-100 text-slate-600 border-slate-200",
   Saved: "bg-amber-50 text-amber-600 border-amber-200",
 };
 
 const roleStyles: Record<string, string> = {
-  Agent: "bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)]",
+  Agent: "bg-primary/10 text-primary",
   Landlord: "bg-blue-500/10 text-blue-600",
   "Short-let": "bg-amber-500/10 text-amber-600",
 };
@@ -29,7 +29,7 @@ const matchColor = (m: number) => m >= 90 ? "text-emerald-600" : m >= 80 ? "text
 export default function Offers() {
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(263,70%,58%)] to-[hsl(263,70%,35%)] p-6 text-white">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/70 p-6 text-white">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
         <div className="relative">
           <h2 className="text-xl font-bold">Incoming Offers</h2>
@@ -48,7 +48,7 @@ export default function Offers() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex gap-3">
                       <Avatar className="h-11 w-11 border-2 border-background shadow-sm mt-0.5">
-                        <AvatarFallback className="text-xs bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] font-medium">
+                        <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">
                           {offer.initials}
                         </AvatarFallback>
                       </Avatar>
@@ -90,7 +90,7 @@ export default function Offers() {
                     </div>
                   </div>
                   <div className="flex gap-2 mt-4 pt-3 border-t">
-                    <Button size="sm" className="bg-[hsl(263,70%,58%)] hover:bg-[hsl(263,70%,48%)]">View Details</Button>
+                    <Button size="sm" className="bg-primary hover:bg-primary/90">View Details</Button>
                     <Button size="sm" variant="outline">Schedule Viewing</Button>
                     <Button size="sm" variant="ghost">Save</Button>
                   </div>

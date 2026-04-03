@@ -16,7 +16,7 @@ const activityLog = [
 ];
 
 const typeStyles: Record<string, string> = {
-  Property: "bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] border-[hsl(263,70%,58%)]/20",
+  Property: "bg-primary/10 text-primary border-primary/20",
   Moderation: "bg-red-500/10 text-red-600 border-red-500/20",
   Dispute: "bg-amber-500/10 text-amber-600 border-amber-500/20",
   Settings: "bg-blue-500/10 text-blue-600 border-blue-500/20",
@@ -27,7 +27,7 @@ export default function AdminSettings() {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(263,70%,58%)] to-[hsl(263,70%,35%)] p-6 text-white">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/70 p-6 text-white">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
         <div className="relative flex items-center gap-3">
           <div className="p-2.5 bg-white/10 rounded-xl">
@@ -51,13 +51,13 @@ export default function AdminSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-[hsl(263,70%,58%)]/20">
-              <AvatarFallback className="text-lg bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] font-semibold">AD</AvatarFallback>
+            <Avatar className="h-16 w-16 border-2 border-primary/20">
+              <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">AD</AvatarFallback>
             </Avatar>
             <div>
               <p className="font-semibold">Admin User</p>
               <p className="text-sm text-muted-foreground">admin@dwello.ng</p>
-              <Badge className="mt-1 bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] border-[hsl(263,70%,58%)]/20" variant="outline">Super Admin</Badge>
+              <Badge className="mt-1 bg-primary/10 text-primary border-primary/20" variant="outline">Super Admin</Badge>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4 pt-2">
@@ -70,7 +70,7 @@ export default function AdminSettings() {
               <Input defaultValue="admin@dwello.ng" />
             </div>
           </div>
-          <Button className="bg-[hsl(263,70%,58%)] hover:bg-[hsl(263,70%,48%)]">Save Changes</Button>
+          <Button className="bg-primary hover:bg-primary/90">Save Changes</Button>
         </CardContent>
       </Card>
 

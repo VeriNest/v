@@ -18,12 +18,12 @@ const statusStyles: Record<string, { color: string; bg: string; dot: string }> =
 };
 
 const typeStyles: Record<string, string> = {
-  Rent: "text-[hsl(263,70%,58%)]",
+  Rent: "text-primary",
   "Short-let": "text-amber-600",
 };
 
 const summaryCards = [
-  { label: "Total Earnings (MTD)", value: "₦3,643,250", icon: Wallet, color: "text-[hsl(263,70%,58%)]", bg: "bg-[hsl(263,70%,58%)]/10", progress: 72 },
+  { label: "Total Earnings (MTD)", value: "₦3,643,250", icon: Wallet, color: "text-primary", bg: "bg-primary/10", progress: 72 },
   { label: "In Escrow", value: "₦1,140,000", icon: Lock, color: "text-amber-600", bg: "bg-amber-500/10", progress: 31 },
   { label: "Platform Fees", value: "₦191,750", icon: Receipt, color: "text-slate-600", bg: "bg-slate-100", progress: 5 },
 ];
@@ -83,8 +83,8 @@ export default function Payouts() {
                     <TableCell className="font-mono text-xs text-muted-foreground">{p.id}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-[hsl(263,70%,58%)]/5 flex items-center justify-center">
-                          <Building2 className="h-3.5 w-3.5 text-[hsl(263,70%,58%)]" />
+                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                          <Building2 className="h-3.5 w-3.5 text-primary" />
                         </div>
                         <span className="font-medium text-sm">{p.property}</span>
                       </div>

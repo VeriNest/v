@@ -23,19 +23,19 @@ const verificationStyles: Record<string, { icon: typeof ShieldCheck; color: stri
 };
 
 const roleStyles: Record<string, string> = {
-  Agent: "bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] border-[hsl(263,70%,58%)]/20",
+  Agent: "bg-primary/10 text-primary border-primary/20",
   Landlord: "bg-blue-500/10 text-blue-600 border-blue-500/20",
   Tenant: "bg-slate-100 text-slate-600 border-slate-200",
 };
 
 const avatarColors: Record<string, string> = {
-  Agent: "bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)]",
+  Agent: "bg-primary/10 text-primary",
   Landlord: "bg-blue-500/10 text-blue-600",
   Tenant: "bg-slate-100 text-slate-600",
 };
 
 const summaryCards = [
-  { label: "Total Users", value: "18,392", sub: "+312 this month", color: "text-[hsl(263,70%,58%)]", bg: "bg-[hsl(263,70%,58%)]/10", progress: 85 },
+  { label: "Total Users", value: "18,392", sub: "+312 this month", color: "text-primary", bg: "bg-primary/10", progress: 85 },
   { label: "Verified", value: "14,208", sub: "77.2% verified", color: "text-emerald-600", bg: "bg-emerald-500/10", progress: 77 },
   { label: "Pending KYC", value: "2,847", sub: "6 urgent reviews", color: "text-amber-600", bg: "bg-amber-500/10", progress: 45 },
   { label: "Suspended", value: "142", sub: "3 new this week", color: "text-red-600", bg: "bg-red-500/10", progress: 8 },
@@ -49,7 +49,7 @@ export default function UsersPage() {
           <h2 className="text-2xl font-bold text-foreground">Users & Providers</h2>
           <p className="text-muted-foreground">Manage tenants, agents, and landlords</p>
         </div>
-        <Button className="bg-[hsl(263,70%,58%)] hover:bg-[hsl(263,70%,48%)] gap-2">
+        <Button className="bg-primary hover:bg-primary/90 gap-2">
           <UserPlus className="h-4 w-4" />
           Invite User
         </Button>

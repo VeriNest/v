@@ -21,13 +21,13 @@ const statusStyles: Record<string, { color: string; bg: string; dot: string }> =
 };
 
 const typeStyles: Record<string, string> = {
-  Rent: "text-[hsl(263,70%,58%)]",
+  Rent: "text-primary",
   Deposit: "text-amber-600",
   "Short-let": "text-blue-600",
 };
 
 const summaryCards = [
-  { label: "Total Volume (MTD)", value: "₦45,200,000", icon: Wallet, change: "+23.1%", up: true, color: "text-[hsl(263,70%,58%)]", bg: "bg-[hsl(263,70%,58%)]/10" },
+  { label: "Total Volume (MTD)", value: "₦45,200,000", icon: Wallet, change: "+23.1%", up: true, color: "text-primary", bg: "bg-primary/10" },
   { label: "In Escrow", value: "₦3,750,000", icon: Lock, change: "5 active", up: true, color: "text-amber-600", bg: "bg-amber-500/10" },
   { label: "Failed Transactions", value: "₦3,200,000", icon: XCircle, change: "-12% vs last month", up: false, color: "text-red-600", bg: "bg-red-500/10" },
 ];

@@ -13,14 +13,14 @@ const leads = [
 ];
 
 const typeStyles: Record<string, string> = {
-  Rent: "bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)]",
+  Rent: "bg-primary/10 text-primary",
   "Short-let": "bg-amber-500/10 text-amber-600",
 };
 
 export default function LeadInbox() {
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[hsl(263,70%,58%)] to-[hsl(263,70%,35%)] p-6 text-white">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/70 p-6 text-white">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
         <div className="relative flex items-center gap-3">
           <div className="p-2.5 bg-white/10 rounded-xl">
@@ -45,7 +45,7 @@ export default function LeadInbox() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex gap-3">
                       <Avatar className="h-10 w-10 border-2 border-background shadow-sm mt-0.5">
-                        <AvatarFallback className="text-xs bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] font-medium">
+                        <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">
                           {lead.initials}
                         </AvatarFallback>
                       </Avatar>
@@ -53,7 +53,7 @@ export default function LeadInbox() {
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-sm">{lead.need}</h3>
                           {lead.status === "New" && (
-                            <span className="bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] border border-[hsl(263,70%,58%)]/20 px-2 py-0.5 rounded-full text-xs font-medium">New</span>
+                            <span className="bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded-full text-xs font-medium">New</span>
                           )}
                         </div>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
@@ -85,7 +85,7 @@ export default function LeadInbox() {
                   <div className="flex gap-2 mt-4 pt-3 border-t">
                     {lead.status === "New" ? (
                       <>
-                        <Button size="sm" className="bg-[hsl(263,70%,58%)] hover:bg-[hsl(263,70%,48%)] gap-1">
+                        <Button size="sm" className="bg-primary hover:bg-primary/90 gap-1">
                           <Zap className="h-3.5 w-3.5" />
                           Send Offer
                         </Button>
