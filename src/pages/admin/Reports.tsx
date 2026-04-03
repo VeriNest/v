@@ -65,7 +65,7 @@ export default function AdminReports() {
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Reports & Analytics</h1>
           <p className="text-sm text-muted-foreground mt-1">Platform performance metrics and insights</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Select defaultValue="6months">
             <SelectTrigger className="w-[150px] h-9 text-sm">
               <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
