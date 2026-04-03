@@ -1,7 +1,18 @@
-import { ArrowRight, Bed, Bath } from "lucide-react";
+import { ArrowRight, Bed, Bath, Search, MapPin, Home, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
 
 const Hero = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [propertyType, setPropertyType] = useState("");
+  const [budget, setBudget] = useState("");
+
+  const handleSearch = () => {
+    console.log("Search:", { searchQuery, propertyType, budget });
+  };
+
   return (
     <section className="px-6 lg:px-16 xl:px-20 pt-28 pb-24 flex flex-col lg:flex-row items-center justify-center gap-16 bg-secondary/30 min-h-[calc(100vh-64px)]">
       {/* Left */}
@@ -20,13 +31,48 @@ const Hero = () => {
           Experience the future of real estate. Our proprietary AI curates the market's finest listings tailored specifically to your lifestyle, removing the noise from your property search.
         </p>
 
-        <div className="flex flex-wrap items-center gap-4 mb-8">
-          <Button className="rounded-lg px-7 py-6 text-sm font-medium gap-2">
-            Explore Properties <ArrowRight className="w-4 h-4" />
-          </Button>
-          <Button variant="outline" className="rounded-lg px-7 py-6 text-sm font-medium border-border text-foreground hover:bg-accent gap-2">
-            AI Property Hub
-          </Button>
+        {/* Search Bar */}
+        <div className="bg-card border border-border rounded-xl p-2 mb-8 shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="City, neighborhood, or address"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 border-0 bg-secondary/50 focus-visible:ring-1 h-11"
+              />
+            </div>
+            <Select value={propertyType} onValueChange={setPropertyType}>
+              <SelectTrigger className="w-full sm:w-[140px] border-0 bg-secondary/50 h-11">
+                <Home className="w-4 h-4 mr-1.5 text-muted-foreground" />
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="apartment">Apartment</SelectItem>
+                <SelectItem value="house">House</SelectItem>
+                <SelectItem value="villa">Villa</SelectItem>
+                <SelectItem value="studio">Studio</SelectItem>
+                <SelectItem value="condo">Condo</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={budget} onValueChange={setBudget}>
+              <SelectTrigger className="w-full sm:w-[150px] border-0 bg-secondary/50 h-11">
+                <DollarSign className="w-4 h-4 mr-1.5 text-muted-foreground" />
+                <SelectValue placeholder="Budget" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0-500">$0 – $500/mo</SelectItem>
+                <SelectItem value="500-1000">$500 – $1,000/mo</SelectItem>
+                <SelectItem value="1000-2000">$1,000 – $2,000/mo</SelectItem>
+                <SelectItem value="2000-5000">$2,000 – $5,000/mo</SelectItem>
+                <SelectItem value="5000+">$5,000+/mo</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleSearch} className="h-11 px-5 rounded-lg gap-2">
+              <Search className="w-4 h-4" /> Search
+            </Button>
+          </div>
         </div>
 
         {/* Social proof */}
