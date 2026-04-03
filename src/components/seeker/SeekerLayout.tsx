@@ -13,7 +13,7 @@ export default function SeekerLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-secondary/30">
+      <div className="min-h-screen flex w-full bg-secondary/30 overflow-x-hidden">
         <SeekerSidebar />
         <div className="flex-1 flex flex-col">
           <header className="h-14 sm:h-16 flex items-center border-b border-border/60 bg-background px-3 sm:px-6 gap-2 sm:gap-4 sticky top-0 z-10">

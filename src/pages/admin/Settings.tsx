@@ -250,7 +250,7 @@ export default function AdminSettings() {
                 <Button size="sm" className="gap-1.5 text-sm"><Users className="h-3.5 w-3.5" /> Invite Member</Button>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">

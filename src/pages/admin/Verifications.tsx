@@ -136,7 +136,7 @@ export default function AdminVerifications() {
 
         <TabsContent value="verified">
           <Card className="border border-border/60 shadow-sm">
-            <CardContent className="p-0">
+            <CardContent className="p-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
