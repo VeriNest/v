@@ -122,12 +122,42 @@ export default function Onboarding() {
             <div className="space-y-2">
               <p className="text-xs font-medium text-primary tracking-widest uppercase">Step 2 of 3</p>
               <h1 className="text-3xl font-bold text-foreground tracking-tight">
-                {role === "tenant" ? "Where are you looking?" : "Tell us a bit more"}
+                {role === "tenant" ? "Where are you looking?" : "Tell us about yourself"}
               </h1>
               <p className="text-muted-foreground text-sm">We'll use this to personalize your experience.</p>
             </div>
 
             <div className="space-y-5">
+              {/* Full Name */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Full name</label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="John Doe"
+                    className="pl-11 h-12 rounded-xl bg-muted/40 border-transparent focus:bg-background focus:border-primary/30 text-sm"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Email address</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    placeholder="john@example.com"
+                    className="pl-11 h-12 rounded-xl bg-muted/40 border-transparent focus:bg-background focus:border-primary/30 text-sm"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Phone */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">Phone number</label>
                 <div className="relative">
@@ -141,6 +171,7 @@ export default function Onboarding() {
                 </div>
               </div>
 
+              {/* City */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
                   {role === "tenant" ? "Preferred city" : "Where you operate"}
@@ -148,7 +179,7 @@ export default function Onboarding() {
                 <div className="relative">
                   <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="e.g. Lagos, Abuja"
+                    placeholder="e.g. Lagos, Abuja, Port Harcourt"
                     className="pl-11 h-12 rounded-xl bg-muted/40 border-transparent focus:bg-background focus:border-primary/30 text-sm"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
@@ -156,49 +187,178 @@ export default function Onboarding() {
                 </div>
               </div>
 
+              {/* ── Tenant-specific fields ── */}
+              {role === "tenant" && (
+                <>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">What type of accommodation?</label>
+                    <div className="flex flex-wrap gap-2">
+                      {["Rent", "Short-let", "Shared", "Serviced", "Not sure"].map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => setSelectedType(opt)}
+                          className={`px-4 h-9 rounded-full text-xs font-medium border-2 transition-all ${
+                            selectedType === opt
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-transparent bg-muted/40 text-muted-foreground hover:bg-primary/5 hover:text-primary"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Monthly budget range</label>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {["Under ₦200k", "₦200k–₦500k", "₦500k–₦1M", "₦1M+"].map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => setSelectedBudget(opt)}
+                          className={`h-11 rounded-xl text-xs font-medium border-2 transition-all ${
+                            selectedBudget === opt
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-transparent bg-muted/40 text-muted-foreground hover:bg-primary/5 hover:text-primary"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* ── Agent-specific fields ── */}
               {role === "agent" && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Agency name <span className="text-muted-foreground font-normal">(optional)</span></label>
-                  <div className="relative">
-                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="e.g. Prime Realtors Ltd"
-                      className="pl-11 h-12 rounded-xl bg-muted/40 border-transparent focus:bg-background focus:border-primary/30 text-sm"
+                <>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Agency / Company name <span className="text-muted-foreground font-normal">(optional)</span></label>
+                    <div className="relative">
+                      <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="e.g. Prime Realtors Ltd"
+                        className="pl-11 h-12 rounded-xl bg-muted/40 border-transparent focus:bg-background focus:border-primary/30 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Years of experience</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {["< 1 year", "1–3 years", "3–5 years", "5+ years"].map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => setExperience(opt)}
+                          className={`h-11 rounded-xl text-xs font-medium border-2 transition-all ${
+                            experience === opt
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-transparent bg-muted/40 text-muted-foreground hover:bg-primary/5 hover:text-primary"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Specialization</label>
+                    <div className="flex flex-wrap gap-2">
+                      {["Residential", "Commercial", "Short-let", "Land", "Luxury"].map((opt) => {
+                        const isSelected = selectedPropertyTypes.includes(opt);
+                        return (
+                          <button
+                            key={opt}
+                            onClick={() => setSelectedPropertyTypes(prev =>
+                              isSelected ? prev.filter(p => p !== opt) : [...prev, opt]
+                            )}
+                            className={`px-4 h-9 rounded-full text-xs font-medium border-2 transition-all ${
+                              isSelected
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-transparent bg-muted/40 text-muted-foreground hover:bg-primary/5 hover:text-primary"
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Short bio <span className="text-muted-foreground font-normal">(optional)</span></label>
+                    <Textarea
+                      placeholder="Tell potential clients about yourself and your services..."
+                      className="min-h-[80px] rounded-xl bg-muted/40 border-transparent focus:bg-background focus:border-primary/30 text-sm resize-none"
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
                     />
                   </div>
-                </div>
+                </>
               )}
 
+              {/* ── Landlord-specific fields ── */}
               {role === "landlord" && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">How many properties do you have?</label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {["1", "2–5", "6–10", "10+"].map((opt) => (
-                      <button
-                        key={opt}
-                        className="h-11 rounded-xl bg-muted/40 text-sm font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary border-2 border-transparent focus:border-primary transition-all"
-                      >
-                        {opt}
-                      </button>
-                    ))}
+                <>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">How many properties do you have?</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {["1", "2–5", "6–10", "10+"].map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => setSelectedPropertyCount(opt)}
+                          className={`h-11 rounded-xl text-sm font-medium border-2 transition-all ${
+                            selectedPropertyCount === opt
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-transparent bg-muted/40 text-muted-foreground hover:bg-primary/5 hover:text-primary"
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
 
-              {role === "tenant" && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">What type?</label>
-                  <div className="flex flex-wrap gap-2">
-                    {["Rent", "Short-let", "Shared", "Not sure"].map((opt) => (
-                      <button
-                        key={opt}
-                        className="px-4 h-9 rounded-full bg-muted/40 text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary border-2 border-transparent focus:border-primary transition-all"
-                      >
-                        {opt}
-                      </button>
-                    ))}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Property types</label>
+                    <div className="flex flex-wrap gap-2">
+                      {["Flat / Apartment", "Detached House", "Semi-detached", "Duplex", "Mini-flat", "Self-contain", "Commercial"].map((opt) => {
+                        const isSelected = selectedPropertyTypes.includes(opt);
+                        return (
+                          <button
+                            key={opt}
+                            onClick={() => setSelectedPropertyTypes(prev =>
+                              isSelected ? prev.filter(p => p !== opt) : [...prev, opt]
+                            )}
+                            className={`px-4 h-9 rounded-full text-xs font-medium border-2 transition-all ${
+                              isSelected
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-transparent bg-muted/40 text-muted-foreground hover:bg-primary/5 hover:text-primary"
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Do you currently have an agent?</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {["Yes", "No", "Looking for one"].map((opt) => (
+                        <button
+                          key={opt}
+                          className="h-11 rounded-xl bg-muted/40 text-xs font-medium text-muted-foreground hover:bg-primary/5 hover:text-primary border-2 border-transparent focus:border-primary transition-all"
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
               )}
             </div>
 
