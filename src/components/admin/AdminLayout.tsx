@@ -13,7 +13,7 @@ export default function AdminLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-secondary/30">
+      <div className="min-h-screen flex w-full bg-secondary/30 overflow-x-hidden">
         <div className="hidden md:block">
           <AdminSidebar />
         </div>
