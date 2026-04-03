@@ -53,14 +53,14 @@ export default function ProviderDashboard() {
       <KycAlertBanner variant="provider" />
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Welcome back, Provider</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">Welcome back, Provider</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Manage your leads, listings, and payouts.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="h-9 gap-2 text-sm">
-            <CalendarDays className="h-4 w-4" /> This Month
+            <CalendarDays className="h-4 w-4" /> <span className="hidden sm:inline">This</span> Month
           </Button>
           <Button size="sm" className="h-9 gap-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90" asChild>
             <Link to="/provider/listings/new"><Plus className="h-4 w-4" /> Add Listing</Link>
