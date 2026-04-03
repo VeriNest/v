@@ -93,7 +93,7 @@ const Hero = () => {
       </div>
 
       {/* Search bar — full width */}
-      <div className="max-w-4xl mx-auto w-full">
+      <div className="max-w-5xl mx-auto w-full">
         <div className="bg-card border border-border rounded-2xl p-3 shadow-md">
           <div className="flex flex-col sm:flex-row items-center gap-2">
             <div className="relative flex-1 w-full">
