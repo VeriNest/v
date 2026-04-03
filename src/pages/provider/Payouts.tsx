@@ -1,14 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Wallet, Lock, Receipt, Download, Building2 } from "lucide-react";
+import { Wallet, Lock, Receipt, Download, Building2, ArrowUpRight, Filter, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const payouts = [
-  { id: "PO-301", property: "3 Bed Flat, Lekki Phase 1", amount: "₦2,375,000", platformFee: "₦125,000", type: "Rent", status: "Released", date: "2024-03-15" },
-  { id: "PO-302", property: "2 Bed Serviced, VI", amount: "₦42,750", platformFee: "₦2,250", type: "Short-let", status: "Pending", date: "2024-03-18" },
-  { id: "PO-303", property: "Studio, Wuse 2", amount: "₦1,140,000", platformFee: "₦60,000", type: "Rent", status: "Escrow", date: "2024-03-20" },
-  { id: "PO-304", property: "2 Bed Serviced, VI", amount: "₦85,500", platformFee: "₦4,500", type: "Short-let", status: "Released", date: "2024-03-10" },
+  { id: "PO-301", property: "3 Bed Flat, Lekki Phase 1", amount: "₦2,375,000", platformFee: "₦125,000", type: "Rent", status: "Released", date: "Mar 15, 2024" },
+  { id: "PO-302", property: "2 Bed Serviced, VI", amount: "₦42,750", platformFee: "₦2,250", type: "Short-let", status: "Pending", date: "Mar 18, 2024" },
+  { id: "PO-303", property: "Studio, Wuse 2", amount: "₦1,140,000", platformFee: "₦60,000", type: "Rent", status: "Escrow", date: "Mar 20, 2024" },
+  { id: "PO-304", property: "2 Bed Serviced, VI", amount: "₦85,500", platformFee: "₦4,500", type: "Short-let", status: "Released", date: "Mar 10, 2024" },
 ];
 
 const statusStyles: Record<string, { color: string; bg: string; dot: string }> = {
@@ -17,97 +18,108 @@ const statusStyles: Record<string, { color: string; bg: string; dot: string }> =
   Escrow: { color: "text-amber-700", bg: "bg-amber-50 border-amber-200", dot: "bg-amber-500" },
 };
 
-const typeStyles: Record<string, string> = {
-  Rent: "text-primary",
-  "Short-let": "text-amber-600",
-};
-
-const summaryCards = [
-  { label: "Total Earnings (MTD)", value: "₦3,643,250", icon: Wallet, color: "text-primary", bg: "bg-primary/10", progress: 72 },
-  { label: "In Escrow", value: "₦1,140,000", icon: Lock, color: "text-amber-600", bg: "bg-amber-500/10", progress: 31 },
-  { label: "Platform Fees", value: "₦191,750", icon: Receipt, color: "text-slate-600", bg: "bg-slate-100", progress: 5 },
-];
+const typeStyles: Record<string, string> = { Rent: "text-primary", "Short-let": "text-amber-600" };
 
 export default function Payouts() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Payouts</h2>
-          <p className="text-muted-foreground">Track your earnings, platform fees, and payout status.</p>
+          <h1 className="text-2xl font-bold text-foreground">Payouts</h1>
+          <p className="text-sm text-muted-foreground mt-1">Track your earnings, platform fees, and payout status.</p>
         </div>
-        <Button variant="outline" className="gap-2">
-          <Download className="h-4 w-4" />
-          Export
-        </Button>
+        <Button variant="outline" size="sm" className="gap-2"><Download className="h-3.5 w-3.5" /> Export</Button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {summaryCards.map((c) => (
-          <Card key={c.label} className="border-0 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {[
+          { label: "Total Earnings (MTD)", value: "₦3,643,250", icon: Wallet, accent: "text-primary", bg: "bg-primary/10", change: "+23.1%" },
+          { label: "In Escrow", value: "₦1,140,000", icon: Lock, accent: "text-amber-600", bg: "bg-amber-500/10", change: "1 active" },
+          { label: "Platform Fees", value: "₦191,750", icon: Receipt, accent: "text-muted-foreground", bg: "bg-muted", change: "5% commission" },
+        ].map((c) => (
+          <Card key={c.label} className="border border-border/60 shadow-sm">
             <CardContent className="p-5">
-              <div className={`inline-flex p-2.5 rounded-xl ${c.bg} mb-3`}>
-                <c.icon className={`h-5 w-5 ${c.color}`} />
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground">{c.label}</p>
+                  <p className={`text-2xl font-bold mt-1 ${c.accent}`}>{c.value}</p>
+                  <div className="flex items-center gap-1 text-xs mt-1.5 text-emerald-600">
+                    <ArrowUpRight className="h-3 w-3" />{c.change}
+                  </div>
+                </div>
+                <div className={`p-2.5 rounded-xl ${c.bg}`}><c.icon className={`h-5 w-5 ${c.accent}`} /></div>
               </div>
-              <p className="text-sm text-muted-foreground">{c.label}</p>
-              <p className={`text-2xl font-bold mt-0.5 ${c.color}`}>{c.value}</p>
-              <Progress value={c.progress} className="h-1.5 mt-3" />
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card className="border-0 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Payout History</CardTitle>
-          <CardDescription>Your earnings and fee breakdown</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
-                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Property</TableHead>
-                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Your Share</TableHead>
-                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Platform Fee</TableHead>
-                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Type</TableHead>
-                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Status</TableHead>
-                <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {payouts.map((p) => {
-                const s = statusStyles[p.status];
-                return (
-                  <TableRow key={p.id} className="group">
-                    <TableCell className="font-mono text-xs text-muted-foreground">{p.id}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
-                          <Building2 className="h-3.5 w-3.5 text-primary" />
-                        </div>
-                        <span className="font-medium text-sm">{p.property}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-bold text-sm text-emerald-600">{p.amount}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{p.platformFee}</TableCell>
-                    <TableCell>
-                      <span className={`text-sm font-medium ${typeStyles[p.type]}`}>{p.type}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${s.bg} ${s.color}`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
-                        {p.status}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{p.date}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="all" className="space-y-4">
+        <TabsList className="bg-muted/50 p-1 h-auto">
+          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({payouts.length})</TabsTrigger>
+          <TabsTrigger value="released" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Released</TabsTrigger>
+          <TabsTrigger value="pending" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Pending/Escrow</TabsTrigger>
+        </TabsList>
+
+        {["all", "released", "pending"].map((tab) => {
+          const items = tab === "released" ? payouts.filter(p => p.status === "Released") : tab === "pending" ? payouts.filter(p => p.status !== "Released") : payouts;
+          return (
+            <TabsContent key={tab} value={tab}>
+              <Card className="border border-border/60 shadow-sm">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <div><CardTitle className="text-base">Payout History</CardTitle><CardDescription>Your earnings and fee breakdown</CardDescription></div>
+                    <div className="flex items-center gap-3">
+                      <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search..." className="pl-9 w-[200px] h-9" /></div>
+                      <Button variant="outline" size="sm" className="gap-1.5"><Filter className="h-3.5 w-3.5" /> Filter</Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">ID</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Property</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Your Share</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Fee</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Type</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Status</TableHead>
+                        <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {items.map((p) => {
+                        const s = statusStyles[p.status];
+                        return (
+                          <TableRow key={p.id}>
+                            <TableCell className="font-mono text-xs text-muted-foreground">{p.id}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center"><Building2 className="h-3.5 w-3.5 text-primary" /></div>
+                                <span className="font-medium text-sm text-foreground">{p.property}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-bold text-sm text-emerald-600">{p.amount}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{p.platformFee}</TableCell>
+                            <TableCell><span className={`text-sm font-medium ${typeStyles[p.type]}`}>{p.type}</span></TableCell>
+                            <TableCell>
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${s.bg} ${s.color}`}>
+                                <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />{p.status}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-sm">{p.date}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          );
+        })}
+      </Tabs>
     </div>
   );
 }

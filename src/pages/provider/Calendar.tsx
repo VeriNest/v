@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CalendarDays, ArrowRight } from "lucide-react";
+import { CalendarDays, ArrowRight, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const hours = Array.from({ length: 12 }, (_, i) => `${i + 8}:00`);
+const hours = Array.from({ length: 10 }, (_, i) => `${i + 8}:00`);
 
 const bookings = [
   { day: 0, startHour: 2, duration: 2, guest: "Emeka N.", property: "2 Bed Serviced, VI", status: "Confirmed" },
@@ -28,95 +29,113 @@ const statusStyles: Record<string, { color: string; bg: string; dot: string }> =
 export default function ProviderCalendar() {
   return (
     <div className="space-y-6">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/70 p-6 text-white">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
-        <div className="relative flex items-center gap-3">
-          <div className="p-2.5 bg-white/10 rounded-xl">
-            <CalendarDays className="h-5 w-5" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold">Short-let Calendar</h2>
-            <p className="text-white/70 text-sm">Manage your short-let availability and bookings.</p>
-          </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Calendar</h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage your short-let availability and bookings.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" className="h-8 w-8"><ChevronLeft className="h-4 w-4" /></Button>
+          <span className="text-sm font-medium text-foreground px-2">Mar 18 – 24, 2024</span>
+          <Button variant="outline" size="icon" className="h-8 w-8"><ChevronRight className="h-4 w-4" /></Button>
         </div>
       </div>
 
-      {/* Simple week grid */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">This Week — March 18-24, 2024</CardTitle>
-          <CardDescription>Click on a slot to block availability</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-8 gap-px bg-border rounded-xl overflow-hidden">
-            <div className="bg-muted/50 p-2.5 text-xs font-medium text-muted-foreground">Time</div>
-            {days.map((d) => (
-              <div key={d} className="bg-muted/50 p-2.5 text-xs font-medium text-center text-muted-foreground">{d}</div>
-            ))}
-            {hours.map((hour, hi) => (
-              <div key={`row-${hi}`} className="contents">
-                <div className="bg-background p-2.5 text-xs text-muted-foreground border-t">{hour}</div>
-                {days.map((_, di) => {
-                  const booking = bookings.find(b => b.day === di && b.startHour === hi);
-                  return (
-                    <div key={`${di}-${hi}`} className="bg-background border-t min-h-[44px] relative hover:bg-muted/30 transition-colors cursor-pointer">
-                      {booking && (
-                        <div
-                          className={`absolute inset-x-1 top-1 rounded-lg p-1.5 text-xs ${
-                            booking.status === "Confirmed"
-                              ? "bg-primary/10 text-primary border border-primary/20"
-                              : "bg-amber-50 text-amber-700 border border-amber-200"
-                          }`}
-                          style={{ height: `${booking.duration * 44 - 4}px`, zIndex: 1 }}
-                        >
-                          <p className="font-medium truncate">{booking.guest}</p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "This Week", value: "4", sub: "bookings", accent: "text-primary" },
+          { label: "Confirmed", value: "3", sub: "guests", accent: "text-emerald-600" },
+          { label: "Pending", value: "1", sub: "awaiting", accent: "text-amber-600" },
+          { label: "Revenue", value: "₦270K", sub: "this week", accent: "text-foreground" },
+        ].map((s) => (
+          <Card key={s.label} className="border border-border/60 shadow-sm">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground">{s.label}</p>
+              <p className={`text-xl font-bold mt-0.5 ${s.accent}`}>{s.value}</p>
+              <p className="text-[11px] text-muted-foreground">{s.sub}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-      {/* Upcoming list */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Upcoming Bookings</CardTitle>
-          <CardDescription>Your next scheduled short-let guests</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <Tabs defaultValue="week" className="space-y-4">
+        <TabsList className="bg-muted/50 p-1 h-auto">
+          <TabsTrigger value="week" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1.5">
+            <CalendarDays className="h-3.5 w-3.5" /> Week View
+          </TabsTrigger>
+          <TabsTrigger value="upcoming" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1.5">
+            <Clock className="h-3.5 w-3.5" /> Upcoming ({upcomingBookings.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="week">
+          <Card className="border border-border/60 shadow-sm">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-8 gap-px bg-border rounded-xl overflow-hidden">
+                <div className="bg-muted/50 p-2.5 text-xs font-medium text-muted-foreground">Time</div>
+                {days.map((d) => (
+                  <div key={d} className="bg-muted/50 p-2.5 text-xs font-medium text-center text-muted-foreground">{d}</div>
+                ))}
+                {hours.map((hour, hi) => (
+                  <div key={`row-${hi}`} className="contents">
+                    <div className="bg-background p-2.5 text-xs text-muted-foreground border-t border-border/60">{hour}</div>
+                    {days.map((_, di) => {
+                      const booking = bookings.find(b => b.day === di && b.startHour === hi);
+                      return (
+                        <div key={`${di}-${hi}`} className="bg-background border-t border-border/60 min-h-[40px] relative hover:bg-accent/30 transition-colors cursor-pointer">
+                          {booking && (
+                            <div
+                              className={`absolute inset-x-0.5 top-0.5 rounded-lg p-1.5 text-xs ${
+                                booking.status === "Confirmed"
+                                  ? "bg-primary/10 text-primary border border-primary/20"
+                                  : "bg-amber-50 text-amber-700 border border-amber-200"
+                              }`}
+                              style={{ height: `${booking.duration * 40 - 2}px`, zIndex: 1 }}
+                            >
+                              <p className="font-medium truncate text-[11px]">{booking.guest}</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="upcoming" className="space-y-3">
           {upcomingBookings.map((b) => {
             const s = statusStyles[b.status];
             return (
-              <div key={b.id} className="flex items-center justify-between p-4 rounded-xl border bg-background hover:shadow-md transition-all duration-200">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
-                    <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">
-                      {b.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-sm">{b.guest}</p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      {b.checkIn} <ArrowRight className="h-3 w-3" /> {b.checkOut}
-                    </p>
+              <Card key={b.id} className="border border-border/60 shadow-sm hover:shadow-md transition-all group">
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10 border border-border/60">
+                        <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">{b.initials}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium text-sm text-foreground">{b.guest}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                          {b.checkIn} <ArrowRight className="h-3 w-3" /> {b.checkOut} · {b.property}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${s.bg} ${s.color}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />{b.status}
+                      </span>
+                      <p className="font-bold text-sm text-foreground">{b.amount}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${s.bg} ${s.color}`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
-                    {b.status}
-                  </span>
-                  <p className="font-bold text-sm">{b.amount}</p>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             );
           })}
-        </CardContent>
-      </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
