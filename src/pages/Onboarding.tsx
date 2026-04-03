@@ -1,45 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Home, Search, User, Building2, ArrowRight, CheckCircle2,
-  MapPin, Phone, Briefcase, Shield, Sparkles
+  Home, Search, Building2, ArrowRight, CheckCircle2,
+  MapPin, Phone, Briefcase, Shield, Sparkles, ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 
 type Role = "tenant" | "agent" | "landlord";
 
-const roleCards: { value: Role; icon: typeof Search; label: string; desc: string; features: string[] }[] = [
-  {
-    value: "tenant",
-    icon: Search,
-    label: "I'm looking for a home",
-    desc: "Find apartments, short-lets, or shared spaces",
-    features: ["Post what you need", "Get matched with agents", "Secure escrow payments"],
-  },
-  {
-    value: "agent",
-    icon: Briefcase,
-    label: "I'm a property agent",
-    desc: "List and manage properties for your clients",
-    features: ["Manage multiple listings", "Respond to tenant needs", "Track payouts & leads"],
-  },
-  {
-    value: "landlord",
-    icon: Building2,
-    label: "I own properties",
-    desc: "List and rent out your own properties",
-    features: ["Direct tenant matching", "Manage your portfolio", "Secure rental income"],
-  },
-];
-
-const steps = [
-  { id: 1, label: "Your role" },
-  { id: 2, label: "Profile" },
-  { id: 3, label: "Ready" },
+const roleCards: { value: Role; emoji: string; label: string; desc: string }[] = [
+  { value: "tenant", emoji: "🏠", label: "Find a home", desc: "Browse listings, post needs, and get matched with verified agents." },
+  { value: "agent", emoji: "💼", label: "I'm an agent", desc: "List properties, manage leads, and grow your rental business." },
+  { value: "landlord", emoji: "🏢", label: "I own property", desc: "List your properties directly and connect with quality tenants." },
 ];
 
 export default function Onboarding() {
@@ -49,8 +22,6 @@ export default function Onboarding() {
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
 
-  const progress = (step / steps.length) * 100;
-
   const handleComplete = () => {
     if (role) {
       localStorage.setItem("dwello_role", role);
@@ -59,236 +30,212 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-secondary/30 flex flex-col">
-      {/* Header */}
-      <header className="h-16 flex items-center justify-between px-6 border-b border-border/60 bg-background">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <Home className="w-4 h-4 text-primary-foreground" />
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Minimal top bar */}
+      <div className="px-6 py-5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
+            <Home className="w-3.5 h-3.5 text-primary-foreground" />
           </div>
-          <span className="text-lg font-bold text-foreground">Dwello</span>
+          <span className="text-base font-semibold text-foreground">Dwello</span>
         </div>
-        <div className="flex items-center gap-3">
-          {steps.map((s) => (
-            <div key={s.id} className="flex items-center gap-1.5">
-              <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-colors ${
-                s.id < step ? "bg-emerald-500 text-white" :
-                s.id === step ? "bg-primary text-primary-foreground" :
-                "bg-muted text-muted-foreground"
-              }`}>
-                {s.id < step ? <CheckCircle2 className="h-3.5 w-3.5" /> : s.id}
-              </div>
-              <span className={`text-xs font-medium hidden sm:inline ${s.id === step ? "text-foreground" : "text-muted-foreground"}`}>
-                {s.label}
-              </span>
-              {s.id < steps.length && <div className="w-8 h-px bg-border hidden sm:block" />}
+        {step > 1 && (
+          <button onClick={() => setStep(s => s - 1)} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            ← Back
+          </button>
+        )}
+      </div>
+
+      {/* Step indicator - minimal dots */}
+      <div className="flex justify-center gap-1.5 pb-2">
+        {[1, 2, 3].map(s => (
+          <div key={s} className={`h-1 rounded-full transition-all duration-500 ${
+            s === step ? "w-8 bg-primary" : s < step ? "w-4 bg-primary/40" : "w-4 bg-border"
+          }`} />
+        ))}
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 flex items-center justify-center px-4 pb-12">
+        {/* Step 1: Role */}
+        {step === 1 && (
+          <div className="w-full max-w-lg space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-primary tracking-widest uppercase">Step 1 of 3</p>
+              <h1 className="text-3xl font-bold text-foreground tracking-tight">What brings you here?</h1>
+              <p className="text-muted-foreground text-sm">Pick the one that best describes you.</p>
             </div>
-          ))}
-        </div>
-      </header>
 
-      {/* Progress */}
-      <Progress value={progress} className="h-1 rounded-none" />
+            <div className="space-y-3">
+              {roleCards.map((r) => {
+                const selected = role === r.value;
+                return (
+                  <button
+                    key={r.value}
+                    onClick={() => setRole(r.value)}
+                    className={`w-full group flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-200 ${
+                      selected
+                        ? "border-primary bg-primary/[0.04] shadow-[0_0_0_4px_hsl(var(--primary)/0.08)]"
+                        : "border-transparent bg-muted/40 hover:bg-muted/70"
+                    }`}
+                  >
+                    <span className="text-2xl shrink-0">{r.emoji}</span>
+                    <div className="flex-1">
+                      <p className={`text-[15px] font-semibold ${selected ? "text-foreground" : "text-foreground/80"}`}>{r.label}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{r.desc}</p>
+                    </div>
+                    <div className={`h-5 w-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-all ${
+                      selected ? "border-primary bg-primary" : "border-border"
+                    }`}>
+                      {selected && <CheckCircle2 className="h-3 w-3 text-primary-foreground" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
 
-      {/* Content */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-2xl">
-          {/* Step 1: Role Selection */}
-          {step === 1 && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h1 className="text-2xl font-bold text-foreground">How will you use Dwello?</h1>
-                <p className="text-sm text-muted-foreground mt-1.5">Choose your role to personalize your experience. You can change this later.</p>
+            <Button
+              onClick={() => setStep(2)}
+              disabled={!role}
+              className="w-full h-12 rounded-xl text-sm font-semibold gap-2"
+            >
+              Continue <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* Step 2: Profile */}
+        {step === 2 && (
+          <div className="w-full max-w-lg space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-primary tracking-widest uppercase">Step 2 of 3</p>
+              <h1 className="text-3xl font-bold text-foreground tracking-tight">
+                {role === "tenant" ? "Where are you looking?" : "Tell us a bit more"}
+              </h1>
+              <p className="text-muted-foreground text-sm">We'll use this to personalize your experience.</p>
+            </div>
+
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Phone number</label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="+234 801 234 5678"
+                    className="pl-11 h-12 rounded-xl bg-muted/40 border-transparent focus:bg-background focus:border-primary/30 text-sm"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
               </div>
 
-              <div className="space-y-3">
-                {roleCards.map((r) => {
-                  const Icon = r.icon;
-                  const isSelected = role === r.value;
-                  return (
-                    <button
-                      key={r.value}
-                      onClick={() => setRole(r.value)}
-                      className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-200 ${
-                        isSelected
-                          ? "border-primary bg-primary/5 shadow-md"
-                          : "border-border/60 bg-background hover:border-primary/30 hover:shadow-sm"
-                      }`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                          isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                        }`}>
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className={`font-semibold text-sm ${isSelected ? "text-primary" : "text-foreground"}`}>{r.label}</p>
-                            {isSelected && (
-                              <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                                <CheckCircle2 className="h-3.5 w-3.5 text-primary-foreground" />
-                              </div>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">{r.desc}</p>
-                          <div className="flex flex-wrap gap-1.5 mt-2.5">
-                            {r.features.map((f) => (
-                              <Badge key={f} variant="outline" className="text-[10px] px-2 py-0.5 font-normal text-muted-foreground">{f}</Badge>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  {role === "tenant" ? "Preferred city" : "Where you operate"}
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="e.g. Lagos, Abuja"
+                    className="pl-11 h-12 rounded-xl bg-muted/40 border-transparent focus:bg-background focus:border-primary/30 text-sm"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  />
+                </div>
               </div>
 
-              <Button
-                onClick={() => setStep(2)}
-                disabled={!role}
-                className="w-full h-11 rounded-lg font-medium gap-2"
-              >
+              {role === "agent" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Agency name <span className="text-muted-foreground font-normal">(optional)</span></label>
+                  <div className="relative">
+                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="e.g. Prime Realtors Ltd"
+                      className="pl-11 h-12 rounded-xl bg-muted/40 border-transparent focus:bg-background focus:border-primary/30 text-sm"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {role === "landlord" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">How many properties do you have?</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {["1", "2–5", "6–10", "10+"].map((opt) => (
+                      <button
+                        key={opt}
+                        className="h-11 rounded-xl bg-muted/40 text-sm font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary border-2 border-transparent focus:border-primary transition-all"
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {role === "tenant" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">What type?</label>
+                  <div className="flex flex-wrap gap-2">
+                    {["Rent", "Short-let", "Shared", "Not sure"].map((opt) => (
+                      <button
+                        key={opt}
+                        className="px-4 h-9 rounded-full bg-muted/40 text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary border-2 border-transparent focus:border-primary transition-all"
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <Button onClick={() => setStep(3)} className="w-full h-12 rounded-xl text-sm font-semibold gap-2">
                 Continue <ArrowRight className="h-4 w-4" />
               </Button>
-            </div>
-          )}
-
-          {/* Step 2: Profile Details */}
-          {step === 2 && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <h1 className="text-2xl font-bold text-foreground">
-                  {role === "tenant" ? "A few details to find your ideal home" :
-                   role === "agent" ? "Set up your agent profile" :
-                   "Tell us about your properties"}
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1.5">This helps us match you with the right {role === "tenant" ? "agents and listings" : "tenants and opportunities"}</p>
-              </div>
-
-              <Card className="border border-border/60 shadow-sm">
-                <CardContent className="p-6 space-y-4">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground">Phone Number</label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="+234 801 234 5678"
-                        className="pl-9 h-11 rounded-lg"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-foreground">
-                      {role === "tenant" ? "Where are you looking?" : "Primary City"}
-                    </label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="e.g. Lagos, Abuja, Port Harcourt"
-                        className="pl-9 h-11 rounded-lg"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  {role === "agent" && (
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-foreground">Company / Agency Name</label>
-                      <div className="relative">
-                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="e.g. Prime Realtors Ltd" className="pl-9 h-11 rounded-lg" />
-                      </div>
-                    </div>
-                  )}
-
-                  {role === "landlord" && (
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-foreground">Number of Properties</label>
-                      <div className="flex flex-wrap gap-2">
-                        {["1", "2-5", "6-10", "10+"].map((opt) => (
-                          <button
-                            key={opt}
-                            className="px-4 py-2 rounded-lg border border-border/60 text-sm font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground transition-colors"
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {role === "tenant" && (
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-foreground">What are you looking for?</label>
-                      <div className="flex flex-wrap gap-2">
-                        {["Rent (long-term)", "Short-let", "Shared space", "Not sure yet"].map((opt) => (
-                          <button
-                            key={opt}
-                            className="px-3 py-1.5 rounded-lg border border-border/60 text-xs font-medium text-muted-foreground hover:border-primary/30 hover:text-foreground transition-colors"
-                          >
-                            {opt}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <div className="flex items-center gap-3">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1 h-11 rounded-lg">
-                  Back
-                </Button>
-                <Button onClick={() => setStep(3)} className="flex-1 h-11 rounded-lg font-medium gap-2">
-                  Continue <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <button onClick={() => setStep(3)} className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={() => setStep(3)} className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors py-1">
                 Skip for now
               </button>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Step 3: Welcome / Ready */}
-          {step === 3 && (
-            <div className="text-center space-y-6">
-              <div className="w-20 h-20 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto">
-                <Sparkles className="w-10 h-10 text-emerald-500" />
+        {/* Step 3: Done */}
+        {step === 3 && (
+          <div className="w-full max-w-md text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="relative mx-auto w-24 h-24">
+              <div className="absolute inset-0 bg-primary/10 rounded-3xl rotate-6" />
+              <div className="absolute inset-0 bg-primary/5 rounded-3xl -rotate-3" />
+              <div className="relative h-full w-full bg-background rounded-3xl border border-border/60 flex items-center justify-center shadow-sm">
+                <Sparkles className="w-10 h-10 text-primary" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold text-foreground tracking-tight">You're in!</h1>
+              <p className="text-muted-foreground text-sm max-w-xs mx-auto leading-relaxed">
+                {role === "tenant"
+                  ? "Start exploring properties or post what you need — verified agents will come to you."
+                  : "Your dashboard is ready. List your first property and start connecting with tenants."}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-muted/40 text-left max-w-sm mx-auto">
+              <div className="h-10 w-10 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <Shield className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">You're all set!</h1>
-                <p className="text-sm text-muted-foreground mt-1.5 max-w-md mx-auto">
-                  {role === "tenant"
-                    ? "Your personalized dashboard is ready. Start posting what you need and let verified agents come to you."
-                    : "Your provider dashboard is ready. Start listing properties and connecting with tenants looking for homes."}
-                </p>
+                <p className="text-sm font-medium text-foreground">Protected by escrow</p>
+                <p className="text-[11px] text-muted-foreground">Every transaction is secured. Your money is safe.</p>
               </div>
-
-              <Card className="border border-border/60 shadow-sm max-w-sm mx-auto">
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-3 text-left">
-                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <Shield className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Secure by default</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">All payments are protected by escrow. Your data is encrypted and never shared.</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Button onClick={handleComplete} className="h-11 px-8 rounded-lg font-medium gap-2">
-                Go to Dashboard <ArrowRight className="h-4 w-4" />
-              </Button>
             </div>
-          )}
-        </div>
+
+            <Button onClick={handleComplete} className="h-12 px-10 rounded-xl text-sm font-semibold gap-2">
+              Go to dashboard <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
