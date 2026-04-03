@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, Users, CreditCard, AlertTriangle, Home, LogOut, Settings, ChevronLeft } from "lucide-react";
+import { LayoutDashboard, Building2, Users, CreditCard, AlertTriangle, Home, LogOut, Settings, ChevronLeft, BarChart3, ShieldCheck, Megaphone } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
