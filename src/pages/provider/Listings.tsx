@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { Search, Plus, MoreHorizontal, Building2, MapPin, Eye, Inbox, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AddListingSheet } from "@/components/provider/AddListingSheet";
 
-const listings = [
+const initialListings = [
   { id: "L-001", title: "3 Bedroom Flat, Lekki Phase 1", type: "Rent", price: "₦2,500,000/yr", location: "Lagos", status: "Active", views: 45, offers: 3 },
   { id: "L-002", title: "Studio Apartment, Wuse 2", type: "Rent", price: "₦1,200,000/yr", location: "Abuja", status: "Active", views: 32, offers: 2 },
   { id: "L-003", title: "2 Bed Serviced Apartment, VI", type: "Short-let", price: "₦45,000/night", location: "Lagos", status: "Active", views: 89, offers: 7 },
@@ -22,9 +24,12 @@ const statusStyles: Record<string, { color: string; bg: string; dot: string }> =
 const typeStyles: Record<string, string> = {
   Rent: "text-primary",
   "Short-let": "text-amber-600",
+  Sale: "text-blue-600",
 };
 
 export default function Listings() {
+  const [listings, setListings] = useState(initialListings);
+  const [addOpen, setAddOpen] = useState(false);
   const active = listings.filter(l => l.status === "Active");
 
   return (
@@ -34,15 +39,17 @@ export default function Listings() {
           <h1 className="text-2xl font-bold text-foreground">My Listings</h1>
           <p className="text-sm text-muted-foreground mt-1">Manage your property listings and track performance.</p>
         </div>
-        <Button className="gap-2" size="sm"><Plus className="h-4 w-4" /> Add Listing</Button>
+        <Button className="gap-2" size="sm" onClick={() => setAddOpen(true)}>
+          <Plus className="h-4 w-4" /> Add Listing
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Total Listings", value: listings.length.toString(), accent: "text-foreground", icon: Building2, bg: "bg-primary/10" },
           { label: "Active", value: active.length.toString(), accent: "text-emerald-600", icon: Building2, bg: "bg-emerald-500/10" },
-          { label: "Total Views", value: "178", accent: "text-blue-600", icon: Eye, bg: "bg-blue-500/10" },
-          { label: "Offers Received", value: "12", accent: "text-primary", icon: Inbox, bg: "bg-primary/10" },
+          { label: "Total Views", value: listings.reduce((a, l) => a + l.views, 0).toString(), accent: "text-blue-600", icon: Eye, bg: "bg-blue-500/10" },
+          { label: "Offers Received", value: listings.reduce((a, l) => a + l.offers, 0).toString(), accent: "text-primary", icon: Inbox, bg: "bg-primary/10" },
         ].map((s) => (
           <Card key={s.label} className="border border-border/60 shadow-sm">
             <CardContent className="p-4 flex items-start gap-3">
@@ -99,7 +106,7 @@ export default function Listings() {
                     </TableHeader>
                     <TableBody>
                       {items.map((l) => {
-                        const s = statusStyles[l.status];
+                        const s = statusStyles[l.status] || statusStyles.Draft;
                         return (
                           <TableRow key={l.id} className="group">
                             <TableCell>
@@ -110,7 +117,7 @@ export default function Listings() {
                                 <span className="font-medium text-sm text-foreground">{l.title}</span>
                               </div>
                             </TableCell>
-                            <TableCell><span className={`text-sm font-medium ${typeStyles[l.type]}`}>{l.type}</span></TableCell>
+                            <TableCell><span className={`text-sm font-medium ${typeStyles[l.type] || "text-foreground"}`}>{l.type}</span></TableCell>
                             <TableCell className="font-semibold text-sm text-foreground">{l.price}</TableCell>
                             <TableCell><div className="flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{l.location}</div></TableCell>
                             <TableCell>
@@ -132,6 +139,12 @@ export default function Listings() {
           );
         })}
       </Tabs>
+
+      <AddListingSheet
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        onListingAdded={(listing) => setListings(prev => [listing, ...prev])}
+      />
     </div>
   );
 }
