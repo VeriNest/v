@@ -44,12 +44,12 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Users & Providers</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Users & Providers</h1>
           <p className="text-sm text-muted-foreground mt-1">Manage tenants, agents, and landlords on the platform.</p>
         </div>
-        <Button size="sm" className="gap-2"><UserPlus className="h-4 w-4" /> Invite User</Button>
+        <Button size="sm" className="gap-2 self-start"><UserPlus className="h-4 w-4" /> Invite User</Button>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -87,12 +87,12 @@ export default function UsersPage() {
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div><CardTitle className="text-base">Users</CardTitle><CardDescription>Showing {items.length} users</CardDescription></div>
                     <div className="flex items-center gap-3">
-                      <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search users..." className="pl-9 w-[220px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
-                      <Button variant="outline" size="sm" className="gap-1.5"><Filter className="h-3.5 w-3.5" /> Filter</Button>
+                      <div className="relative flex-1 sm:flex-none"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search users..." className="pl-9 w-full sm:w-[220px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
+                      <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> Filter</Button>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0 overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">

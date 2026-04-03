@@ -32,14 +32,14 @@ export default function Bookings() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Bookings</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Bookings</h1>
           <p className="text-sm text-muted-foreground mt-1">Track your active bookings, escrow payments, and history.</p>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search bookings..." className="pl-9 w-[220px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder="Search bookings..." className="pl-9 w-full sm:w-[220px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
       </div>
 
@@ -78,11 +78,11 @@ export default function Bookings() {
                 const StatusIcon = cfg.icon;
                 return (
                   <Card key={b.id} className="border border-border/60 shadow-sm hover:shadow-md transition-all group">
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex gap-4 min-w-0">
-                          <div className="h-12 w-12 rounded-xl bg-primary/5 flex items-center justify-center shrink-0">
-                            <Building2 className="h-5 w-5 text-primary" />
+                    <CardContent className="p-4 sm:p-5">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div className="flex gap-3 min-w-0">
+                          <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-primary/5 flex items-center justify-center shrink-0">
+                            <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                           </div>
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -93,7 +93,7 @@ export default function Bookings() {
                               </Badge>
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">by {b.provider}</p>
-                            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
                               <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{b.stage}</span>
                               <span>{b.date}</span>
                               {b.daysLeft > 0 && (
@@ -102,10 +102,10 @@ export default function Bookings() {
                             </div>
                           </div>
                         </div>
-                        <div className="text-right shrink-0">
+                        <div className="text-left sm:text-right shrink-0 ml-13 sm:ml-0">
                           <p className="text-base font-bold text-foreground">{b.amount}</p>
                           <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{b.id}</p>
-                          <Button variant="outline" size="sm" className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                          <Button variant="outline" size="sm" className="mt-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity gap-1">
                             <Eye className="h-3 w-3" /> View
                           </Button>
                         </div>

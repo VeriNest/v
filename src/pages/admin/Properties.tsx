@@ -33,12 +33,12 @@ export default function Properties() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Properties</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Properties</h1>
           <p className="text-sm text-muted-foreground mt-1">Manage all property listings across the platform.</p>
         </div>
-        <Button size="sm" className="gap-2"><Plus className="h-4 w-4" /> Add Property</Button>
+        <Button size="sm" className="gap-2 self-start"><Plus className="h-4 w-4" /> Add Property</Button>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -79,7 +79,7 @@ export default function Properties() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0 overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">

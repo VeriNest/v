@@ -73,7 +73,7 @@ export default function SeekerSettings() {
 
       {/* Tabs */}
       <Tabs defaultValue="general" className="space-y-4">
-        <TabsList className="bg-muted/50 p-1 h-auto">
+        <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
           <TabsTrigger value="general" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">General</TabsTrigger>
           <TabsTrigger value="preferences" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Preferences</TabsTrigger>
           <TabsTrigger value="notifications" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Notifications</TabsTrigger>
@@ -180,9 +180,9 @@ export default function SeekerSettings() {
               <div className="flex items-center gap-2"><Trash2 className="h-4 w-4 text-destructive" /><CardTitle className="text-base text-destructive">Danger Zone</CardTitle></div>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5 gap-3">
                 <div><p className="font-medium text-sm text-foreground">Delete Account</p><p className="text-xs text-muted-foreground">Permanently delete your account and all data.</p></div>
-                <Button variant="destructive" size="sm">Delete Account</Button>
+                <Button variant="destructive" size="sm" className="shrink-0">Delete Account</Button>
               </div>
             </CardContent>
           </Card>
@@ -196,24 +196,26 @@ export default function SeekerSettings() {
               <CardDescription>Your recent actions on the platform</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Action</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Type</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Time</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {activityLog.map((item, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="text-sm font-medium text-foreground">{item.action}</TableCell>
-                      <TableCell><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${typeStyles[item.type]}`}>{item.type}</span></TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{item.time}</TableCell>
+              <div className="overflow-x-auto -mx-6 px-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Action</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Type</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Time</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {activityLog.map((item, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="text-sm font-medium text-foreground whitespace-nowrap">{item.action}</TableCell>
+                        <TableCell><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${typeStyles[item.type]}`}>{item.type}</span></TableCell>
+                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{item.time}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

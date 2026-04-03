@@ -30,12 +30,12 @@ const typeStyles: Record<string, string> = {
 export default function Transactions() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Transactions</h1>
           <p className="text-sm text-muted-foreground mt-1">Payment reconciliation, escrow & payout tracking.</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-2"><Download className="h-3.5 w-3.5" /> Export CSV</Button>
+        <Button variant="outline" size="sm" className="gap-2 self-start"><Download className="h-3.5 w-3.5" /> Export CSV</Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -86,7 +86,7 @@ export default function Transactions() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0 overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">

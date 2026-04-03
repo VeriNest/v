@@ -49,12 +49,12 @@ export default function Listings() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">My Listings</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">My Listings</h1>
           <p className="text-sm text-muted-foreground mt-1">Manage your property listings and track performance.</p>
         </div>
-        <Button className="gap-2" size="sm" onClick={() => navigate("/provider/listings/new")}>
+        <Button className="gap-2 self-start" size="sm" onClick={() => navigate("/provider/listings/new")}>
           <Plus className="h-4 w-4" /> Add Listing
         </Button>
       </div>
@@ -85,16 +85,16 @@ export default function Listings() {
             <TabsTrigger value="active" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Active ({active.length})</TabsTrigger>
             <TabsTrigger value="other" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Pending/Draft</TabsTrigger>
           </TabsList>
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search listings..." className="pl-9 w-[200px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <Input placeholder="Search listings..." className="pl-9 w-full sm:w-[200px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
               <Button variant={view === "grid" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("grid")}><Grid3x3 className="h-4 w-4" /></Button>
               <Button variant={view === "table" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("table")}><List className="h-4 w-4" /></Button>
             </div>
-            <Button variant="outline" size="sm" className="gap-1.5"><Filter className="h-3.5 w-3.5" /> Filter</Button>
+            <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> Filter</Button>
           </div>
         </div>
 
@@ -167,7 +167,7 @@ export default function Listings() {
                   <CardHeader className="pb-3">
                     <div><CardTitle className="text-base">Listings</CardTitle><CardDescription>Showing {items.length} listings</CardDescription></div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-0 overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow className="hover:bg-transparent">

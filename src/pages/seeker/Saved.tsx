@@ -21,15 +21,15 @@ export default function Saved() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Saved Properties</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Saved Properties</h1>
           <p className="text-sm text-muted-foreground mt-1">{filtered.length} properties bookmarked</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search saved..." className="pl-9 w-[180px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input placeholder="Search saved..." className="pl-9 w-full sm:w-[180px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
             <Button variant={view === "grid" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("grid")}><Grid3x3 className="h-4 w-4" /></Button>
@@ -94,21 +94,21 @@ export default function Saved() {
       ) : (
         <div className="space-y-3">
           {filtered.map((item) => (
-            <div key={item.id} className="flex bg-card border border-border/60 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group">
-              <div className="relative w-40 h-32 shrink-0">
+            <div key={item.id} className="flex flex-col sm:flex-row bg-card border border-border/60 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group">
+              <div className="relative w-full sm:w-40 h-48 sm:h-32 shrink-0">
                 <img src={item.image} alt={item.property} className="w-full h-full object-cover" />
                 <button className="absolute top-2 right-2 w-7 h-7 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center">
                   <Heart className="w-3 h-3 text-destructive fill-destructive" />
                 </button>
               </div>
-              <div className="flex-1 p-4 flex items-center justify-between gap-4">
+              <div className="flex-1 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-sm text-foreground truncate">{item.property}</h3>
                     <span className="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded font-mono shrink-0">{item.match}%</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><MapPin className="h-3 w-3" /> {item.location}</p>
-                  <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
                     <span className="flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {item.rating}</span>
                     <span>{item.provider}</span>
                     <span className="flex items-center gap-1"><Bed className="h-3 w-3" /> {item.beds}</span>
@@ -116,7 +116,7 @@ export default function Saved() {
                     <span>{item.views} views</span>
                   </div>
                 </div>
-                <div className="text-right shrink-0 flex flex-col items-end gap-2">
+                <div className="flex sm:flex-col items-center sm:items-end gap-2 shrink-0">
                   <p className="text-sm font-bold text-foreground">{item.price}</p>
                   <p className="text-[11px] text-muted-foreground">{item.savedDate}</p>
                   <Button size="sm" variant="outline" className="h-7 text-xs gap-1"><ExternalLink className="h-3 w-3" /> View</Button>

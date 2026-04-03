@@ -34,17 +34,17 @@ export default function Offers() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">My Offers</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">My Offers</h1>
           <p className="text-sm text-muted-foreground mt-1">Offers matched to your posted needs, ranked by fit & trust.</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search offers..." className="pl-9 w-[200px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input placeholder="Search offers..." className="pl-9 w-full sm:w-[200px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
-          <Button variant="outline" size="sm" className="gap-1.5">
+          <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
             <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
           </Button>
         </div>
@@ -99,8 +99,8 @@ function OfferCard({ offer }: { offer: typeof offers[0] }) {
       <CardContent className="p-0">
         <div className="flex">
           <div className={`w-1 shrink-0 rounded-l-lg ${matchBg(offer.match)}`} />
-          <div className="flex-1 p-5">
-            <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div className="flex gap-3 min-w-0">
                 <Avatar className="h-10 w-10 border border-border/60 shrink-0">
                   <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">{offer.initials}</AvatarFallback>
@@ -127,23 +127,23 @@ function OfferCard({ offer }: { offer: typeof offers[0] }) {
                   </div>
                 </div>
               </div>
-              <div className="text-right space-y-1 shrink-0">
+              <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1 ml-13 sm:ml-0 shrink-0">
                 <p className="text-base font-bold text-foreground">{offer.price}</p>
-                <div className="flex items-center gap-1 justify-end text-xs">
+                <div className="flex items-center gap-1 text-xs">
                   <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                   <span className="font-medium text-foreground">{offer.rating}</span>
                 </div>
-                <p className={`text-xs font-semibold ${matchColor(offer.match)} flex items-center gap-0.5 justify-end`}>
+                <p className={`text-xs font-semibold ${matchColor(offer.match)} flex items-center gap-0.5`}>
                   <ArrowUpRight className="h-3 w-3" />{offer.match}%
                 </p>
-                <p className="text-[11px] text-muted-foreground flex items-center gap-0.5 justify-end"><Zap className="h-3 w-3" />{offer.responseTime}</p>
+                <p className="text-[11px] text-muted-foreground flex items-center gap-0.5"><Zap className="h-3 w-3" />{offer.responseTime}</p>
               </div>
             </div>
-            <div className="flex gap-2 mt-4 pt-3 border-t border-border/60">
+            <div className="flex gap-2 mt-4 pt-3 border-t border-border/60 flex-wrap">
               <Button size="sm">View Details</Button>
               <Button size="sm" variant="outline">Schedule Viewing</Button>
-              <Button size="sm" variant="ghost" className="text-xs text-muted-foreground">View Original Request</Button>
-              <Button size="sm" variant="ghost" className="ml-auto text-muted-foreground">Save</Button>
+              <Button size="sm" variant="ghost" className="text-xs text-muted-foreground hidden sm:inline-flex">View Original Request</Button>
+              <Button size="sm" variant="ghost" className="sm:ml-auto text-muted-foreground">Save</Button>
             </div>
           </div>
         </div>
