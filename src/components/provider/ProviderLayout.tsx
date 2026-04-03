@@ -9,30 +9,28 @@ import { Input } from "@/components/ui/input";
 export default function ProviderLayout() {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-muted/30">
+      <div className="min-h-screen flex w-full bg-secondary/30">
         <ProviderSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-16 flex items-center border-b bg-background/80 backdrop-blur-sm px-6 gap-4 sticky top-0 z-10">
+          <header className="h-16 flex items-center border-b border-border/60 bg-background px-6 gap-4 sticky top-0 z-10">
             <SidebarTrigger className="ml-0" />
-            <div className="relative flex-1 max-w-md">
+            <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search leads, listings..." className="pl-9 bg-muted/50 border-0 focus-visible:bg-background" />
+              <Input placeholder="Search leads, listings..." className="pl-9 h-9 bg-secondary/50 border-border/50 text-sm rounded-lg" />
             </div>
             <div className="ml-auto flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-4 w-4" />
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
+              <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-lg">
+                <Bell className="h-4 w-4 text-muted-foreground" />
+                <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-primary" />
               </Button>
-              <div className="h-6 w-px bg-border" />
-              <Link to="/provider/settings" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity cursor-pointer">
-                <Avatar className="h-8 w-8 border-2 border-[hsl(263,70%,58%)]/20">
-                  <AvatarFallback className="text-xs bg-[hsl(263,70%,58%)]/10 text-[hsl(263,70%,58%)] font-medium">
-                    AJ
-                  </AvatarFallback>
+              <div className="h-8 w-px bg-border/60" />
+              <Link to="/provider/settings" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+                <Avatar className="h-8 w-8 border border-border/60">
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">AJ</AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:block">
-                  <p className="text-sm font-medium leading-none">Provider</p>
-                  <p className="text-xs text-muted-foreground">Agent / Landlord</p>
+                  <p className="text-sm font-medium leading-none text-foreground">Provider</p>
+                  <p className="text-[11px] text-muted-foreground">Agent</p>
                 </div>
               </Link>
             </div>
