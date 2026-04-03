@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import {
   Home, Search, Building2, ArrowRight, CheckCircle2,
   MapPin, Phone, Briefcase, Shield, Sparkles, ChevronRight,
-  User, Mail, Wallet, Clock, Star, HomeIcon, BadgeCheck
+  User, Mail, Wallet, Clock, Star, HomeIcon, BadgeCheck,
+  Upload, FileText, ShieldCheck, AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,16 @@ const roleCards: { value: Role; icon: React.ElementType; label: string; desc: st
   { value: "tenant", icon: Search, label: "Find a home", desc: "Browse listings, post needs, and get matched with verified agents." },
   { value: "agent", icon: Briefcase, label: "I'm an agent", desc: "List properties, manage leads, and grow your rental business." },
   { value: "landlord", icon: Building2, label: "I own property", desc: "List your properties directly and connect with quality tenants." },
+];
+
+const agentDocs = [
+  { label: "National ID (NIN)", desc: "Government-issued NIN slip or national ID card", icon: FileText },
+  { label: "CAC Certificate", desc: "Business registration certificate (if applicable)", icon: FileText },
+];
+
+const landlordDocs = [
+  { label: "National ID (NIN)", desc: "Government-issued NIN slip or national ID card", icon: FileText },
+  { label: "Property Deed / C of O", desc: "Certificate of occupancy or property ownership document", icon: FileText },
 ];
 
 export default function Onboarding() {
@@ -31,6 +42,12 @@ export default function Onboarding() {
   const [bio, setBio] = useState("");
   const [selectedTimeline, setSelectedTimeline] = useState("");
   const [selectedAgentStatus, setSelectedAgentStatus] = useState("");
+  const [uploadedDocs, setUploadedDocs] = useState<Record<string, boolean>>({});
+
+  const isProvider = role === "agent" || role === "landlord";
+  const totalSteps = isProvider ? 4 : 3;
+  const successStep = isProvider ? 4 : 3;
+  const kycStep = isProvider ? 3 : null;
 
   const handleComplete = () => {
     if (role) {
@@ -38,6 +55,23 @@ export default function Onboarding() {
       navigate(role === "tenant" ? "/seeker" : "/provider");
     }
   };
+
+  const handleSkipKyc = () => {
+    localStorage.setItem("dwello_kyc_status", "skipped");
+    setStep(successStep);
+  };
+
+  const handleSubmitKyc = () => {
+    localStorage.setItem("dwello_kyc_status", "submitted");
+    setStep(successStep);
+  };
+
+  const handleDocUpload = (docLabel: string) => {
+    setUploadedDocs(prev => ({ ...prev, [docLabel]: true }));
+  };
+
+  const docs = role === "agent" ? agentDocs : landlordDocs;
+  const uploadedCount = docs.filter(d => uploadedDocs[d.label]).length;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -58,7 +92,7 @@ export default function Onboarding() {
 
       {/* Step indicator - minimal dots */}
       <div className="flex justify-center gap-1.5 pb-2">
-        {[1, 2, 3].map(s => (
+        {Array.from({ length: totalSteps }, (_, i) => i + 1).map(s => (
           <div key={s} className={`h-1 rounded-full transition-all duration-500 ${
             s === step ? "w-8 bg-primary" : s < step ? "w-4 bg-primary/40" : "w-4 bg-border"
           }`} />
@@ -71,7 +105,7 @@ export default function Onboarding() {
         {step === 1 && (
           <div className="w-full max-w-lg space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-2">
-              <p className="text-xs font-medium text-primary tracking-widest uppercase">Step 1 of 3</p>
+              <p className="text-xs font-medium text-primary tracking-widest uppercase">Step 1 of {totalSteps}</p>
               <h1 className="text-3xl font-bold text-foreground tracking-tight">What brings you here?</h1>
               <p className="text-muted-foreground text-sm">Pick the one that best describes you.</p>
             </div>
@@ -120,7 +154,7 @@ export default function Onboarding() {
         {step === 2 && (
           <div className="w-full max-w-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-2">
-              <p className="text-xs font-medium text-primary tracking-widest uppercase">Step 2 of 3</p>
+              <p className="text-xs font-medium text-primary tracking-widest uppercase">Step 2 of {totalSteps}</p>
               <h1 className="text-3xl font-bold text-foreground tracking-tight">
                 {role === "tenant" ? "Let's find your match" : "A few quick details"}
               </h1>
@@ -220,7 +254,12 @@ export default function Onboarding() {
                     {["Immediately", "Within 1 month", "1–3 months", "Just browsing"].map((opt) => (
                       <button
                         key={opt}
-                        className={`px-4 h-9 rounded-full text-xs font-medium border transition-all border-border/60 bg-muted/30 text-muted-foreground hover:bg-primary/5 hover:text-primary hover:border-primary/30`}
+                        onClick={() => setSelectedTimeline(opt)}
+                        className={`px-4 h-9 rounded-full text-xs font-medium border transition-all ${
+                          selectedTimeline === opt
+                            ? "border-primary bg-primary/10 text-primary shadow-sm"
+                            : "border-border/60 bg-muted/30 text-muted-foreground hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+                        }`}
                       >
                         {opt}
                       </button>
@@ -365,7 +404,12 @@ export default function Onboarding() {
                     {["Yes", "No", "Looking for one"].map((opt) => (
                       <button
                         key={opt}
-                        className={`h-11 rounded-xl text-xs font-medium border transition-all border-border/60 bg-muted/30 text-muted-foreground hover:bg-primary/5 hover:text-primary hover:border-primary/30`}
+                        onClick={() => setSelectedAgentStatus(opt)}
+                        className={`h-11 rounded-xl text-xs font-medium border transition-all ${
+                          selectedAgentStatus === opt
+                            ? "border-primary bg-primary/10 text-primary shadow-sm"
+                            : "border-border/60 bg-muted/30 text-muted-foreground hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+                        }`}
                       >
                         {opt}
                       </button>
@@ -379,15 +423,114 @@ export default function Onboarding() {
               <Button onClick={() => setStep(3)} className="w-full h-12 rounded-xl text-sm font-semibold gap-2">
                 Continue <ArrowRight className="h-4 w-4" />
               </Button>
-              <button onClick={() => setStep(3)} className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors py-1">
+              <button onClick={() => setStep(isProvider ? 4 : 3)} className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors py-1">
                 Skip for now
               </button>
             </div>
           </div>
         )}
 
-        {/* Step 3: Done */}
-        {step === 3 && (
+        {/* Step 3: KYC (providers only) */}
+        {step === 3 && isProvider && (
+          <div className="w-full max-w-xl space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-primary tracking-widest uppercase">Step 3 of {totalSteps}</p>
+              <h1 className="text-3xl font-bold text-foreground tracking-tight">Verify your identity</h1>
+              <p className="text-muted-foreground text-sm">Build trust with tenants and unlock premium features.</p>
+            </div>
+
+            {/* Benefits card */}
+            <div className="rounded-2xl border border-emerald-200/60 bg-emerald-50/30 p-4 flex items-start gap-3">
+              <div className="h-9 w-9 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+                <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-foreground">Why verify?</p>
+                <ul className="mt-1.5 space-y-1">
+                  <li className="text-xs text-muted-foreground flex items-center gap-2">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" /> Verified badge on your profile
+                  </li>
+                  <li className="text-xs text-muted-foreground flex items-center gap-2">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" /> 3× more leads from tenants
+                  </li>
+                  <li className="text-xs text-muted-foreground flex items-center gap-2">
+                    <CheckCircle2 className="h-3 w-3 text-emerald-500 shrink-0" /> Higher ranking in search results
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Document upload cards */}
+            <div className="space-y-3">
+              {docs.map((doc) => {
+                const isUploaded = uploadedDocs[doc.label];
+                return (
+                  <div key={doc.label} className={`rounded-2xl border-2 border-dashed p-5 transition-all ${
+                    isUploaded ? "border-emerald-300 bg-emerald-50/30" : "border-border/60 bg-card hover:border-primary/30"
+                  }`}>
+                    <div className="flex items-start gap-4">
+                      <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
+                        isUploaded ? "bg-emerald-100" : "bg-muted/50"
+                      }`}>
+                        {isUploaded ? (
+                          <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                        ) : (
+                          <doc.icon className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground">{doc.label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{doc.desc}</p>
+                        {!isUploaded ? (
+                          <button
+                            onClick={() => handleDocUpload(doc.label)}
+                            className="mt-3 flex items-center gap-2 px-4 h-9 rounded-xl border border-border/60 bg-muted/30 text-xs font-medium text-muted-foreground hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all"
+                          >
+                            <Upload className="h-3.5 w-3.5" /> Choose file
+                          </button>
+                        ) : (
+                          <p className="mt-2 text-xs text-emerald-600 font-medium flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3" /> Document uploaded
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Progress */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-1.5 rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-500"
+                  style={{ width: `${(uploadedCount / docs.length) * 100}%` }}
+                />
+              </div>
+              <span className="text-xs text-muted-foreground">{uploadedCount} of {docs.length} uploaded</span>
+            </div>
+
+            <div className="space-y-3 pb-4">
+              <Button
+                onClick={handleSubmitKyc}
+                disabled={uploadedCount === 0}
+                className="w-full h-12 rounded-xl text-sm font-semibold gap-2"
+              >
+                Submit for Verification <ArrowRight className="h-4 w-4" />
+              </Button>
+              <button onClick={handleSkipKyc} className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors py-1">
+                Skip for now — you can verify later in settings
+              </button>
+              <p className="text-center text-[10px] text-muted-foreground/70">
+                Verified profiles get 3× more leads and priority placement
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Success step */}
+        {step === successStep && (
           <div className="w-full max-w-md text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="relative mx-auto w-24 h-24">
               <div className="absolute inset-0 bg-primary/10 rounded-3xl rotate-6" />
@@ -421,6 +564,8 @@ export default function Onboarding() {
             </Button>
           </div>
         )}
+
+        {/* Tenant step 3 (success) — handled by successStep above */}
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { KycAlertBanner } from "@/components/KycAlertBanner";
 
 const earningsData = [
   { month: "Jan", earnings: 1.2 },
@@ -43,6 +44,9 @@ const topListings = [
 export default function ProviderDashboard() {
   return (
     <div className="space-y-6">
+      {/* KYC Alert */}
+      <KycAlertBanner variant="provider" />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

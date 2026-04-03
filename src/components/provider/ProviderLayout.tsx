@@ -2,13 +2,14 @@ import { Outlet, Link } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ProviderSidebar } from "./ProviderSidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAvatar } from "@/contexts/AvatarContext";
 
 export default function ProviderLayout() {
   const { avatarUrl } = useAvatar();
+  const kycStatus = localStorage.getItem("dwello_kyc_status");
 
   return (
     <SidebarProvider>
@@ -36,8 +37,15 @@ export default function ProviderLayout() {
                   )}
                 </Avatar>
                 <div className="hidden sm:block">
-                  <p className="text-sm font-medium leading-none text-foreground">Provider</p>
-                  <p className="text-[11px] text-muted-foreground">Agent</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-medium leading-none text-foreground">Provider</p>
+                    {kycStatus === "submitted" ? (
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                    ) : (
+                      <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">{kycStatus === "submitted" ? "Verified Agent" : "Unverified"}</p>
                 </div>
               </Link>
             </div>
