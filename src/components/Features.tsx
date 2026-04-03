@@ -28,13 +28,13 @@ const features = [
 const Features = () => {
   return (
     <>
-      {/* Stats Bar */}
-      <section className="px-6 lg:px-16 xl:px-20 py-14 bg-[hsl(var(--dark-bg))]">
+      {/* Stats Bar - Light background like reference */}
+      <section className="px-6 lg:px-16 xl:px-20 py-16 border-y border-border/50">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
           {stats.map((stat) => (
             <div key={stat.label} className="text-center">
               <p className="text-3xl lg:text-4xl font-mono font-medium text-primary mb-1.5 tracking-tight">{stat.value}</p>
-              <p className="text-[11px] text-white/40 uppercase tracking-[0.2em] font-medium">{stat.label}</p>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-[0.2em] font-medium">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -88,13 +88,13 @@ const Features = () => {
           <div className="flex-1">
             <div className="space-y-8">
               {[
-                { icon: Shield, title: "Verified Listings Only", desc: "Every property on our platform is verified by our team to ensure what you see is what you get." },
+                { icon: Shield, title: "Verified Listings Only", desc: "Every property on our platform is physically verified by our team to ensure what you see is what you get." },
                 { icon: Headphones, title: "24/7 Concierge Support", desc: "Our dedicated team is always available to answer questions, schedule viewings, and provide expert advice." },
                 { icon: Eye, title: "Transparent Pricing", desc: "No hidden fees. We provide clear, upfront cost breakdowns so you can budget with confidence." },
               ].map((item) => (
                 <div key={item.title} className="flex gap-4">
-                  <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <item.icon className="w-5 h-5 text-primary" />
+                  <div className="w-11 h-11 rounded-full bg-primary flex items-center justify-center shrink-0">
+                    <item.icon className="w-5 h-5 text-primary-foreground" />
                   </div>
                   <div>
                     <h4 className="font-serif text-base text-foreground mb-1">{item.title}</h4>

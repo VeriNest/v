@@ -30,7 +30,7 @@ const steps = [
 
 const ValueProposition = () => {
   return (
-    <section className="px-6 lg:px-16 xl:px-20 py-20 bg-secondary/40">
+    <section className="px-6 lg:px-16 xl:px-20 py-20 bg-secondary/60">
       <div className="flex flex-col lg:flex-row gap-16">
         {/* Left side - heading */}
         <div className="lg:w-[340px] shrink-0">

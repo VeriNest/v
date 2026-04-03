@@ -3,21 +3,21 @@ import { Button } from "@/components/ui/button";
 
 const Hero = () => {
   return (
-    <section className="px-6 lg:px-16 xl:px-20 pt-16 pb-10 flex flex-col lg:flex-row items-center gap-12 bg-secondary/30">
+    <section className="px-6 lg:px-16 xl:px-20 pt-24 pb-20 flex flex-col lg:flex-row items-center gap-12 bg-secondary/30">
       {/* Left */}
       <div className="flex-1 max-w-xl">
         <div className="inline-flex items-center gap-2 bg-primary/8 border border-primary/15 rounded-full px-4 py-1.5 mb-8">
           <span className="w-2 h-2 rounded-full bg-primary" />
-          <span className="text-xs font-medium text-primary uppercase tracking-widest">Smart Real Estate</span>
+          <span className="text-xs font-medium text-primary uppercase tracking-widest">AI-Powered Real Estate</span>
         </div>
 
-        <h1 className="font-serif text-4xl lg:text-[3.2rem] leading-[1.15] text-foreground mb-6">
+        <h1 className="font-serif text-4xl lg:text-[3.5rem] leading-[1.15] text-foreground mb-6">
           Discover Your{" "}
-          <span className="italic text-primary">Dream Home</span> with Dwello
+          <span className="italic text-primary">Dream Home</span> with AI Intelligence
         </h1>
 
         <p className="text-muted-foreground text-[15px] leading-relaxed mb-10 max-w-md">
-          Experience the future of real estate. Find the market's finest listings tailored specifically to your lifestyle, removing the noise from your property search.
+          Experience the future of real estate. Our proprietary AI curates the market's finest listings tailored specifically to your lifestyle, removing the noise from your property search.
         </p>
 
         <div className="flex flex-wrap items-center gap-4 mb-10">
@@ -25,7 +25,7 @@ const Hero = () => {
             Explore Properties <ArrowRight className="w-4 h-4" />
           </Button>
           <Button variant="outline" className="rounded-lg px-7 py-6 text-sm font-medium border-border text-foreground hover:bg-accent gap-2">
-            Browse Rentals
+            AI Property Hub
           </Button>
         </div>
 
@@ -53,7 +53,7 @@ const Hero = () => {
           <img
             src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=700&h=480&fit=crop"
             alt="Luxury villa with pool"
-            className="w-full h-[400px] lg:h-[440px] object-cover"
+            className="w-full h-[440px] lg:h-[500px] object-cover"
           />
         </div>
 
