@@ -48,16 +48,16 @@ export default function AdminVerifications() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">KYC & Verifications</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">KYC & Verifications</h1>
           <p className="text-sm text-muted-foreground mt-1">Review and manage provider identity verification</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input placeholder="Search verifications..." className="pl-9 h-9 w-[200px] text-sm" />
+            <Input placeholder="Search..." className="pl-9 h-9 w-full sm:w-[200px] text-sm" />
           </div>
-          <Button variant="outline" size="sm" className="h-9 gap-1.5 text-sm">
-            <Filter className="h-3.5 w-3.5" /> Filter
+          <Button variant="outline" size="sm" className="h-9 gap-1.5 text-sm shrink-0">
+            <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
           </Button>
         </div>
       </div>
