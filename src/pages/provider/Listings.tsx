@@ -29,8 +29,8 @@ const typeStyles: Record<string, string> = {
 };
 
 export default function Listings() {
-  const [listings, setListings] = useState(initialListings);
-  const [addOpen, setAddOpen] = useState(false);
+  const navigate = useNavigate();
+  const [listings] = useState(initialListings);
   const active = listings.filter(l => l.status === "Active");
 
   return (
