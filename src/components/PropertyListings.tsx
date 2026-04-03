@@ -58,20 +58,20 @@ const PropertyListings = () => {
       {/* Bento Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Large featured card - spans 2 cols */}
-        <div className="lg:col-span-2 relative group rounded-2xl overflow-hidden h-[320px]">
+        <div className="lg:col-span-2 relative group rounded-2xl overflow-hidden h-[380px]">
           <img
             src={properties[0].image}
             alt={`${properties[0].name} luxury villa in ${properties[0].location}`}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <span className="inline-block bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded font-mono uppercase tracking-wider mb-3">
               Featured
             </span>
             <h3 className="font-serif text-2xl text-white mb-1">{properties[0].name}</h3>
-            <p className="text-white/60 text-sm mb-3">{properties[0].location}</p>
-            <div className="flex items-center justify-between">
+            <p className="text-white/60 text-sm mb-4">{properties[0].location}</p>
+            <div className="border-t border-white/20 pt-4 flex items-center justify-between">
               <p className="text-white font-mono font-medium text-lg">{properties[0].price}</p>
               <div className="flex items-center gap-4 text-white/60 text-xs font-mono">
                 <span className="flex items-center gap-1.5"><Bed className="w-4 h-4" /> {properties[0].beds} Beds</span>
