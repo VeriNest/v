@@ -106,7 +106,7 @@ export default function AdminReports() {
       </div>
 
       <Tabs defaultValue="revenue" className="space-y-4">
-        <TabsList className="bg-muted/50 p-1 h-auto">
+        <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
           <TabsTrigger value="revenue" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1.5 px-4">
             <DollarSign className="h-3.5 w-3.5" /> Revenue
           </TabsTrigger>

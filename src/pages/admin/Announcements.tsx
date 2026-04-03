@@ -151,12 +151,12 @@ export default function AdminAnnouncements() {
               <label className="text-sm font-medium text-foreground">Message</label>
               <Textarea placeholder="Write your announcement..." rows={3} />
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Switch />
                 <span className="text-sm text-muted-foreground">Send push notification</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Button variant="outline" size="sm" onClick={() => setShowCompose(false)}>Cancel</Button>
                 <Button variant="outline" size="sm" className="gap-1"><Clock className="h-3 w-3" /> Save Draft</Button>
                 <Button size="sm" className="gap-1"><Send className="h-3 w-3" /> Publish</Button>
