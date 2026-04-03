@@ -1,118 +1,76 @@
-import { Search, CalendarDays, Users, Building2, Star } from "lucide-react";
+import { ArrowRight, Bed, ShowerHead, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 
 const Hero = () => {
-  const [activeTab, setActiveTab] = useState("Rent");
-
   return (
-    <section className="px-20 pt-10 pb-20 flex items-center gap-12">
+    <section className="px-8 lg:px-20 pt-16 pb-8 flex flex-col lg:flex-row items-center gap-16">
       {/* Left */}
       <div className="flex-1 max-w-xl">
-        <h1 className="text-5xl font-bold leading-tight text-foreground mb-4">
-          Buy, rent, or sell<br />your property<br />easily
-        </h1>
-        <p className="text-muted-foreground text-base mb-8 max-w-md">
-          A great platform to buy, sell, or even rent your properties without any commissions.
-        </p>
-
-        {/* Tabs */}
-        <div className="flex gap-8 mb-6 border-b border-border">
-          {["Rent", "Buy", "Sell"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-3 text-sm font-medium transition-colors relative ${
-                activeTab === tab
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab}
-              {activeTab === tab && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-              )}
-            </button>
-          ))}
+        <div className="inline-flex items-center gap-2 bg-primary/10 rounded-full px-4 py-1.5 mb-8">
+          <span className="w-2 h-2 rounded-full bg-primary" />
+          <span className="text-xs font-semibold text-primary uppercase tracking-wider">Smart Real Estate</span>
         </div>
 
-        {/* Search Bar */}
-        <div className="flex items-center bg-background border border-border rounded-lg p-1.5 shadow-sm">
-          <div className="flex items-center gap-2 px-4 py-2 flex-1 border-r border-border">
-            <Search className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-foreground">Barcelona, Spain</span>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 flex-1">
-            <CalendarDays className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Select Move-in Date</span>
-          </div>
-          <Button className="rounded-lg px-6 bg-primary text-primary-foreground hover:bg-primary/90">
-            Browse Properties
+        <h1 className="text-4xl lg:text-[3.4rem] font-bold leading-[1.15] text-foreground mb-6">
+          Discover Your{" "}
+          <span className="italic text-primary font-semibold">Dream Home</span> with Dwello
+        </h1>
+
+        <p className="text-muted-foreground text-base leading-relaxed mb-10 max-w-md">
+          Experience the future of real estate. Find the market's finest listings tailored specifically to your lifestyle, removing the noise from your property search.
+        </p>
+
+        <div className="flex flex-wrap items-center gap-4 mb-10">
+          <Button className="rounded-full px-8 py-6 text-sm bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 gap-2">
+            Explore Properties <ArrowRight className="w-4 h-4" />
+          </Button>
+          <Button variant="outline" className="rounded-full px-8 py-6 text-sm border-border hover:bg-accent gap-2">
+            Browse Rentals
           </Button>
         </div>
 
-        {/* Stats */}
-        <div className="flex items-center gap-8 mt-8">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Users className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-lg font-bold text-foreground">50k+</p>
-              <p className="text-xs text-muted-foreground">renters</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-lg font-bold text-foreground">10k+</p>
-              <p className="text-xs text-muted-foreground">properties</p>
+        {/* Avatars + social proof */}
+        <div className="flex items-center gap-3">
+          <div className="flex -space-x-2">
+            {[11, 12, 13].map((i) => (
+              <div key={i} className="w-9 h-9 rounded-full border-2 border-background overflow-hidden">
+                <img src={`https://i.pravatar.cc/36?img=${i}`} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+            <div className="w-9 h-9 rounded-full border-2 border-background bg-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground">
+              +2k
             </div>
           </div>
+          <p className="text-sm text-muted-foreground">Join <span className="font-semibold text-foreground">2,000+</span> happy homeowners</p>
         </div>
       </div>
 
-      {/* Right - Property Card */}
-      <div className="flex-1 relative">
-        <div className="relative">
+      {/* Right - Hero image with property card */}
+      <div className="flex-1 relative max-w-xl w-full">
+        <div className="rounded-3xl overflow-hidden shadow-2xl shadow-foreground/10">
           <img
-            src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop"
-            alt="Property"
-            className="w-full h-[400px] object-cover rounded-2xl"
+            src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=700&h=500&fit=crop"
+            alt="Luxury villa with pool"
+            className="w-full h-[420px] object-cover"
           />
-          {/* Overlay Card */}
-          <div className="absolute bottom-4 left-4 bg-background/95 backdrop-blur-sm rounded-xl p-4 shadow-lg min-w-[220px]">
-            <div className="flex items-center gap-3 mb-2">
-              <img
-                src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=60&h=60&fit=crop"
-                alt="Villa"
-                className="w-12 h-12 rounded-lg object-cover"
-              />
-              <div>
-                <p className="text-sm font-semibold text-foreground">Minal Villa</p>
-                <p className="text-xs text-muted-foreground">$1,500<span className="text-xs">/month</span></p>
+        </div>
+
+        {/* Property overlay card */}
+        <div className="absolute -bottom-6 left-4 right-4 bg-card rounded-2xl p-5 shadow-xl border border-border/50">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold text-foreground">Villa Serenity</h3>
+                <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Featured</span>
               </div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Beverly Hills, CA</p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex">
-                {[1,2,3].map((i) => (
-                  <div key={i} className="w-6 h-6 rounded-full border-2 border-background bg-muted -ml-1 first:ml-0 overflow-hidden">
-                    <img src={`https://i.pravatar.cc/24?img=${i+10}`} alt="" className="w-full h-full object-cover" />
-                  </div>
-                ))}
+            <div className="text-right">
+              <p className="text-lg font-bold text-foreground">$4,250,000</p>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                <span className="flex items-center gap-1"><Bed className="w-3.5 h-3.5" /> 4</span>
+                <span className="flex items-center gap-1"><ShowerHead className="w-3.5 h-3.5" /> 3.5</span>
               </div>
-              <span className="text-xs text-muted-foreground">+20 people interested</span>
-            </div>
-          </div>
-          {/* Trust Badge */}
-          <div className="absolute top-4 right-4 bg-background/95 backdrop-blur-sm rounded-xl p-3 shadow-lg">
-            <p className="text-xs font-semibold text-foreground mb-1">Excellent</p>
-            <div className="flex gap-0.5">
-              {[1,2,3,4,5].map((i) => (
-                <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-              ))}
             </div>
           </div>
         </div>
