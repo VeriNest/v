@@ -1,4 +1,4 @@
-import { Home, ChevronDown } from "lucide-react";
+import { Home } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
