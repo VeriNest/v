@@ -41,7 +41,7 @@ import Payouts from "./pages/provider/Payouts.tsx";
 import ProviderCalendar from "./pages/provider/Calendar.tsx";
 import ProviderSettings from "./pages/provider/Settings.tsx";
 import LeadDetail from "./pages/provider/LeadDetail.tsx";
-
+import SendOffer from "./pages/provider/SendOffer.tsx";
 const queryClient = new QueryClient();
 
 const App = () => (
