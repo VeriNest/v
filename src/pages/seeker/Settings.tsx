@@ -196,24 +196,26 @@ export default function SeekerSettings() {
               <CardDescription>Your recent actions on the platform</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Action</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Type</TableHead>
-                    <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Time</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {activityLog.map((item, i) => (
-                    <TableRow key={i}>
-                      <TableCell className="text-sm font-medium text-foreground">{item.action}</TableCell>
-                      <TableCell><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${typeStyles[item.type]}`}>{item.type}</span></TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{item.time}</TableCell>
+              <div className="overflow-x-auto -mx-6 px-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Action</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Type</TableHead>
+                      <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Time</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {activityLog.map((item, i) => (
+                      <TableRow key={i}>
+                        <TableCell className="text-sm font-medium text-foreground whitespace-nowrap">{item.action}</TableCell>
+                        <TableCell><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${typeStyles[item.type]}`}>{item.type}</span></TableCell>
+                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">{item.time}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
