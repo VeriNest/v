@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react";
 import {
   FileText, Inbox, CalendarCheck, TrendingUp,
   ArrowUpRight, ArrowRight, Search, Eye, Clock,
   Heart, MapPin, MoreHorizontal, Plus
 } from "lucide-react";
+import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
