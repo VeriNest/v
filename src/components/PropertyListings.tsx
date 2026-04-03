@@ -97,13 +97,13 @@ const PropertyListings = () => {
         </div>
 
         {/* Bottom left - smaller */}
-        <div className="relative group rounded-2xl overflow-hidden h-[320px]">
+        <div className="relative group rounded-2xl overflow-hidden h-[380px]">
           <img
             src={properties[2].image}
             alt={`${properties[2].name} modern home in ${properties[2].location}`}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <h3 className="font-serif text-xl text-white mb-1">{properties[2].name}</h3>
             <p className="text-white/60 text-sm mb-3">{properties[2].location}</p>
@@ -112,17 +112,17 @@ const PropertyListings = () => {
         </div>
 
         {/* Bottom right - large, spans 2 cols */}
-        <div className="lg:col-span-2 relative group rounded-2xl overflow-hidden h-[320px]">
+        <div className="lg:col-span-2 relative group rounded-2xl overflow-hidden h-[380px]">
           <img
             src={properties[3].image}
             alt={`${properties[3].name} mansion in ${properties[3].location}`}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <h3 className="font-serif text-2xl text-white mb-1">{properties[3].name}</h3>
-            <p className="text-white/60 text-sm mb-3">{properties[3].location}</p>
-            <div className="flex items-center justify-between">
+            <p className="text-white/60 text-sm mb-4">{properties[3].location}</p>
+            <div className="border-t border-white/20 pt-4 flex items-center justify-between">
               <p className="text-white font-mono font-medium text-lg">{properties[3].price}</p>
               <ArrowRight className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
             </div>
