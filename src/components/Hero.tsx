@@ -3,25 +3,25 @@ import { Button } from "@/components/ui/button";
 
 const Hero = () => {
   return (
-    <section className="px-6 lg:px-16 xl:px-20 pt-24 pb-20 flex flex-col lg:flex-row items-center gap-12 bg-secondary/30">
+    <section className="px-6 lg:px-16 xl:px-20 pt-28 pb-24 flex flex-col lg:flex-row items-center justify-center gap-16 bg-secondary/30 min-h-[calc(100vh-64px)]">
       {/* Left */}
-      <div className="flex-1 max-w-xl">
-        <div className="inline-flex items-center gap-2 bg-primary/8 border border-primary/15 rounded-full px-4 py-1.5 mb-8">
+      <div className="flex-1 max-w-xl lg:py-4">
+        <div className="inline-flex items-center gap-2 bg-primary/8 border border-primary/15 rounded-full px-4 py-1.5 mb-6">
           <span className="w-2 h-2 rounded-full bg-primary" />
           <span className="text-xs font-medium text-primary uppercase tracking-widest">AI-Powered Real Estate</span>
         </div>
 
-        <h1 className="font-serif text-4xl lg:text-[3.5rem] leading-[1.15] text-foreground mb-6">
+        <h1 className="font-serif text-4xl lg:text-5xl xl:text-[3.5rem] leading-[1.15] text-foreground mb-5">
           Discover Your{" "}
           <span className="italic text-primary">Dream Home</span> with AI Intelligence
         </h1>
 
-        <p className="text-muted-foreground text-[15px] leading-relaxed mb-10 max-w-md">
+        <p className="text-muted-foreground text-[15px] leading-relaxed mb-8 max-w-md">
           Experience the future of real estate. Our proprietary AI curates the market's finest listings tailored specifically to your lifestyle, removing the noise from your property search.
         </p>
 
-        <div className="flex flex-wrap items-center gap-4 mb-10">
-          <Button className="rounded-lg px-7 py-6 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+        <div className="flex flex-wrap items-center gap-4 mb-8">
+          <Button className="rounded-lg px-7 py-6 text-sm font-medium gap-2">
             Explore Properties <ArrowRight className="w-4 h-4" />
           </Button>
           <Button variant="outline" className="rounded-lg px-7 py-6 text-sm font-medium border-border text-foreground hover:bg-accent gap-2">
@@ -49,11 +49,11 @@ const Hero = () => {
 
       {/* Right - Hero image with property card */}
       <div className="flex-1 relative max-w-xl w-full">
-        <div className="rounded-2xl overflow-hidden">
+        <div className="rounded-2xl overflow-hidden shadow-xl">
           <img
             src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=700&h=480&fit=crop"
             alt="Luxury villa with pool"
-            className="w-full h-[440px] lg:h-[500px] object-cover"
+            className="w-full h-[400px] lg:h-[460px] object-cover"
           />
         </div>
 
