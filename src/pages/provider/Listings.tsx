@@ -141,11 +141,6 @@ export default function Listings() {
         })}
       </Tabs>
 
-      <AddListingSheet
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        onListingAdded={(listing) => setListings(prev => [listing, ...prev])}
-      />
     </div>
   );
 }
