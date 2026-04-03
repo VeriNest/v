@@ -93,13 +93,13 @@ const Hero = () => {
       </div>
 
       {/* Search bar — full width */}
-      <div className="max-w-5xl mx-auto w-full">
+      <div className="max-w-4xl mx-auto w-full">
         <div className="bg-card border border-border rounded-2xl p-3 shadow-md">
           <div className="flex flex-col sm:flex-row items-center gap-2">
             <div className="relative flex-1 w-full">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search by city, neighborhood, or address..."
+                placeholder="City, neighborhood, or address..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 border-0 bg-secondary/50 focus-visible:ring-1 h-12 text-sm"
