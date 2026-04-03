@@ -5,7 +5,8 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Bell, Shield, Globe, Trash2, KeyRound, Mail, Activity } from "lucide-react";
+import { User, Bell, Shield, Globe, Trash2, KeyRound, Mail, Activity, Camera } from "lucide-react";
+import { useRef, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const activityLog = [
@@ -25,6 +26,17 @@ const typeStyles: Record<string, string> = {
 };
 
 export default function AdminSettings() {
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setAvatarUrl(url);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
@@ -34,9 +46,22 @@ export default function AdminSettings() {
 
       <Card className="border border-border/60 shadow-sm">
         <CardContent className="flex items-center gap-4 pt-6">
-          <Avatar className="h-16 w-16 border-2 border-primary/20">
-            <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">AD</AvatarFallback>
-          </Avatar>
+          <div className="relative group">
+            <Avatar className="h-16 w-16 border-2 border-primary/20">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+              ) : (
+                <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">AD</AvatarFallback>
+              )}
+            </Avatar>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            >
+              <Camera className="h-4 w-4 text-background" />
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+          </div>
           <div className="flex-1">
             <p className="font-semibold text-foreground">Admin User</p>
             <p className="text-sm text-muted-foreground">admin@dwello.ng</p>
