@@ -1,8 +1,8 @@
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, MapPin, Star, Trash2, ExternalLink, Grid3x3, List } from "lucide-react";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Heart, MapPin, Star, Trash2, ExternalLink, Grid3x3, List, Search } from "lucide-react";
 
 const saved = [
   { id: 1, property: "3 Bed Flat, Lekki Phase 1", provider: "Adebayo Johnson", price: "₦2,500,000/yr", location: "Lekki, Lagos", rating: 4.8, match: 95, image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=250&fit=crop", savedDate: "Mar 15" },
@@ -15,37 +15,35 @@ const matchColor = (m: number) => m >= 90 ? "bg-emerald-500" : m >= 80 ? "bg-blu
 
 export default function Saved() {
   const [view, setView] = useState<"grid" | "list">("grid");
+  const [search, setSearch] = useState("");
+  const filtered = saved.filter(s =>
+    s.property.toLowerCase().includes(search.toLowerCase()) ||
+    s.location.toLowerCase().includes(search.toLowerCase()) ||
+    s.provider.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Saved Properties</h1>
-          <p className="text-sm text-muted-foreground mt-1">{saved.length} properties bookmarked from offers.</p>
+          <p className="text-sm text-muted-foreground mt-1">{filtered.length} properties bookmarked from offers.</p>
         </div>
-        <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-          <Button
-            variant={view === "grid" ? "secondary" : "ghost"}
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => setView("grid")}
-          >
-            <Grid3x3 className="h-4 w-4" />
-          </Button>
-          <Button
-            variant={view === "list" ? "secondary" : "ghost"}
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => setView("list")}
-          >
-            <List className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search saved..." className="pl-9 w-[180px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+            <Button variant={view === "grid" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("grid")}><Grid3x3 className="h-4 w-4" /></Button>
+            <Button variant={view === "list" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("list")}><List className="h-4 w-4" /></Button>
+          </div>
         </div>
       </div>
 
       {view === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {saved.map((item) => (
+          {filtered.map((item) => (
             <Card key={item.id} className="overflow-hidden border border-border/60 shadow-sm hover:shadow-md transition-all duration-200 group">
               <div className="relative overflow-hidden">
                 <img src={item.image} alt={item.property} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -54,28 +52,19 @@ export default function Saved() {
                   <Heart className="w-3.5 h-3.5 text-destructive fill-destructive" />
                 </button>
                 <div className="absolute bottom-3 left-3 flex gap-1.5">
-                  <span className={`text-background px-2 py-0.5 rounded text-[11px] font-semibold ${matchColor(item.match)}`}>
-                    {item.match}% match
-                  </span>
+                  <span className={`text-background px-2 py-0.5 rounded text-[11px] font-semibold ${matchColor(item.match)}`}>{item.match}% match</span>
                 </div>
               </div>
               <CardContent className="p-4 space-y-2.5">
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-semibold text-sm text-foreground leading-tight">{item.property}</h3>
-                  <span className="flex items-center gap-0.5 text-xs shrink-0">
-                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                    <span className="font-medium text-foreground">{item.rating}</span>
-                  </span>
+                  <span className="flex items-center gap-0.5 text-xs shrink-0"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /><span className="font-medium text-foreground">{item.rating}</span></span>
                 </div>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <MapPin className="h-3 w-3" /> {item.location}
-                </p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" /> {item.location}</p>
                 <p className="text-[11px] text-muted-foreground">by {item.provider} · Saved {item.savedDate}</p>
                 <div className="flex items-center justify-between pt-2.5 border-t border-border/60">
                   <p className="text-sm font-bold text-foreground">{item.price}</p>
-                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1">
-                    <ExternalLink className="h-3 w-3" /> View
-                  </Button>
+                  <Button size="sm" variant="outline" className="h-7 text-xs gap-1"><ExternalLink className="h-3 w-3" /> View</Button>
                 </div>
               </CardContent>
             </Card>
@@ -83,7 +72,7 @@ export default function Saved() {
         </div>
       ) : (
         <div className="space-y-3">
-          {saved.map((item) => (
+          {filtered.map((item) => (
             <Card key={item.id} className="border border-border/60 shadow-sm hover:shadow-md transition-all group">
               <CardContent className="p-0">
                 <div className="flex">
@@ -92,9 +81,7 @@ export default function Saved() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-sm text-foreground truncate">{item.property}</h3>
-                        <span className={`text-background px-1.5 py-0.5 rounded text-[10px] font-semibold ${matchColor(item.match)}`}>
-                          {item.match}%
-                        </span>
+                        <span className={`text-background px-1.5 py-0.5 rounded text-[10px] font-semibold ${matchColor(item.match)}`}>{item.match}%</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><MapPin className="h-3 w-3" /> {item.location}</p>
                       <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
@@ -106,9 +93,7 @@ export default function Saved() {
                     <div className="text-right shrink-0 flex flex-col items-end gap-2">
                       <p className="text-sm font-bold text-foreground">{item.price}</p>
                       <div className="flex gap-1.5">
-                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
                         <Button size="sm" variant="outline" className="h-7 text-xs">View</Button>
                       </div>
                     </div>

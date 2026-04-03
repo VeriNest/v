@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Search, MoreHorizontal, Building2, MapPin, Plus, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -21,8 +22,14 @@ const statusStyles: Record<string, { color: string; bg: string; dot: string }> =
 };
 
 export default function Properties() {
-  const active = properties.filter(p => p.status === "Active");
-  const pending = properties.filter(p => p.status === "Pending");
+  const [search, setSearch] = useState("");
+  const filtered = properties.filter(p =>
+    p.title.toLowerCase().includes(search.toLowerCase()) ||
+    p.agent.toLowerCase().includes(search.toLowerCase()) ||
+    p.location.toLowerCase().includes(search.toLowerCase())
+  );
+  const active = filtered.filter(p => p.status === "Active");
+  const pending = filtered.filter(p => p.status === "Pending");
 
   return (
     <div className="space-y-6">
@@ -53,13 +60,13 @@ export default function Properties() {
 
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList className="bg-muted/50 p-1 h-auto">
-          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({properties.length})</TabsTrigger>
+          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
           <TabsTrigger value="active" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Active ({active.length})</TabsTrigger>
           <TabsTrigger value="pending" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Pending ({pending.length})</TabsTrigger>
         </TabsList>
 
         {["all", "active", "pending"].map((tab) => {
-          const items = tab === "active" ? active : tab === "pending" ? pending : properties;
+          const items = tab === "active" ? active : tab === "pending" ? pending : filtered;
           return (
             <TabsContent key={tab} value={tab}>
               <Card className="border border-border/60 shadow-sm">
@@ -67,7 +74,7 @@ export default function Properties() {
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div><CardTitle className="text-base">Properties</CardTitle><CardDescription>Showing {items.length} of 2,847</CardDescription></div>
                     <div className="flex items-center gap-3">
-                      <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search..." className="pl-9 w-[200px] h-9" /></div>
+                      <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search properties..." className="pl-9 w-[220px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
                       <Button variant="outline" size="sm" className="gap-1.5"><Filter className="h-3.5 w-3.5" /> Filter</Button>
                     </div>
                   </div>

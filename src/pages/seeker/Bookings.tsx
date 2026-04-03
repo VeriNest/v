@@ -1,7 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CalendarCheck, Lock, CheckCircle2, Building2, Eye, Clock, XCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { CalendarCheck, Lock, CheckCircle2, Building2, Eye, Clock, XCircle, Search } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const bookings = [
@@ -19,17 +21,28 @@ const statusConfig: Record<string, { color: string; bg: string; icon: any }> = {
 };
 
 export default function Bookings() {
-  const active = bookings.filter(b => b.status === "Escrow" || b.status === "Confirmed");
-  const past = bookings.filter(b => b.status === "Completed" || b.status === "Cancelled");
+  const [search, setSearch] = useState("");
+  const filtered = bookings.filter(b =>
+    b.property.toLowerCase().includes(search.toLowerCase()) ||
+    b.provider.toLowerCase().includes(search.toLowerCase()) ||
+    b.status.toLowerCase().includes(search.toLowerCase())
+  );
+  const active = filtered.filter(b => b.status === "Escrow" || b.status === "Confirmed");
+  const past = filtered.filter(b => b.status === "Completed" || b.status === "Cancelled");
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Bookings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Track your active bookings, escrow payments, and history.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Bookings</h1>
+          <p className="text-sm text-muted-foreground mt-1">Track your active bookings, escrow payments, and history.</p>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search bookings..." className="pl-9 w-[220px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
       </div>
 
-      {/* Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "Active", value: active.length.toString(), icon: CalendarCheck, accent: "text-primary", bg: "bg-primary/10" },
@@ -53,11 +66,11 @@ export default function Bookings() {
         <TabsList className="bg-muted/50 p-1 h-auto">
           <TabsTrigger value="active" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Active ({active.length})</TabsTrigger>
           <TabsTrigger value="past" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Past ({past.length})</TabsTrigger>
-          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({bookings.length})</TabsTrigger>
+          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
         </TabsList>
 
         {["active", "past", "all"].map((tab) => {
-          const items = tab === "active" ? active : tab === "past" ? past : bookings;
+          const items = tab === "active" ? active : tab === "past" ? past : filtered;
           return (
             <TabsContent key={tab} value={tab} className="space-y-3">
               {items.map((b) => {

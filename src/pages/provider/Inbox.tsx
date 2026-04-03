@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, DollarSign, Zap, CheckCircle2, SlidersHorizontal } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Clock, MapPin, DollarSign, Zap, CheckCircle2, SlidersHorizontal, Search } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
 
 const initialLeads = [
   { id: 1, need: "3 Bed Flat in Lekki Phase 1", budget: "₦2,500,000/yr", location: "Lekki, Lagos", type: "Rent", moveIn: "April 2024", posted: "15 min ago", sla: 12, features: ["24hr Power", "Security", "Parking"], status: "New", initials: "AT" },
@@ -27,9 +26,16 @@ const slaBg = (sla: number) => sla <= 15 ? "bg-destructive" : "bg-amber-500";
 export default function LeadInbox() {
   const navigate = useNavigate();
   const [leads, setLeads] = useState(initialLeads);
+  const [search, setSearch] = useState("");
 
-  const newLeads = leads.filter(l => l.status === "New");
-  const responded = leads.filter(l => l.status === "Responded");
+  const filtered = leads.filter(l =>
+    l.need.toLowerCase().includes(search.toLowerCase()) ||
+    l.location.toLowerCase().includes(search.toLowerCase()) ||
+    l.type.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const newLeads = filtered.filter(l => l.status === "New");
+  const responded = filtered.filter(l => l.status === "Responded");
 
   return (
     <div className="space-y-6">
@@ -38,14 +44,20 @@ export default function LeadInbox() {
           <h1 className="text-2xl font-bold text-foreground">Lead Inbox</h1>
           <p className="text-sm text-muted-foreground mt-1">Tenant needs matching your listings. Respond fast to stay boosted.</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-1.5">
-          <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search leads..." className="pl-9 w-[200px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          <Button variant="outline" size="sm" className="gap-1.5">
+            <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Total Leads", value: leads.length.toString(), accent: "text-foreground" },
+          { label: "Total Leads", value: filtered.length.toString(), accent: "text-foreground" },
           { label: "New", value: newLeads.length.toString(), accent: "text-primary" },
           { label: "Responded", value: responded.length.toString(), accent: "text-emerald-600" },
           { label: "Avg SLA", value: "29 min", accent: "text-amber-600" },
@@ -63,11 +75,11 @@ export default function LeadInbox() {
         <TabsList className="bg-muted/50 p-1 h-auto">
           <TabsTrigger value="new" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">New ({newLeads.length})</TabsTrigger>
           <TabsTrigger value="responded" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Responded ({responded.length})</TabsTrigger>
-          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({leads.length})</TabsTrigger>
+          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
         </TabsList>
 
         {["new", "responded", "all"].map((tab) => {
-          const items = tab === "new" ? newLeads : tab === "responded" ? responded : leads;
+          const items = tab === "new" ? newLeads : tab === "responded" ? responded : filtered;
           return (
             <TabsContent key={tab} value={tab} className="space-y-3">
               {items.map((lead) => (
@@ -137,7 +149,6 @@ export default function LeadInbox() {
           );
         })}
       </Tabs>
-
     </div>
   );
 }

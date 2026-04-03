@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Star, ShieldCheck, Clock, ArrowUpRight, Zap, Filter, SlidersHorizontal, Inbox } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Star, ShieldCheck, Clock, ArrowUpRight, Zap, SlidersHorizontal, Search } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const offers = [
@@ -22,7 +24,13 @@ const matchColor = (m: number) => m >= 90 ? "text-emerald-600" : m >= 80 ? "text
 const matchBg = (m: number) => m >= 90 ? "bg-emerald-500" : m >= 80 ? "bg-blue-500" : "bg-amber-500";
 
 export default function Offers() {
-  const newCount = offers.filter(o => o.status === "New").length;
+  const [search, setSearch] = useState("");
+  const filtered = offers.filter(o =>
+    o.property.toLowerCase().includes(search.toLowerCase()) ||
+    o.provider.toLowerCase().includes(search.toLowerCase()) ||
+    o.role.toLowerCase().includes(search.toLowerCase())
+  );
+  const newCount = filtered.filter(o => o.status === "New").length;
 
   return (
     <div className="space-y-6">
@@ -31,17 +39,22 @@ export default function Offers() {
           <h1 className="text-2xl font-bold text-foreground">My Offers</h1>
           <p className="text-sm text-muted-foreground mt-1">Offers matched to your posted needs, ranked by fit & trust.</p>
         </div>
-        <Button variant="outline" size="sm" className="gap-1.5">
-          <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search offers..." className="pl-9 w-[200px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          <Button variant="outline" size="sm" className="gap-1.5">
+            <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
+          </Button>
+        </div>
       </div>
 
-      {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Total Offers", value: offers.length.toString(), accent: "text-foreground" },
+          { label: "Total Offers", value: filtered.length.toString(), accent: "text-foreground" },
           { label: "New", value: newCount.toString(), accent: "text-primary" },
-          { label: "Avg Match", value: `${Math.round(offers.reduce((a, o) => a + o.match, 0) / offers.length)}%`, accent: "text-emerald-600" },
+          { label: "Avg Match", value: `${Math.round(filtered.reduce((a, o) => a + o.match, 0) / (filtered.length || 1))}%`, accent: "text-emerald-600" },
           { label: "Top Rating", value: "4.9", accent: "text-amber-600" },
         ].map((s) => (
           <Card key={s.label} className="border border-border/60 shadow-sm">
@@ -55,23 +68,23 @@ export default function Offers() {
 
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList className="bg-muted/50 p-1 h-auto">
-          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({offers.length})</TabsTrigger>
+          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
           <TabsTrigger value="new" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">New ({newCount})</TabsTrigger>
           <TabsTrigger value="saved" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Saved</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-3">
-          {offers.map((offer) => (
+          {filtered.map((offer) => (
             <OfferCard key={offer.id} offer={offer} />
           ))}
         </TabsContent>
         <TabsContent value="new" className="space-y-3">
-          {offers.filter(o => o.status === "New").map((offer) => (
+          {filtered.filter(o => o.status === "New").map((offer) => (
             <OfferCard key={offer.id} offer={offer} />
           ))}
         </TabsContent>
         <TabsContent value="saved" className="space-y-3">
-          {offers.filter(o => o.status === "Saved").map((offer) => (
+          {filtered.filter(o => o.status === "Saved").map((offer) => (
             <OfferCard key={offer.id} offer={offer} />
           ))}
         </TabsContent>
