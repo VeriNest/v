@@ -1,11 +1,14 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, MapPin, DollarSign, Zap, CheckCircle2, SlidersHorizontal, Inbox as InboxIcon } from "lucide-react";
+import { Clock, MapPin, DollarSign, Zap, CheckCircle2, SlidersHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SendOfferSheet } from "@/components/provider/SendOfferSheet";
 
-const leads = [
+const initialLeads = [
   { id: 1, need: "3 Bed Flat in Lekki Phase 1", budget: "₦2,500,000/yr", location: "Lekki, Lagos", type: "Rent", moveIn: "April 2024", posted: "15 min ago", sla: 12, features: ["24hr Power", "Security", "Parking"], status: "New", initials: "AT" },
   { id: 2, need: "Studio Apartment in Wuse 2", budget: "₦1,200,000/yr", location: "Wuse 2, Abuja", type: "Rent", moveIn: "May 2024", posted: "1 hr ago", sla: 45, features: ["Furnished", "Security"], status: "New", initials: "AT" },
   { id: 3, need: "Short-let in Victoria Island, 3 nights", budget: "₦50,000/night", location: "VI, Lagos", type: "Short-let", moveIn: "Mar 22-25", posted: "2 hrs ago", sla: 0, features: ["Furnished", "Pool", "Gym"], status: "Responded", initials: "CC" },
@@ -22,8 +25,22 @@ const slaColor = (sla: number) => sla <= 15 ? "text-destructive" : "text-amber-6
 const slaBg = (sla: number) => sla <= 15 ? "bg-destructive" : "bg-amber-500";
 
 export default function LeadInbox() {
+  const navigate = useNavigate();
+  const [leads, setLeads] = useState(initialLeads);
+  const [offerSheet, setOfferSheet] = useState<{ open: boolean; leadId: number | null; leadNeed: string }>({ open: false, leadId: null, leadNeed: "" });
+
   const newLeads = leads.filter(l => l.status === "New");
   const responded = leads.filter(l => l.status === "Responded");
+
+  const handleOfferSent = () => {
+    if (offerSheet.leadId) {
+      setLeads(prev => prev.map(l => l.id === offerSheet.leadId ? { ...l, status: "Responded", sla: 0 } : l));
+    }
+  };
+
+  const openOfferSheet = (lead: typeof initialLeads[0]) => {
+    setOfferSheet({ open: true, leadId: lead.id, leadNeed: lead.need });
+  };
 
   return (
     <div className="space-y-6">
@@ -109,14 +126,17 @@ export default function LeadInbox() {
                         <div className="flex gap-2 mt-4 pt-3 border-t border-border/60">
                           {lead.status === "New" ? (
                             <>
-                              <Button size="sm" className="gap-1"><Zap className="h-3.5 w-3.5" /> Send Offer</Button>
-                              <Button size="sm" variant="outline">View Details</Button>
+                              <Button size="sm" className="gap-1" onClick={() => openOfferSheet(lead)}><Zap className="h-3.5 w-3.5" /> Send Offer</Button>
+                              <Button size="sm" variant="outline" onClick={() => navigate(`/provider/inbox/${lead.id}`)}>View Details</Button>
                               <Button size="sm" variant="ghost" className="ml-auto text-muted-foreground">Skip</Button>
                             </>
                           ) : (
-                            <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-200 hover:bg-emerald-50">
-                              <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Offer Sent
-                            </Button>
+                            <>
+                              <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-200 hover:bg-emerald-50">
+                                <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Offer Sent
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => navigate(`/provider/inbox/${lead.id}`)}>View Details</Button>
+                            </>
                           )}
                         </div>
                       </div>
@@ -128,6 +148,13 @@ export default function LeadInbox() {
           );
         })}
       </Tabs>
+
+      <SendOfferSheet
+        open={offerSheet.open}
+        onOpenChange={(open) => setOfferSheet(prev => ({ ...prev, open }))}
+        leadNeed={offerSheet.leadNeed}
+        onOfferSent={handleOfferSent}
+      />
     </div>
   );
 }

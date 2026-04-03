@@ -129,6 +129,7 @@ function OfferCard({ offer }: { offer: typeof offers[0] }) {
             <div className="flex gap-2 mt-4 pt-3 border-t border-border/60">
               <Button size="sm">View Details</Button>
               <Button size="sm" variant="outline">Schedule Viewing</Button>
+              <Button size="sm" variant="ghost" className="text-xs text-muted-foreground">View Original Request</Button>
               <Button size="sm" variant="ghost" className="ml-auto text-muted-foreground">Save</Button>
             </div>
           </div>
