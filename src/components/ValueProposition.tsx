@@ -1,67 +1,63 @@
-import { Play, TrendingUp, Handshake } from "lucide-react";
+import { UserCheck, Search, Eye, FileCheck, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const steps = [
+  {
+    num: "01",
+    icon: UserCheck,
+    title: "Profile Analysis",
+    description: "We deep-dive into your preferences, lifestyle needs, and financial goals to build a comprehensive buyer profile.",
+  },
+  {
+    num: "02",
+    icon: Search,
+    title: "Smart Matching",
+    description: "Algorithms scan thousands of listings to find properties that align with your unique criteria, filtering out the noise.",
+  },
+  {
+    num: "03",
+    icon: Eye,
+    title: "Virtual Tours & Insights",
+    description: "Experience homes remotely with immersive 3D tours and receive detailed neighborhood analytics reports.",
+  },
+  {
+    num: "04",
+    icon: FileCheck,
+    title: "Seamless Closing",
+    description: "From offer to keys, our platform handles paperwork, negotiations, and closing logistics effortlessly.",
+  },
+];
 
 const ValueProposition = () => {
   return (
-    <section className="px-20 py-20 bg-[hsl(256,60%,10%)] text-white">
-      {/* Top */}
-      <div className="flex items-start justify-between mb-12">
-        <h2 className="text-3xl font-bold leading-tight max-w-md">
-          We make it easy for{" "}
-          <span className="italic text-primary">tenants</span> and{" "}
-          <span className="italic text-primary">landowners</span>.
+    <section className="px-8 lg:px-20 py-20 bg-[hsl(var(--dark-bg))]">
+      <div className="text-center mb-14">
+        <span className="text-xs font-semibold text-primary uppercase tracking-widest mb-3 block">Process</span>
+        <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
+          The Path to Your <span className="italic text-primary">New Beginning</span>
         </h2>
-        <p className="text-sm text-white/60 max-w-sm leading-relaxed">
-          Whether it's selling your current home, getting financing, or buying a new home, we make it easy and efficient. The best part? you'll save a bunch of money and time with our services.
+        <p className="text-white/50 max-w-lg mx-auto">
+          We've simplified the complex journey of buying a home into four seamless steps.
         </p>
       </div>
 
-      {/* Cards */}
-      <div className="flex gap-6 mb-16">
-        <div className="flex-1 bg-primary rounded-2xl p-8 flex flex-col justify-between min-h-[200px]">
-          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-6">
-            <Play className="w-6 h-6 text-white" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        {steps.map((step) => (
+          <div key={step.num} className="bg-white/5 backdrop-blur-sm rounded-2xl p-7 border border-white/10 hover:border-primary/30 transition-all duration-300 group">
+            <span className="text-4xl font-bold text-primary/30 block mb-4">{step.num}</span>
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
+              <step.icon className="w-6 h-6 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold text-white mb-2">{step.title}</h3>
+            <p className="text-sm text-white/50 leading-relaxed">{step.description}</p>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-1">Virtual home tour</h3>
-            <p className="text-sm text-white/70">You can communicate directly with landowners and we provide you with virtual tour before buying.</p>
-          </div>
-        </div>
-        <div className="flex-1 bg-[hsl(256,40%,16%)] rounded-2xl p-8 flex flex-col justify-between min-h-[200px]">
-          <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mb-6">
-            <TrendingUp className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-1">Find the best deal</h3>
-            <p className="text-sm text-white/50">Browse thousands of properties, save your favorites and set up search alerts so you don't miss the best home deal!</p>
-          </div>
-        </div>
-        <div className="flex-1 bg-[hsl(256,40%,16%)] rounded-2xl p-8 flex flex-col justify-between min-h-[200px]">
-          <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mb-6">
-            <Handshake className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-1">Get ready to apply</h3>
-            <p className="text-sm text-white/50">Find your dream house? You just need to do a few steps. We will help you through the process.</p>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Stats */}
-      <div className="flex items-center justify-center gap-0">
-        <div className="flex-1 text-center">
-          <p className="text-4xl font-bold text-primary mb-1">7.4%</p>
-          <p className="text-sm text-white/50">Property Return Rate</p>
-        </div>
-        <div className="w-px h-16 bg-white/20" />
-        <div className="flex-1 text-center">
-          <p className="text-4xl font-bold text-primary mb-1">3,856</p>
-          <p className="text-sm text-white/50">Property in Sell & Rent</p>
-        </div>
-        <div className="w-px h-16 bg-white/20" />
-        <div className="flex-1 text-center">
-          <p className="text-4xl font-bold text-primary mb-1">2,540</p>
-          <p className="text-sm text-white/50">Daily Completed Transactions</p>
-        </div>
+      <div className="text-center">
+        <Button className="rounded-full px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 gap-2">
+          Start Your Journey <ArrowRight className="w-4 h-4" />
+        </Button>
       </div>
     </section>
   );

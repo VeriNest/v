@@ -1,69 +1,106 @@
-import { Shield, DollarSign, Percent, SlidersHorizontal } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { TrendingUp, Users, MapPin, DollarSign, BarChart3, Brain, Map, Shield, Headphones, Eye } from "lucide-react";
+
+const stats = [
+  { value: "2,450+", label: "Properties Sold", icon: TrendingUp },
+  { value: "98%", label: "Client Satisfaction", icon: Users },
+  { value: "150+", label: "Cities Covered", icon: MapPin },
+  { value: "$1.2B", label: "Market Value", icon: DollarSign },
+];
 
 const features = [
   {
-    icon: Shield,
-    title: "Property Insurance",
-    description: "We offer our customer property protection of liability coverage and target it at home.",
+    icon: BarChart3,
+    title: "Live Market Analysis",
+    description: "Real-time data feeds from every major listing source, aggregating hidden gems before they hit the mainstream market.",
   },
   {
-    icon: DollarSign,
-    title: "Best Price",
-    description: "Not sure what you should be charging for your property? No need to worry, let us do the numbers for you.",
+    icon: Brain,
+    title: "Expert Insights",
+    description: "Predictive analytics on value appreciation and investment potential, tailored to your financial goals.",
   },
   {
-    icon: Percent,
-    title: "Lowest Commission",
-    description: "You no longer have to negotiate commissions and haggle with other agents it only cost 2%!",
-  },
-  {
-    icon: SlidersHorizontal,
-    title: "Overall Control",
-    description: "Get a virtual tour, and get accurate information about your property, saving your time.",
+    icon: Map,
+    title: "Best Area Suggestions",
+    description: "Neighborhood matching based on your lifestyle habits, commute preferences, and local amenities.",
   },
 ];
 
 const Features = () => {
   return (
-    <section className="px-20 py-20 bg-secondary/50">
-      <div className="flex gap-12 items-start">
-        {/* Left */}
-        <div className="flex-1 max-w-md">
-          <p className="text-primary text-sm font-semibold mb-2 uppercase tracking-wider">—</p>
-          <h2 className="text-3xl font-bold text-foreground mb-3 leading-tight">
-            The new way to find<br />your new home
+    <>
+      {/* Stats Bar */}
+      <section className="px-8 lg:px-20 py-14 bg-[hsl(var(--dark-bg))] mt-12">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          {stats.map((stat, i) => (
+            <div key={stat.label} className="text-center">
+              <p className="text-3xl lg:text-4xl font-bold text-primary mb-1 tracking-tight font-mono">{stat.value}</p>
+              <p className="text-xs text-white/50 uppercase tracking-widest font-medium">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="px-8 lg:px-20 py-20">
+        <div className="text-center mb-14">
+          <span className="text-xs font-semibold text-primary uppercase tracking-widest mb-3 block">Why Choose Dwello?</span>
+          <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
+            Smart Property Intelligence
           </h2>
-          <p className="text-muted-foreground text-sm mb-8">
-            Find your dream place to live in with more than 10k+ properties listed.
+          <p className="text-muted-foreground max-w-lg mx-auto">
+            We leverage advanced tools to give you a competitive edge in the market, turning data into your dream home.
           </p>
-          <div className="relative rounded-2xl overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=300&fit=crop"
-              alt="Modern house"
-              className="w-full h-[280px] object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-            <Button className="absolute bottom-6 left-6 rounded-full px-6 bg-primary text-primary-foreground hover:bg-primary/90">
-              Browse Properties
-            </Button>
-          </div>
         </div>
 
-        {/* Right 2x2 Grid */}
-        <div className="flex-1 grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature) => (
-            <div key={feature.title} className="bg-background rounded-2xl p-6 shadow-sm">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <feature.icon className="w-6 h-6 text-primary" />
+            <div
+              key={feature.title}
+              className="group bg-card rounded-2xl p-8 border border-border/50 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
+                <feature.icon className="w-7 h-7 text-primary" />
               </div>
-              <h3 className="text-base font-semibold text-foreground mb-2">{feature.title}</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-3">{feature.title}</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* Trust Section */}
+      <section className="px-8 lg:px-20 py-20 bg-secondary/50">
+        <div className="flex flex-col lg:flex-row gap-12 items-center">
+          <div className="flex-1">
+            <img
+              src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop"
+              alt="Modern home interior"
+              className="w-full h-[380px] object-cover rounded-3xl shadow-lg"
+            />
+          </div>
+          <div className="flex-1 space-y-8">
+            <h2 className="text-3xl font-bold text-foreground leading-tight">Redefining Real Estate</h2>
+            <div className="space-y-6">
+              {[
+                { icon: Shield, title: "Verified Listings Only", desc: "Every property on our platform is verified by our team to ensure what you see is what you get." },
+                { icon: Headphones, title: "24/7 Concierge Support", desc: "Our dedicated team is always available to answer questions, schedule viewings, and provide expert advice." },
+                { icon: Eye, title: "Transparent Pricing", desc: "No hidden fees. We provide clear, upfront cost breakdowns so you can budget with confidence." },
+              ].map((item) => (
+                <div key={item.title} className="flex gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <item.icon className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">{item.title}</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 };
 

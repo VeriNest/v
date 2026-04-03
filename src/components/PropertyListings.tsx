@@ -1,149 +1,89 @@
-import { Heart, Bed, Bath, Maximize, Search } from "lucide-react";
+import { Heart, Bed, Maximize, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 
 const properties = [
   {
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=280&fit=crop",
-    price: "$2,095",
-    period: "/month",
-    name: "Palm Harbor",
-    address: "2699 Green Valley, Highland Lake, FL",
+    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=500&h=350&fit=crop",
+    price: "$12,500,000",
+    name: "The Glass Pavilion",
+    location: "Montecito, California",
+    beds: 6,
+    sqft: "8,200",
+    featured: true,
+  },
+  {
+    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500&h=350&fit=crop",
+    price: "$8,950,000",
+    name: "Skyline Penthouse",
+    location: "New York, NY",
+    beds: 4,
+    sqft: "5,400",
+    featured: false,
+  },
+  {
+    image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=500&h=350&fit=crop",
+    price: "$3,200,000",
+    name: "Desert Oasis",
+    location: "Joshua Tree, CA",
     beds: 3,
-    baths: 2,
-    sqft: "5x7",
-    popular: true,
+    sqft: "3,800",
+    featured: false,
   },
   {
-    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=280&fit=crop",
-    price: "$2,700",
-    period: "/month",
-    name: "Beverly Springfield",
-    address: "2699 Green Valley, Highland Lake, FL",
-    beds: 4,
-    baths: 2,
-    sqft: "6x7.5",
-    popular: true,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=400&h=280&fit=crop",
-    price: "$4,550",
-    period: "/month",
-    name: "Faulkner Ave",
-    address: "909 Woodland St, Michigan, IN",
-    beds: 4,
-    baths: 3,
-    sqft: "8x10",
-    popular: false,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=400&h=280&fit=crop",
-    price: "$2,400",
-    period: "/month",
-    name: "St. Crystal",
-    address: "210 US Highway, Highland Lake, FL",
-    beds: 4,
-    baths: 2,
-    sqft: "6x8",
-    popular: true,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1600573472592-401b489a3cdc?w=400&h=280&fit=crop",
-    price: "$1,500",
-    period: "/month",
-    name: "Cove Red",
-    address: "243 Cudarhy St, Michigan, IN",
-    beds: 2,
-    baths: 1,
-    sqft: "5x7.5",
-    popular: false,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=280&fit=crop",
-    price: "$3,200",
-    period: "/month",
-    name: "Tarpon Bay",
-    address: "103 Lake Shores, Michigan, IN",
-    beds: 3,
-    baths: 3,
-    sqft: "5x7",
-    popular: true,
+    image: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=500&h=350&fit=crop",
+    price: "$15,000,000",
+    name: "Coastal Retreat",
+    location: "Malibu, California",
+    beds: 5,
+    sqft: "7,600",
+    featured: true,
   },
 ];
 
 const PropertyListings = () => {
-  const [activeTab, setActiveTab] = useState("Rent");
-
   return (
-    <section className="px-20 py-20">
-      <div className="text-center mb-4">
-        <h2 className="text-3xl font-bold text-foreground mb-2">Based on your location</h2>
-        <p className="text-muted-foreground text-sm">Some of our picked properties near you location.</p>
+    <section className="px-8 lg:px-20 py-20">
+      <div className="flex items-end justify-between mb-12">
+        <div>
+          <span className="text-xs font-semibold text-primary uppercase tracking-widest mb-3 block">Exclusive Selection</span>
+          <h2 className="text-3xl lg:text-4xl font-bold text-foreground">Curated Listings</h2>
+        </div>
+        <Button variant="outline" className="rounded-full px-6 gap-2 border-border hover:bg-accent">
+          View All Properties <ArrowRight className="w-4 h-4" />
+        </Button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center justify-center gap-6 mb-10">
-        {["Rent", "Buy", "Sell"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeTab === tab
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
-        <button className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-          <Search className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Property Grid */}
-      <div className="grid grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {properties.map((property) => (
-          <div key={property.name} className="bg-background rounded-2xl overflow-hidden border border-border shadow-sm">
-            <div className="relative">
-              <img src={property.image} alt={property.name} className="w-full h-[200px] object-cover" />
-              {property.popular && (
+          <div key={property.name} className="group bg-card rounded-2xl overflow-hidden border border-border/50 hover:shadow-xl hover:shadow-foreground/5 transition-all duration-300">
+            <div className="relative overflow-hidden">
+              <img
+                src={property.image}
+                alt={`${property.name} in ${property.location}`}
+                className="w-full h-[220px] object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              {property.featured && (
                 <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                  Popular
+                  Featured
                 </span>
               )}
-              <button className="absolute top-3 right-3 w-8 h-8 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center">
+              <button className="absolute top-3 right-3 w-8 h-8 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-card transition-colors">
                 <Heart className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
-            <div className="p-4">
-              <div className="flex items-baseline justify-between mb-1">
-                <h3 className="font-semibold text-foreground">{property.name}</h3>
-                <p className="text-primary font-bold text-lg">
-                  {property.price}<span className="text-xs text-muted-foreground font-normal">{property.period}</span>
-                </p>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">{property.address}</p>
-              <div className="flex items-center gap-4 pt-3 border-t border-border">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Bed className="w-3.5 h-3.5" /> {property.beds} Beds
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Bath className="w-3.5 h-3.5" /> {property.baths} Bathrooms
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Maximize className="w-3.5 h-3.5" /> {property.sqft} m²
+            <div className="p-5">
+              <h3 className="font-semibold text-foreground mb-1">{property.name}</h3>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">{property.location}</p>
+              <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                <p className="text-lg font-bold text-foreground">{property.price}</p>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><Bed className="w-3.5 h-3.5" />{property.beds} Beds</span>
+                  <span className="flex items-center gap-1"><Maximize className="w-3.5 h-3.5" />{property.sqft} sqft</span>
                 </div>
               </div>
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="text-center">
-        <Button variant="outline" className="rounded-full px-8 border-primary text-primary hover:bg-primary/5">
-          Browse more properties
-        </Button>
       </div>
     </section>
   );
