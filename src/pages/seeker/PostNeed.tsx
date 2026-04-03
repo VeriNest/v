@@ -1,25 +1,69 @@
 import { useState } from "react";
-import { MapPin, Calendar, DollarSign, Bed, CheckCircle2, ShieldCheck, FileText, Plus, ChevronRight } from "lucide-react";
+import {
+  MapPin, Calendar, Bed, CheckCircle2, ShieldCheck, FileText, Plus, ChevronRight,
+  ChevronLeft, Zap, Clock, Eye, Rocket, ArrowRight, Home, Sparkles, AlertCircle
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
 
 const previousNeeds = [
-  { id: 1, title: "3 Bed in Lekki Phase 1", budget: "₦2.5M/yr", status: "Active", offers: 4, date: "Mar 15, 2024" },
-  { id: 2, title: "Studio in Wuse 2, Abuja", budget: "₦1.2M/yr", status: "Closed", offers: 7, date: "Feb 28, 2024" },
-  { id: 3, title: "2 Bed Short-let, VI", budget: "₦45K/night", status: "Active", offers: 2, date: "Mar 18, 2024" },
+  { id: 1, title: "3 Bed in Lekki Phase 1", budget: "₦2.5M/yr", status: "Active", offers: 4, date: "Mar 15, 2024", urgency: "Soon" },
+  { id: 2, title: "Studio in Wuse 2, Abuja", budget: "₦1.2M/yr", status: "Closed", offers: 7, date: "Feb 28, 2024", urgency: "Flexible" },
+  { id: 3, title: "2 Bed Short-let, VI", budget: "₦45K/night", status: "Active", offers: 2, date: "Mar 18, 2024", urgency: "Urgent" },
 ];
 
-const amenities = ["24hr Power", "Security", "Water Supply", "Parking", "Gated Estate", "Pet Friendly", "Furnished", "Swimming Pool", "Gym", "Serviced"];
+const amenities = ["24hr Power", "Security", "Water Supply", "Parking", "Gated Estate", "Pet Friendly", "Furnished", "Swimming Pool", "Gym", "Serviced", "Elevator", "Balcony"];
+
+const steps = [
+  { id: 1, label: "Basics", icon: Home },
+  { id: 2, label: "Location & Budget", icon: MapPin },
+  { id: 3, label: "Amenities & Preferences", icon: Sparkles },
+  { id: 4, label: "Review & Publish", icon: CheckCircle2 },
+];
+
+const urgencyLevels = [
+  { value: "flexible", label: "Flexible", desc: "No rush, exploring options", icon: Clock, color: "text-blue-600", bg: "bg-blue-50 border-blue-200", dot: "bg-blue-500" },
+  { value: "soon", label: "Soon", desc: "Within 2-4 weeks", icon: Calendar, color: "text-amber-600", bg: "bg-amber-50 border-amber-200", dot: "bg-amber-500" },
+  { value: "urgent", label: "Urgent", desc: "Need ASAP", icon: Zap, color: "text-red-600", bg: "bg-red-50 border-red-200", dot: "bg-red-500" },
+];
+
+const formatBudget = (val: number) => {
+  if (val >= 1000000) return `₦${(val / 1000000).toFixed(1)}M`;
+  if (val >= 1000) return `₦${(val / 1000).toFixed(0)}K`;
+  return `₦${val}`;
+};
 
 export default function PostNeed() {
   const [submitted, setSubmitted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [urgency, setUrgency] = useState("flexible");
+  const [boost, setBoost] = useState(false);
+  const [budgetRange, setBudgetRange] = useState([500000, 3000000]);
+  const [propertyType, setPropertyType] = useState("rent");
+  const [bedrooms, setBedrooms] = useState("2");
+  const [location, setLocation] = useState("");
+  const [moveInDate, setMoveInDate] = useState("");
+  const [notes, setNotes] = useState("");
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+  };
+
+  const progress = (currentStep / steps.length) * 100;
+
+  const canAdvance = () => {
+    if (currentStep === 1) return propertyType && bedrooms;
+    if (currentStep === 2) return location.length > 0;
+    return true;
   };
 
   if (submitted) {
@@ -29,11 +73,13 @@ export default function PostNeed() {
           <CheckCircle2 className="w-8 h-8 text-emerald-500" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-foreground">Need Published</h2>
-          <p className="text-sm text-muted-foreground mt-1.5 max-w-sm">Verified agents and landlords will start sending you matching offers shortly.</p>
+          <h2 className="text-xl font-bold text-foreground">Need Published Successfully!</h2>
+          <p className="text-sm text-muted-foreground mt-1.5 max-w-sm">
+            {boost ? "Your need has been boosted! " : ""}Verified agents and landlords will start sending you matching offers shortly.
+          </p>
         </div>
         <div className="flex gap-3">
-          <Button onClick={() => setSubmitted(false)} variant="outline" size="sm">Post Another</Button>
+          <Button onClick={() => { setSubmitted(false); setCurrentStep(1); }} variant="outline" size="sm">Post Another</Button>
           <Button size="sm">View My Posts</Button>
         </div>
       </div>
@@ -56,71 +102,208 @@ export default function PostNeed() {
           </TabsTrigger>
           <TabsTrigger value="history" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1.5">
             <FileText className="h-3.5 w-3.5" /> My Posts
+            <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-semibold">{previousNeeds.length}</Badge>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="new">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Form */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-4">
+              {/* Progress bar */}
               <Card className="border border-border/60 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-base">Property Requirements</CardTitle>
-                  <CardDescription>Be specific to get better matches from providers</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} className="space-y-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-foreground">Type</label>
-                        <select className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
-                          <option>Rent (Long-term)</option>
-                          <option>Short-let</option>
-                          <option>Shared Apartment</option>
-                        </select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-foreground">Bedrooms</label>
-                        <div className="relative">
-                          <Bed className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <select className="w-full h-10 rounded-lg border border-input bg-background pl-9 pr-3 text-sm text-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all">
-                            <option>1 Bedroom</option>
-                            <option>2 Bedrooms</option>
-                            <option>3 Bedrooms</option>
-                            <option>4+ Bedrooms</option>
-                            <option>Self-contain</option>
-                          </select>
-                        </div>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-medium text-foreground">Step {currentStep} of {steps.length}</p>
+                    <p className="text-xs text-muted-foreground">{steps[currentStep - 1].label}</p>
+                  </div>
+                  <Progress value={progress} className="h-2" />
+                  <div className="flex justify-between mt-3">
+                    {steps.map((step) => {
+                      const StepIcon = step.icon;
+                      const isActive = step.id === currentStep;
+                      const isDone = step.id < currentStep;
+                      return (
+                        <button
+                          key={step.id}
+                          onClick={() => step.id <= currentStep && setCurrentStep(step.id)}
+                          className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${
+                            isActive ? "text-primary" : isDone ? "text-emerald-600 cursor-pointer" : "text-muted-foreground/50"
+                          }`}
+                        >
+                          <div className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                            isActive ? "bg-primary text-primary-foreground" :
+                            isDone ? "bg-emerald-500 text-white" :
+                            "bg-muted text-muted-foreground"
+                          }`}>
+                            {isDone ? <CheckCircle2 className="h-3.5 w-3.5" /> : step.id}
+                          </div>
+                          <span className="hidden sm:inline">{step.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Step 1: Basics */}
+              {currentStep === 1 && (
+                <Card className="border border-border/60 shadow-sm">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-base">Property Basics</CardTitle>
+                    <CardDescription>What type of property are you looking for?</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-5">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground">Property Type</label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { value: "rent", label: "Rent", desc: "Long-term lease" },
+                          { value: "shortlet", label: "Short-let", desc: "Days to weeks" },
+                          { value: "shared", label: "Shared", desc: "Shared apartment" },
+                        ].map((type) => (
+                          <button
+                            key={type.value}
+                            onClick={() => setPropertyType(type.value)}
+                            className={`p-4 rounded-xl border text-left transition-all ${
+                              propertyType === type.value
+                                ? "border-primary bg-primary/5 shadow-sm"
+                                : "border-border/60 hover:border-primary/30 hover:bg-accent/30"
+                            }`}
+                          >
+                            <p className={`text-sm font-semibold ${propertyType === type.value ? "text-primary" : "text-foreground"}`}>{type.label}</p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">{type.desc}</p>
+                          </button>
+                        ))}
                       </div>
                     </div>
 
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground">Number of Bedrooms</label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { value: "self", label: "Self-con" },
+                          { value: "1", label: "1 Bed" },
+                          { value: "2", label: "2 Bed" },
+                          { value: "3", label: "3 Bed" },
+                          { value: "4+", label: "4+ Bed" },
+                        ].map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => setBedrooms(opt.value)}
+                            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                              bedrooms === opt.value
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border/60 text-muted-foreground hover:border-primary/30"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Urgency */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground">How urgently do you need this?</label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {urgencyLevels.map((level) => {
+                          const Icon = level.icon;
+                          return (
+                            <button
+                              key={level.value}
+                              onClick={() => setUrgency(level.value)}
+                              className={`p-3 rounded-xl border text-left transition-all ${
+                                urgency === level.value
+                                  ? `${level.bg} shadow-sm`
+                                  : "border-border/60 hover:border-primary/30"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Icon className={`h-4 w-4 ${urgency === level.value ? level.color : "text-muted-foreground"}`} />
+                                <p className={`text-sm font-semibold ${urgency === level.value ? level.color : "text-foreground"}`}>{level.label}</p>
+                              </div>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">{level.desc}</p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 2: Location & Budget */}
+              {currentStep === 2 && (
+                <Card className="border border-border/60 shadow-sm">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-base">Location & Budget</CardTitle>
+                    <CardDescription>Where do you want to live and what's your budget?</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-5">
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-foreground">Preferred Location</label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="e.g. Lekki, Lagos or Wuse, Abuja" className="pl-9" required />
+                        <Input
+                          placeholder="e.g. Lekki Phase 1, Lagos or Wuse 2, Abuja"
+                          className="pl-9"
+                          value={location}
+                          onChange={(e) => setLocation(e.target.value)}
+                        />
                       </div>
+                      <p className="text-[11px] text-muted-foreground">You can list multiple areas separated by commas</p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-foreground">Budget (Annual / Nightly)</label>
-                        <div className="relative">
-                          <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="e.g. 2,000,000" className="pl-9" required />
-                        </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-foreground">
+                          Budget Range {propertyType === "shortlet" ? "(per night)" : "(per year)"}
+                        </label>
+                        <span className="text-sm font-bold text-primary">
+                          {formatBudget(budgetRange[0])} — {formatBudget(budgetRange[1])}
+                        </span>
                       </div>
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-foreground">Move-in Date</label>
-                        <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input type="date" className="pl-9" required />
-                        </div>
+                      <Slider
+                        value={budgetRange}
+                        onValueChange={setBudgetRange}
+                        min={propertyType === "shortlet" ? 10000 : 200000}
+                        max={propertyType === "shortlet" ? 500000 : 10000000}
+                        step={propertyType === "shortlet" ? 5000 : 100000}
+                        className="py-2"
+                      />
+                      <div className="flex justify-between text-[11px] text-muted-foreground">
+                        <span>{formatBudget(propertyType === "shortlet" ? 10000 : 200000)}</span>
+                        <span>{formatBudget(propertyType === "shortlet" ? 500000 : 10000000)}</span>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border/40">
+                        <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <p className="text-xs text-muted-foreground">Setting a wider range increases your chances of getting matched with more providers</p>
                       </div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-foreground">Must-haves</label>
+                      <label className="text-sm font-medium text-foreground">
+                        {propertyType === "shortlet" ? "Check-in Date" : "Preferred Move-in Date"}
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input type="date" className="pl-9" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)} />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 3: Amenities */}
+              {currentStep === 3 && (
+                <Card className="border border-border/60 shadow-sm">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-base">Amenities & Preferences</CardTitle>
+                    <CardDescription>Select must-haves and add any extra notes</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-5">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground">Must-have Amenities</label>
                       <div className="flex flex-wrap gap-2">
                         {amenities.map((tag) => (
                           <Badge
@@ -137,22 +320,131 @@ export default function PostNeed() {
                           </Badge>
                         ))}
                       </div>
+                      {selectedTags.length > 0 && (
+                        <p className="text-[11px] text-muted-foreground">{selectedTags.length} selected</p>
+                      )}
                     </div>
 
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-foreground">Additional Notes</label>
-                      <textarea className="w-full min-h-[80px] rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none" placeholder="Any other requirements or preferences..." />
+                      <Textarea
+                        placeholder="Any other requirements? e.g. ground floor preferred, near a bus stop, need a study room..."
+                        rows={4}
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                      />
                     </div>
 
-                    <Button type="submit" className="w-full h-11 text-sm font-medium">
-                      Publish Need
+                    {/* Boost card */}
+                    <Card className={`border transition-all ${boost ? "border-primary bg-primary/5" : "border-border/60"}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${boost ? "bg-primary/20" : "bg-muted"}`}>
+                              <Rocket className={`h-5 w-5 ${boost ? "text-primary" : "text-muted-foreground"}`} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">Boost Visibility</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                Get 3x more agent responses. Your need will be featured at the top and sent to premium agents.
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20">
+                                  <Eye className="h-2.5 w-2.5 mr-0.5" /> 3x visibility
+                                </Badge>
+                                <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-600 border-emerald-200">
+                                  <Zap className="h-2.5 w-2.5 mr-0.5" /> Priority matching
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                          <Switch checked={boost} onCheckedChange={setBoost} />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Step 4: Review */}
+              {currentStep === 4 && (
+                <Card className="border border-border/60 shadow-sm">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-base">Review Your Need</CardTitle>
+                    <CardDescription>Make sure everything looks good before publishing</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {[
+                        { label: "Type", value: propertyType === "rent" ? "Rent (Long-term)" : propertyType === "shortlet" ? "Short-let" : "Shared Apartment" },
+                        { label: "Bedrooms", value: bedrooms === "self" ? "Self-contain" : `${bedrooms} Bedroom${bedrooms !== "1" ? "s" : ""}` },
+                        { label: "Location", value: location || "Not specified" },
+                        { label: "Budget", value: `${formatBudget(budgetRange[0])} — ${formatBudget(budgetRange[1])}` },
+                        { label: "Move-in", value: moveInDate || "Flexible" },
+                        { label: "Urgency", value: urgencyLevels.find(l => l.value === urgency)?.label || "" },
+                      ].map((item) => (
+                        <div key={item.label} className="p-3 rounded-lg bg-muted/30 border border-border/40">
+                          <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">{item.label}</p>
+                          <p className="text-sm font-semibold text-foreground mt-0.5">{item.value}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {selectedTags.length > 0 && (
+                      <div className="p-3 rounded-lg bg-muted/30 border border-border/40">
+                        <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider mb-2">Must-haves</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedTags.map((tag) => (
+                            <Badge key={tag} variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">{tag}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {notes && (
+                      <div className="p-3 rounded-lg bg-muted/30 border border-border/40">
+                        <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Notes</p>
+                        <p className="text-sm text-foreground mt-0.5">{notes}</p>
+                      </div>
+                    )}
+
+                    {boost && (
+                      <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 flex items-center gap-2">
+                        <Rocket className="h-4 w-4 text-primary" />
+                        <p className="text-sm font-medium text-primary">Visibility Boost enabled — 3x more agent responses</p>
+                      </div>
+                    )}
+
+                    <Button onClick={() => setSubmitted(true)} className="w-full h-11 text-sm font-medium gap-2">
+                      <CheckCircle2 className="h-4 w-4" /> Publish Need
                     </Button>
-                  </form>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Navigation */}
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentStep(s => s - 1)}
+                  disabled={currentStep === 1}
+                  className="gap-1.5"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Back
+                </Button>
+                {currentStep < 4 && (
+                  <Button
+                    onClick={() => setCurrentStep(s => s + 1)}
+                    disabled={!canAdvance()}
+                    className="gap-1.5"
+                  >
+                    Next <ArrowRight className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
 
-            {/* Sidebar tips */}
+            {/* Sidebar */}
             <div className="space-y-4">
               <Card className="border border-border/60 shadow-sm">
                 <CardContent className="p-5 space-y-3">
@@ -168,7 +460,7 @@ export default function PostNeed() {
                 <CardContent className="p-5 space-y-3">
                   <h3 className="text-sm font-semibold text-foreground">Tips for better matches</h3>
                   <ul className="space-y-2">
-                    {["Be specific about your preferred area", "Set a realistic budget range", "List amenities that matter most", "Add a move-in date for urgency"].map((tip, i) => (
+                    {["Be specific about your preferred area", "Set a realistic budget range", "List amenities that matter most", "Add urgency for faster responses"].map((tip, i) => (
                       <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground">
                         <span className="mt-0.5 h-4 w-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-semibold shrink-0">{i + 1}</span>
                         {tip}
@@ -177,42 +469,82 @@ export default function PostNeed() {
                   </ul>
                 </CardContent>
               </Card>
+
+              <Card className="border border-border/60 shadow-sm bg-muted/20">
+                <CardContent className="p-5 space-y-2">
+                  <h3 className="text-sm font-semibold text-foreground">How it works</h3>
+                  <div className="space-y-3">
+                    {[
+                      { step: "1", text: "Describe your ideal property" },
+                      { step: "2", text: "Verified agents see your need" },
+                      { step: "3", text: "Receive tailored property offers" },
+                      { step: "4", text: "Compare, shortlist & book securely" },
+                    ].map((item) => (
+                      <div key={item.step} className="flex items-center gap-2.5">
+                        <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold shrink-0">{item.step}</div>
+                        <p className="text-xs text-muted-foreground">{item.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </TabsContent>
 
+        {/* History tab */}
         <TabsContent value="history">
           <Card className="border border-border/60 shadow-sm">
             <CardHeader className="pb-4">
-              <CardTitle className="text-base">Posted Needs</CardTitle>
-              <CardDescription>Track your published property needs and incoming offers</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base">Posted Needs</CardTitle>
+                  <CardDescription>Track your published property needs and incoming offers</CardDescription>
+                </div>
+                <Select defaultValue="all">
+                  <SelectTrigger className="w-[120px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </CardHeader>
             <CardContent className="divide-y divide-border/60">
-              {previousNeeds.map((need) => (
-                <div key={need.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0 group">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center">
-                      <FileText className="h-4 w-4 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{need.title}</p>
-                      <div className="flex items-center gap-3 mt-0.5">
-                        <span className="text-xs text-muted-foreground">{need.budget}</span>
-                        <span className="text-xs text-muted-foreground">{need.date}</span>
+              {previousNeeds.map((need) => {
+                const urg = urgencyLevels.find(l => l.label === need.urgency);
+                return (
+                  <div key={need.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0 group">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center">
+                        <FileText className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{need.title}</p>
+                        <div className="flex items-center gap-3 mt-0.5">
+                          <span className="text-xs text-muted-foreground">{need.budget}</span>
+                          <span className="text-xs text-muted-foreground">{need.date}</span>
+                        </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-3">
+                      {urg && (
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${urg.bg} ${urg.color}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${urg.dot}`} />{urg.label}
+                        </span>
+                      )}
+                      <Badge variant="outline" className={`text-xs ${need.status === "Active" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-muted text-muted-foreground border-border"}`}>
+                        {need.status}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">{need.offers} offers</span>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="outline" className={`text-xs ${need.status === "Active" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-muted text-muted-foreground border-border"}`}>
-                      {need.status}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">{need.offers} offers</span>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
         </TabsContent>
