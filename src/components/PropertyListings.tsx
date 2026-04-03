@@ -1,4 +1,4 @@
-import { Heart, Bed, Maximize, ArrowRight } from "lucide-react";
+import { Heart, Bed, Maximize, ArrowRight, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const properties = [
@@ -10,6 +10,7 @@ const properties = [
     beds: 6,
     sqft: "8,200",
     featured: true,
+    tag: "Featured",
   },
   {
     image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=500&h=350&fit=crop",
@@ -19,6 +20,7 @@ const properties = [
     beds: 4,
     sqft: "5,400",
     featured: false,
+    tag: "Buy",
   },
   {
     image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=500&h=350&fit=crop",
@@ -28,6 +30,7 @@ const properties = [
     beds: 3,
     sqft: "3,800",
     featured: false,
+    tag: "Buy",
   },
   {
     image: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=500&h=350&fit=crop",
@@ -37,50 +40,56 @@ const properties = [
     beds: 5,
     sqft: "7,600",
     featured: true,
+    tag: "Featured",
   },
 ];
 
 const PropertyListings = () => {
   return (
-    <section className="px-8 lg:px-20 py-20">
+    <section className="px-6 lg:px-16 xl:px-20 py-20">
       <div className="flex items-end justify-between mb-12">
         <div>
-          <span className="text-xs font-semibold text-primary uppercase tracking-widest mb-3 block">Exclusive Selection</span>
-          <h2 className="text-3xl lg:text-4xl font-bold text-foreground">Curated Listings</h2>
+          <p className="text-xs font-medium text-primary uppercase tracking-[0.2em] mb-4">Exclusive Selection</p>
+          <h2 className="font-serif text-3xl lg:text-4xl text-foreground">Curated Listings</h2>
         </div>
-        <Button variant="outline" className="rounded-full px-6 gap-2 border-border hover:bg-accent">
+        <Button variant="outline" className="rounded-lg px-5 gap-2 border-border text-foreground hover:bg-accent text-sm font-medium">
           View All Properties <ArrowRight className="w-4 h-4" />
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {properties.map((property) => (
-          <div key={property.name} className="group bg-card rounded-2xl overflow-hidden border border-border/50 hover:shadow-xl hover:shadow-foreground/5 transition-all duration-300">
+          <div key={property.name} className="group bg-card rounded-xl overflow-hidden border border-border/50 hover:shadow-lg transition-all duration-300">
             <div className="relative overflow-hidden">
               <img
                 src={property.image}
                 alt={`${property.name} in ${property.location}`}
                 className="w-full h-[220px] object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              {property.featured && (
-                <span className="absolute top-3 left-3 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                  Featured
-                </span>
-              )}
+              <span className={`absolute top-3 left-3 text-[10px] font-bold px-3 py-1 rounded font-mono uppercase tracking-wider ${
+                property.featured
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-emerald-500 text-white"
+              }`}>
+                {property.tag}
+              </span>
               <button className="absolute top-3 right-3 w-8 h-8 bg-card/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-card transition-colors">
                 <Heart className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
             <div className="p-5">
-              <h3 className="font-semibold text-foreground mb-1">{property.name}</h3>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3">{property.location}</p>
-              <div className="flex items-center justify-between pt-3 border-t border-border/50">
-                <p className="text-lg font-bold text-foreground">{property.price}</p>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Bed className="w-3.5 h-3.5" />{property.beds} Beds</span>
-                  <span className="flex items-center gap-1"><Maximize className="w-3.5 h-3.5" />{property.sqft} sqft</span>
-                </div>
+              <p className="text-lg font-bold text-primary font-mono mb-1">{property.price}</p>
+              <h3 className="font-semibold text-foreground text-[15px] mb-1">{property.name}</h3>
+              <p className="flex items-center gap-1 text-xs text-muted-foreground mb-4">
+                <MapPin className="w-3 h-3" /> {property.location}
+              </p>
+              <div className="flex items-center gap-4 pt-3 border-t border-border/50 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1"><Bed className="w-3.5 h-3.5" />{property.beds} Beds</span>
+                <span className="flex items-center gap-1"><Maximize className="w-3.5 h-3.5" />{property.sqft} sqft</span>
               </div>
+              <Button variant="outline" className="w-full mt-4 rounded-lg text-sm text-primary border-primary/20 hover:bg-primary/5 hover:text-primary font-medium">
+                View Details
+              </Button>
             </div>
           </div>
         ))}

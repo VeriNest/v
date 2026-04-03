@@ -24,8 +24,8 @@ export default function Signup() {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4 py-8">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-secondary/30 px-4 py-8">
+      <Card className="w-full max-w-md border-border/50 shadow-lg">
         <CardHeader className="text-center space-y-2">
           <Link to="/" className="flex items-center justify-center gap-2 mb-4">
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
@@ -33,24 +33,24 @@ export default function Signup() {
             </div>
             <span className="text-2xl font-bold text-foreground">Dwello</span>
           </Link>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardTitle className="font-serif text-2xl">Create an account</CardTitle>
           <CardDescription>Join as a tenant, agent, or landlord</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
             {/* Role selector */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">I am a</label>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">I am a</label>
               <div className="grid grid-cols-3 gap-3">
                 {roles.map((r) => (
                   <button
                     key={r.value}
                     type="button"
                     onClick={() => setRole(r.value)}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-colors ${
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border transition-colors ${
                       role === r.value
                         ? "border-primary bg-primary/5 text-primary"
-                        : "border-border text-muted-foreground hover:border-primary/50"
+                        : "border-border text-muted-foreground hover:border-primary/40"
                     }`}
                   >
                     {r.icon}
@@ -62,27 +62,27 @@ export default function Signup() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Full Name</label>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Full Name</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="John Doe" className="pl-9" required />
+                <Input placeholder="John Doe" className="pl-9 rounded-lg" required />
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Email</label>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input type="email" placeholder="you@example.com" className="pl-9" required />
+                <Input type="email" placeholder="you@example.com" className="pl-9 rounded-lg" required />
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Password</label>
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="pl-9 pr-10"
+                  className="pl-9 pr-10 rounded-lg"
                   required
                 />
                 <button
@@ -95,7 +95,9 @@ export default function Signup() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full rounded-full">Create Account</Button>
+            <Button type="submit" className="w-full rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 font-medium">
+              Create Account
+            </Button>
           </form>
           <p className="text-center text-sm text-muted-foreground mt-6">
             Already have an account?{" "}
