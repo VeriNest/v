@@ -86,6 +86,7 @@ const App = () => (
             <Route path="inbox" element={<LeadInbox />} />
             <Route path="inbox/:id" element={<LeadDetail />} />
             <Route path="listings" element={<Listings />} />
+            <Route path="listings/new" element={<AddListing />} />
             <Route path="payouts" element={<Payouts />} />
             <Route path="calendar" element={<ProviderCalendar />} />
             <Route path="settings" element={<ProviderSettings />} />
