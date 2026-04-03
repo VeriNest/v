@@ -202,9 +202,9 @@ export default function ProviderSettings() {
               <div className="flex items-center gap-2"><Trash2 className="h-4 w-4 text-destructive" /><CardTitle className="text-base text-destructive">Danger Zone</CardTitle></div>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5 gap-3">
                 <div><p className="font-medium text-sm text-foreground">Delete Account</p><p className="text-xs text-muted-foreground">Permanently delete your provider account and all listings.</p></div>
-                <Button variant="destructive" size="sm">Delete Account</Button>
+                <Button variant="destructive" size="sm" className="shrink-0">Delete Account</Button>
               </div>
             </CardContent>
           </Card>
