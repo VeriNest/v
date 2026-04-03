@@ -5,7 +5,8 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Bell, Shield, Globe, Trash2, KeyRound, Mail, Activity } from "lucide-react";
+import { User, Bell, Shield, Globe, Trash2, KeyRound, Mail, Activity, Camera } from "lucide-react";
+import { useRef, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const activityLog = [
