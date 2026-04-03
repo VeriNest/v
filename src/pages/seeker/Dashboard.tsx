@@ -176,15 +176,17 @@ export default function SeekerDashboard() {
         <CardContent className="pt-0">
           <div className="space-y-1">
             {recentOffers.map((offer) => (
-              <div key={offer.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group">
-                <Avatar className="h-9 w-9 border border-border/60">
-                  <AvatarFallback className="text-[10px] font-medium bg-primary/10 text-primary">{offer.initials}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{offer.property}</p>
-                  <p className="text-xs text-muted-foreground">by {offer.provider} · {offer.time} ago</p>
+              <div key={offer.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Avatar className="h-9 w-9 border border-border/60 shrink-0">
+                    <AvatarFallback className="text-[10px] font-medium bg-primary/10 text-primary">{offer.initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{offer.property}</p>
+                    <p className="text-xs text-muted-foreground">by {offer.provider} · {offer.time} ago</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-12 sm:ml-0">
                   <Badge variant="outline" className={`text-[10px] h-5 ${badgeColors[offer.badge]}`}>{offer.badge}</Badge>
                   <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-0.5 rounded-full">{offer.match}%</span>
                   <p className="text-sm font-semibold text-foreground">{offer.price}</p>

@@ -165,21 +165,23 @@ export default function ProviderDashboard() {
         <CardContent className="pt-0">
           <div className="space-y-1">
             {recentLeads.map((lead) => (
-              <div key={lead.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group">
-                <Avatar className="h-9 w-9 border border-border/60">
-                  <AvatarFallback className="text-[10px] font-medium bg-primary/10 text-primary">{lead.initials}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{lead.need}</p>
-                  <p className="text-xs text-muted-foreground">{lead.seeker} · {lead.posted}</p>
+              <div key={lead.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Avatar className="h-9 w-9 border border-border/60 shrink-0">
+                    <AvatarFallback className="text-[10px] font-medium bg-primary/10 text-primary">{lead.initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{lead.need}</p>
+                    <p className="text-xs text-muted-foreground">{lead.seeker} · {lead.posted}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 ml-12 sm:ml-0">
                   {lead.urgent && (
                     <Badge variant="outline" className="text-[10px] h-5 gap-1 border-red-200 bg-red-50 text-red-600">
                       <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Urgent
                     </Badge>
                   )}
-                  <Button size="sm" className="h-7 text-xs bg-primary text-primary-foreground hover:bg-primary/90 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button size="sm" className="h-7 text-xs bg-primary text-primary-foreground hover:bg-primary/90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     Send Offer
                   </Button>
                 </div>

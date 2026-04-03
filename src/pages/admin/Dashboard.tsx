@@ -68,14 +68,14 @@ export default function Dashboard() {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Welcome back, Admin</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">Welcome back, Admin</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Here's your platform overview.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="h-9 gap-2 text-sm">
-            <CalendarDays className="h-4 w-4" /> Last 30 days
+            <CalendarDays className="h-4 w-4" /> <span className="hidden sm:inline">Last</span> 30 days
           </Button>
           <Button size="sm" className="h-9 gap-2 text-sm" asChild>
             <Link to="/admin/properties"><Plus className="h-4 w-4" /> Add Property</Link>
