@@ -48,10 +48,11 @@ export default function AdminLayout() {
               </Link>
             </div>
           </header>
-          <main className="flex-1 p-3 sm:p-6 overflow-auto">
+          <main className="flex-1 p-3 sm:p-6 pb-20 md:pb-6 overflow-auto">
             <Outlet />
           </main>
         </div>
+        <AdminBottomNav />
       </div>
     </SidebarProvider>
   );
