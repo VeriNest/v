@@ -5,8 +5,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAvatar } from "@/contexts/AvatarContext";
 
 export default function ProviderLayout() {
+  const { avatarUrl } = useAvatar();
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-secondary/30">
@@ -26,7 +29,11 @@ export default function ProviderLayout() {
               <div className="h-8 w-px bg-border/60" />
               <Link to="/provider/settings" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
                 <Avatar className="h-8 w-8 border border-border/60">
-                  <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">AJ</AvatarFallback>
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover rounded-full" />
+                  ) : (
+                    <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">AJ</AvatarFallback>
+                  )}
                 </Avatar>
                 <div className="hidden sm:block">
                   <p className="text-sm font-medium leading-none text-foreground">Provider</p>

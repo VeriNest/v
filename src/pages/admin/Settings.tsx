@@ -6,7 +6,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Bell, Shield, Globe, Trash2, KeyRound, Mail, Activity, Camera } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef } from "react";
+import { useAvatar } from "@/contexts/AvatarContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const activityLog = [
@@ -26,7 +27,7 @@ const typeStyles: Record<string, string> = {
 };
 
 export default function AdminSettings() {
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
