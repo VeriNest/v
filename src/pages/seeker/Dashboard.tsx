@@ -59,14 +59,14 @@ export default function SeekerDashboard() {
       <KycAlertBanner variant="seeker" />
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Welcome back!</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">Welcome back!</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Track your property search, offers, and viewings.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="h-9 gap-2 text-sm">
-            <Search className="h-4 w-4" /> Browse Properties
+            <Search className="h-4 w-4" /> <span className="hidden sm:inline">Browse</span> Properties
           </Button>
           <Button size="sm" className="h-9 gap-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90" asChild>
             <Link to="/seeker/post"><Plus className="h-4 w-4" /> Post a Need</Link>
