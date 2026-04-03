@@ -27,7 +27,7 @@ const typeStyles: Record<string, string> = {
 };
 
 export default function AdminSettings() {
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
