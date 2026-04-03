@@ -87,8 +87,8 @@ export default function UsersPage() {
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div><CardTitle className="text-base">Users</CardTitle><CardDescription>Showing {items.length} users</CardDescription></div>
                     <div className="flex items-center gap-3">
-                      <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search users..." className="pl-9 w-[220px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
-                      <Button variant="outline" size="sm" className="gap-1.5"><Filter className="h-3.5 w-3.5" /> Filter</Button>
+                      <div className="relative flex-1 sm:flex-none"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search users..." className="pl-9 w-full sm:w-[220px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
+                      <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> Filter</Button>
                     </div>
                   </div>
                 </CardHeader>
