@@ -82,13 +82,13 @@ const PropertyListings = () => {
         </div>
 
         {/* Smaller card - right side */}
-        <div className="relative group rounded-2xl overflow-hidden h-[320px]">
+        <div className="relative group rounded-2xl overflow-hidden h-[380px]">
           <img
             src={properties[1].image}
             alt={`${properties[1].name} luxury apartment in ${properties[1].location}`}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6">
             <h3 className="font-serif text-xl text-white mb-1">{properties[1].name}</h3>
             <p className="text-white/60 text-sm mb-3">{properties[1].location}</p>
