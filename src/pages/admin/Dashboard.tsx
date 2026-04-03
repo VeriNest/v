@@ -1,12 +1,13 @@
 import {
   Building2, Users, CreditCard, AlertTriangle,
-  TrendingUp, TrendingDown, ArrowUpRight, ArrowRight,
+  ArrowUpRight, ArrowRight,
   Activity, Eye, Clock, Plus, MoreHorizontal, CalendarDays
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Link } from "react-router-dom";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 
 const revenueData = [
@@ -30,38 +31,10 @@ const propertyData = [
 ];
 
 const stats = [
-  {
-    title: "Total Properties",
-    value: "2,847",
-    change: "+12.5%",
-    up: true,
-    icon: Building2,
-    subtitle: "142 new this month",
-  },
-  {
-    title: "Active Users",
-    value: "18,392",
-    change: "+8.2%",
-    up: true,
-    icon: Users,
-    subtitle: "1,247 online now",
-  },
-  {
-    title: "Monthly Revenue",
-    value: "₦45.2M",
-    change: "+23.1%",
-    up: true,
-    icon: CreditCard,
-    subtitle: "vs ₦36.7M last month",
-  },
-  {
-    title: "Open Disputes",
-    value: "24",
-    change: "-5.4%",
-    up: false,
-    icon: AlertTriangle,
-    subtitle: "6 resolved today",
-  },
+  { title: "Total Properties", value: "2,847", change: "142 new this month", icon: Building2, subtitle: "Across all listings" },
+  { title: "Active Users", value: "18,392", change: "1,247 online now", icon: Users, subtitle: "Registered accounts" },
+  { title: "Monthly Revenue", value: "₦45.2M", change: "+23.1% vs last month", icon: CreditCard, subtitle: "Platform earnings" },
+  { title: "Open Disputes", value: "24", change: "6 resolved today", icon: AlertTriangle, subtitle: "Pending resolution" },
 ];
 
 const recentActivity = [
@@ -74,16 +47,16 @@ const recentActivity = [
 
 const typeStyles: Record<string, string> = {
   property: "bg-primary/10 text-primary",
-  user: "bg-blue-50 text-blue-600",
-  payment: "bg-emerald-50 text-emerald-600",
-  dispute: "bg-red-50 text-red-600",
+  user: "bg-primary/10 text-primary",
+  payment: "bg-emerald-500/10 text-emerald-600",
+  dispute: "bg-destructive/10 text-destructive",
 };
 
 const quickActions = [
-  { label: "Add Property", icon: Building2 },
-  { label: "Manage Users", icon: Users },
-  { label: "View Reports", icon: Activity },
-  { label: "Schedule", icon: CalendarDays },
+  { label: "Add Property", icon: Building2, to: "/admin/properties" },
+  { label: "Manage Users", icon: Users, to: "/admin/users" },
+  { label: "View Reports", icon: Activity, to: "/admin/reports" },
+  { label: "Schedule", icon: CalendarDays, to: "/admin/announcements" },
 ];
 
 export default function Dashboard() {
@@ -92,15 +65,15 @@ export default function Dashboard() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Welcome back, Admin. Here's your platform overview.</p>
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Welcome back, Admin</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Here's your platform overview.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="h-9 gap-2 text-sm">
             <CalendarDays className="h-4 w-4" /> Last 30 days
           </Button>
-          <Button size="sm" className="h-9 gap-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90">
-            <Plus className="h-4 w-4" /> Add Property
+          <Button size="sm" className="h-9 gap-2 text-sm" asChild>
+            <Link to="/admin/properties"><Plus className="h-4 w-4" /> Add Property</Link>
           </Button>
         </div>
       </div>
@@ -114,10 +87,7 @@ export default function Dashboard() {
                 <div className="h-10 w-10 rounded-xl bg-primary/8 flex items-center justify-center">
                   <stat.icon className="h-5 w-5 text-primary" />
                 </div>
-                <div className={`flex items-center gap-1 text-xs font-medium ${stat.up ? "text-emerald-600" : "text-red-500"}`}>
-                  {stat.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                  {stat.change}
-                </div>
+                <span className="text-xs text-muted-foreground">{stat.change}</span>
               </div>
               <p className="text-2xl font-bold text-foreground tracking-tight">{stat.value}</p>
               <p className="text-xs text-muted-foreground mt-1">{stat.subtitle}</p>
@@ -128,7 +98,6 @@ export default function Dashboard() {
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Revenue chart - takes 2 cols */}
         <Card className="lg:col-span-2 border border-border/60 shadow-none">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -142,7 +111,7 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="h-[260px]">
+            <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
@@ -165,7 +134,6 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Property stats - bar chart */}
         <Card className="border border-border/60 shadow-none">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
@@ -179,7 +147,7 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="h-[260px]">
+            <div className="h-[240px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={propertyData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(30, 12%, 90%)" vertical={false} />
@@ -197,7 +165,6 @@ export default function Dashboard() {
 
       {/* Bottom row: Activity + Quick actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Activity feed */}
         <Card className="lg:col-span-2 border border-border/60 shadow-none">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
@@ -233,15 +200,15 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Quick actions */}
         <Card className="border border-border/60 shadow-none">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="pt-0 space-y-2">
             {quickActions.map((action) => (
-              <button
+              <Link
                 key={action.label}
+                to={action.to}
                 className="w-full flex items-center gap-3 p-3 rounded-xl border border-border/60 hover:border-primary/30 hover:bg-primary/5 transition-all duration-150 text-left group"
               >
                 <div className="h-10 w-10 rounded-lg bg-primary/8 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
@@ -249,14 +216,13 @@ export default function Dashboard() {
                 </div>
                 <span className="text-sm font-medium text-foreground">{action.label}</span>
                 <ArrowUpRight className="h-4 w-4 text-muted-foreground ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-              </button>
+              </Link>
             ))}
 
-            {/* Platform health */}
             <div className="mt-4 p-4 rounded-xl bg-accent/50 border border-border/40">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Platform Health</span>
-                <Badge className="bg-emerald-50 text-emerald-600 border-emerald-200 text-[10px] h-5">Healthy</Badge>
+                <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] h-5">Healthy</Badge>
               </div>
               <div className="space-y-2.5">
                 <div>

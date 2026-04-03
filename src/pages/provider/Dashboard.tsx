@@ -50,7 +50,7 @@ export default function ProviderDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Provider Dashboard</h1>
+          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Welcome back, Provider</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Manage your leads, listings, and payouts.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -58,7 +58,7 @@ export default function ProviderDashboard() {
             <CalendarDays className="h-4 w-4" /> This Month
           </Button>
           <Button size="sm" className="h-9 gap-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90" asChild>
-            <Link to="/provider/listings"><Plus className="h-4 w-4" /> Add Listing</Link>
+            <Link to="/provider/listings/new"><Plus className="h-4 w-4" /> Add Listing</Link>
           </Button>
         </div>
       </div>
