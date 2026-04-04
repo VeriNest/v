@@ -1,17 +1,33 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Inbox, Building2, CreditCard, TrendingUp,
-  Clock, Eye, ArrowUpRight, ArrowRight, Plus,
-  CalendarDays, Star, MoreHorizontal
+  ArrowRight,
+  Building2,
+  CalendarDays,
+  CreditCard,
+  Eye,
+  Inbox,
+  MoreHorizontal,
+  Plus,
+  Star,
+  TrendingUp,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+
+import {
+  DashboardCustomizerToolbar,
+  DashboardEditableWidget,
+  DashboardHiddenWidgets,
+  DashboardWidgetMenu,
+  type DashboardWidgetMenuControls,
+} from "@/components/dashboard/DashboardCustomizer";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { KycAlertBanner } from "@/components/KycAlertBanner";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Link } from "react-router-dom";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { KycAlertBanner } from "@/components/KycAlertBanner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDashboardLayout, type DashboardWidgetSize } from "@/hooks/use-dashboard-layout";
 
 const earningsData = [
   { month: "Jan", earnings: 1.2 },
@@ -43,153 +59,290 @@ const topListings = [
   { name: "4 Bed Duplex, Banana Island", views: 156, inquiries: 9, rating: 4.9 },
 ];
 
+type WidgetDefinition = {
+  id: string;
+  title: string;
+  description: string;
+  defaultSize: DashboardWidgetSize;
+  availableSizes: DashboardWidgetSize[];
+  render: (controls: DashboardWidgetMenuControls) => JSX.Element;
+};
+
 export default function ProviderDashboard() {
+  const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  useEffect(() => { const t = setTimeout(() => setLoading(false), 1200); return () => clearTimeout(t); }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const widgetDefinitions = useMemo<WidgetDefinition[]>(
+    () => [
+      {
+        id: "stats",
+        title: "Key stats",
+        description: "Track leads, listings, payouts, and response performance.",
+        defaultSize: "full",
+        availableSizes: ["full"],
+        render: () => (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {stats.map((stat) => (
+              <Card key={stat.title} className="border border-border/60 shadow-none transition-shadow duration-200 hover:shadow-md">
+                <CardContent className="p-5">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/8">
+                      <stat.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="text-xs text-muted-foreground">{stat.change}</span>
+                  </div>
+                  <p className="text-2xl font-bold tracking-tight text-foreground">{stat.value}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{stat.subtitle}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ),
+      },
+      {
+        id: "earnings-overview",
+        title: "Earnings overview",
+        description: "Review monthly earnings performance.",
+        defaultSize: "wide",
+        availableSizes: ["wide", "full"],
+        render: (controls) => (
+          <Card className="border border-border/60 shadow-none">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-semibold">Earnings Overview</CardTitle>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Monthly earnings trend</p>
+                </div>
+                <DashboardWidgetMenu controls={controls} />
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="h-[240px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={earningsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(18, 55%, 58%)" stopOpacity={0.2} />
+                        <stop offset="100%" stopColor="hsl(18, 55%, 58%)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(30, 12%, 90%)" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(220, 10%, 50%)" }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 12, fill: "hsl(220, 10%, 50%)" }} axisLine={false} tickLine={false} tickFormatter={(value) => `₦${value}M`} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: "8px", border: "1px solid hsl(30, 12%, 90%)", fontSize: "12px" }}
+                      formatter={(value: number) => [`₦${value}M`, "Earnings"]}
+                    />
+                    <Area type="monotone" dataKey="earnings" stroke="hsl(18, 55%, 58%)" strokeWidth={2} fill="url(#earningsGrad)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        ),
+      },
+      {
+        id: "top-listings",
+        title: "Top listings",
+        description: "See which listings are attracting the most attention.",
+        defaultSize: "compact",
+        availableSizes: ["compact", "wide"],
+        render: () => (
+          <Card className="border border-border/60 shadow-none">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold">Top Listings</CardTitle>
+                <Button variant="ghost" size="sm" className="h-8 text-xs text-primary" asChild>
+                  <Link to="/provider/listings">View All</Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3 pt-0">
+              {topListings.map((listing) => (
+                <div key={listing.name} className="rounded-xl border border-border/60 p-3 transition-colors hover:border-primary/20">
+                  <p className="mb-2 text-sm font-medium text-foreground">{listing.name}</p>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {listing.views}</span>
+                    <span className="flex items-center gap-1"><Inbox className="h-3 w-3" /> {listing.inquiries}</span>
+                    <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-amber-500 text-amber-500" /> {listing.rating}</span>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        ),
+      },
+      {
+        id: "recent-leads",
+        title: "Recent leads",
+        description: "Prioritize inbound leads and respond faster.",
+        defaultSize: "full",
+        availableSizes: ["wide", "full"],
+        render: () => (
+          <Card className="border border-border/60 shadow-none">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-base font-semibold">Recent Leads</CardTitle>
+                  <Badge variant="outline" className="h-5 gap-1 text-[10px] font-normal">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                    {recentLeads.length} new
+                  </Badge>
+                </div>
+                <Button variant="ghost" size="sm" className="h-8 text-xs text-primary" asChild>
+                  <Link to="/provider/inbox">View All <ArrowRight className="ml-1 h-3 w-3" /></Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-1">
+                {recentLeads.map((lead) => (
+                  <div key={lead.id} className="group flex flex-col gap-2 rounded-lg p-3 transition-colors hover:bg-accent/50 sm:flex-row sm:items-center sm:gap-3">
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <Avatar className="h-9 w-9 shrink-0 border border-border/60">
+                        <AvatarFallback className="bg-primary/10 text-[10px] font-medium text-primary">{lead.initials}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">{lead.need}</p>
+                        <p className="text-xs text-muted-foreground">{lead.seeker} · {lead.posted}</p>
+                      </div>
+                    </div>
+                    <div className="ml-12 flex items-center gap-2 sm:ml-0">
+                      {lead.urgent ? (
+                        <Badge variant="outline" className="h-5 gap-1 border-red-200 bg-red-50 text-[10px] text-red-600">
+                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" /> Urgent
+                        </Badge>
+                      ) : null}
+                      <Button size="sm" className="h-7 bg-primary text-xs text-primary-foreground transition-opacity hover:bg-primary/90 sm:opacity-0 sm:group-hover:opacity-100">
+                        Send Offer
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ),
+      },
+    ],
+    [],
+  );
+
+  const { applyPreset, layout, move, moveTo, reset, resetItem, setSize, showWidget, toggleVisibility } = useDashboardLayout(
+    "dwello_dashboard_layout_provider",
+    widgetDefinitions.map((widget) => ({
+      id: widget.id,
+      size: widget.defaultSize,
+      availableSizes: widget.availableSizes,
+    })),
+  );
+
+  const widgetMap = useMemo(() => new Map(widgetDefinitions.map((widget) => [widget.id, widget])), [widgetDefinitions]);
+
+  const visibleWidgets = layout.flatMap((item) => {
+    const widget = widgetMap.get(item.id);
+    return item.visible && widget ? [{ ...widget, visible: item.visible, size: item.size }] : [];
+  });
+
+  const hiddenWidgets = layout.flatMap((item) => {
+    const widget = widgetMap.get(item.id);
+    return !item.visible && widget
+      ? [{
+          id: item.id,
+          title: widget.title,
+          description: widget.description,
+          visible: item.visible,
+          size: item.size,
+          availableSizes: widget.availableSizes,
+        }]
+      : [];
+  });
+
   if (loading) return <DashboardSkeleton variant="provider" />;
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      {/* KYC Alert */}
       <KycAlertBanner variant="provider" />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight">Welcome back, Provider</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Manage your leads, listings, and payouts.</p>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Welcome back, Provider</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">Manage your leads, listings, and payouts.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {!editing ? (
+            <DashboardCustomizerToolbar
+              editing={editing}
+              hiddenCount={hiddenWidgets.length}
+              onApplyPreset={applyPreset}
+              onEditChange={setEditing}
+              onReset={reset}
+            />
+          ) : null}
           <Button variant="outline" size="sm" className="h-9 gap-2 text-sm">
             <CalendarDays className="h-4 w-4" /> <span className="hidden sm:inline">This</span> Month
           </Button>
-          <Button size="sm" className="h-9 gap-2 text-sm bg-primary text-primary-foreground hover:bg-primary/90" asChild>
+          <Button size="sm" className="h-9 gap-2 bg-primary text-sm text-primary-foreground hover:bg-primary/90" asChild>
             <Link to="/provider/listings/new"><Plus className="h-4 w-4" /> Add Listing</Link>
           </Button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <Card key={stat.title} className="border border-border/60 shadow-none hover:shadow-md transition-shadow duration-200">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-10 w-10 rounded-xl bg-primary/8 flex items-center justify-center">
-                  <stat.icon className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-xs text-muted-foreground">{stat.change}</span>
-              </div>
-              <p className="text-2xl font-bold text-foreground tracking-tight">{stat.value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{stat.subtitle}</p>
-            </CardContent>
-          </Card>
+      {editing ? (
+        <>
+          <DashboardCustomizerToolbar
+            editing={editing}
+            hiddenCount={hiddenWidgets.length}
+            onApplyPreset={applyPreset}
+            onEditChange={setEditing}
+            onReset={reset}
+          />
+          <DashboardHiddenWidgets items={hiddenWidgets} onShow={showWidget} />
+        </>
+      ) : null}
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {visibleWidgets.map((widget, index) => (
+          <DashboardEditableWidget
+            key={widget.id}
+            editing={editing}
+            index={index}
+            item={{
+              id: widget.id,
+              title: widget.title,
+              description: widget.description,
+              visible: widget.visible,
+              size: widget.size,
+              availableSizes: widget.availableSizes,
+            }}
+            total={visibleWidgets.length}
+            onHide={(itemId) => toggleVisibility(itemId, false)}
+            onMove={move}
+            onSizeChange={setSize}
+          >
+            {widget.render({
+              availableSizes: widget.availableSizes,
+              canMoveDown: index < visibleWidgets.length - 1,
+              canPinBottom: index < visibleWidgets.length - 1,
+              canPinTop: index > 0,
+              canMoveUp: index > 0,
+              currentSize: widget.size,
+              onFocus: undefined,
+              onHide: () => toggleVisibility(widget.id, false),
+              onMove: (direction) => move(widget.id, direction),
+              onMoveTo: (position) => moveTo(widget.id, position),
+              onReset: () => resetItem(widget.id),
+              onSizeChange: (size) => setSize(widget.id, size),
+              title: widget.title,
+            })}
+          </DashboardEditableWidget>
         ))}
       </div>
-
-      {/* Charts + top listings */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-2 border border-border/60 shadow-none">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">Earnings Overview</CardTitle>
-                <p className="text-xs text-muted-foreground mt-0.5">Monthly earnings trend</p>
-              </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="h-[240px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={earningsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="earningsGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(18, 55%, 58%)" stopOpacity={0.2} />
-                      <stop offset="100%" stopColor="hsl(18, 55%, 58%)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(30, 12%, 90%)" vertical={false} />
-                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'hsl(220, 10%, 50%)' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: 'hsl(220, 10%, 50%)' }} axisLine={false} tickLine={false} tickFormatter={(v) => `₦${v}M`} />
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid hsl(30, 12%, 90%)', fontSize: '12px' }} formatter={(value: number) => [`₦${value}M`, 'Earnings']} />
-                  <Area type="monotone" dataKey="earnings" stroke="hsl(18, 55%, 58%)" strokeWidth={2} fill="url(#earningsGrad)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Top listings */}
-        <Card className="border border-border/60 shadow-none">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">Top Listings</CardTitle>
-              <Button variant="ghost" size="sm" className="text-xs text-primary h-8" asChild>
-                <Link to="/provider/listings">View All</Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0 space-y-3">
-            {topListings.map((listing, i) => (
-              <div key={i} className="p-3 rounded-xl border border-border/60 hover:border-primary/20 transition-colors">
-                <p className="text-sm font-medium text-foreground mb-2">{listing.name}</p>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {listing.views}</span>
-                  <span className="flex items-center gap-1"><Inbox className="h-3 w-3" /> {listing.inquiries}</span>
-                  <span className="flex items-center gap-1"><Star className="h-3 w-3 text-amber-500 fill-amber-500" /> {listing.rating}</span>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Leads */}
-      <Card className="border border-border/60 shadow-none">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CardTitle className="text-base font-semibold">Recent Leads</CardTitle>
-              <Badge variant="outline" className="text-[10px] h-5 gap-1 font-normal">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                {recentLeads.length} new
-              </Badge>
-            </div>
-            <Button variant="ghost" size="sm" className="text-xs text-primary h-8" asChild>
-              <Link to="/provider/inbox">View All <ArrowRight className="h-3 w-3 ml-1" /></Link>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="space-y-1">
-            {recentLeads.map((lead) => (
-              <div key={lead.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors group">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <Avatar className="h-9 w-9 border border-border/60 shrink-0">
-                    <AvatarFallback className="text-[10px] font-medium bg-primary/10 text-primary">{lead.initials}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{lead.need}</p>
-                    <p className="text-xs text-muted-foreground">{lead.seeker} · {lead.posted}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 ml-12 sm:ml-0">
-                  {lead.urgent && (
-                    <Badge variant="outline" className="text-[10px] h-5 gap-1 border-red-200 bg-red-50 text-red-600">
-                      <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" /> Urgent
-                    </Badge>
-                  )}
-                  <Button size="sm" className="h-7 text-xs bg-primary text-primary-foreground hover:bg-primary/90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                    Send Offer
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -35,7 +35,6 @@ const Properties = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Hero / Filter Bar */}
       <section className="px-6 lg:px-16 xl:px-20 pt-28 pb-16 bg-secondary/30">
         <MarketingShell>
           <div className="max-w-2xl mx-auto mb-10 text-center">
@@ -48,47 +47,45 @@ const Properties = () => {
             </p>
           </div>
 
-        {/* Search bar - matching hero style */}
           <div className="max-w-3xl mx-auto">
-          <div className="bg-card border border-border rounded-2xl p-3 shadow-md">
-            <div className="flex flex-col sm:flex-row items-center gap-2">
-              <div className="relative flex-1 w-full">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name or location..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 border-0 bg-secondary/50 focus-visible:ring-1 h-12 text-sm"
-                />
-              </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-full sm:w-[160px] border-0 bg-secondary/50 h-12">
-                    <Home className="w-4 h-4 mr-1.5 text-muted-foreground shrink-0" />
-                    <SelectValue placeholder="Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="Apartment">Apartment</SelectItem>
-                    <SelectItem value="Studio">Studio</SelectItem>
-                    <SelectItem value="Duplex">Duplex</SelectItem>
-                    <SelectItem value="Penthouse">Penthouse</SelectItem>
-                    <SelectItem value="Bungalow">Bungalow</SelectItem>
-                    <SelectItem value="Mini Flat">Mini Flat</SelectItem>
-                  </SelectContent>
-                </Select>
-                <div className="flex gap-1 border border-border rounded-xl p-1 bg-secondary/50">
-                  <Button variant={viewMode === "grid" ? "default" : "ghost"} size="icon" className="h-10 w-10 rounded-lg" onClick={() => setViewMode("grid")}><Grid3X3 className="w-4 h-4" /></Button>
-                  <Button variant={viewMode === "list" ? "default" : "ghost"} size="icon" className="h-10 w-10 rounded-lg" onClick={() => setViewMode("list")}><List className="w-4 h-4" /></Button>
+            <div className="bg-card border border-border rounded-2xl p-3 shadow-md">
+              <div className="flex flex-col sm:flex-row items-center gap-2">
+                <div className="relative flex-1 w-full">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name or location..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9 border-0 bg-secondary/50 focus-visible:ring-1 h-12 text-sm"
+                  />
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger className="w-full sm:w-[160px] border-0 bg-secondary/50 h-12">
+                      <Home className="w-4 h-4 mr-1.5 text-muted-foreground shrink-0" />
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="Apartment">Apartment</SelectItem>
+                      <SelectItem value="Studio">Studio</SelectItem>
+                      <SelectItem value="Duplex">Duplex</SelectItem>
+                      <SelectItem value="Penthouse">Penthouse</SelectItem>
+                      <SelectItem value="Bungalow">Bungalow</SelectItem>
+                      <SelectItem value="Mini Flat">Mini Flat</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex gap-1 border border-border rounded-xl p-1 bg-secondary/50">
+                    <Button variant={viewMode === "grid" ? "default" : "ghost"} size="icon" className="h-10 w-10 rounded-lg" onClick={() => setViewMode("grid")}><Grid3X3 className="w-4 h-4" /></Button>
+                    <Button variant={viewMode === "list" ? "default" : "ghost"} size="icon" className="h-10 w-10 rounded-lg" onClick={() => setViewMode("list")}><List className="w-4 h-4" /></Button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
         </MarketingShell>
       </section>
 
-      {/* Results */}
       <section className="px-6 lg:px-16 xl:px-20 py-16">
         <MarketingShell>
           <div className="flex items-end justify-between mb-10">
@@ -102,18 +99,12 @@ const Properties = () => {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {filtered.map((property) => (
                 <div key={property.id} className="relative group rounded-2xl overflow-hidden cursor-pointer h-[340px]">
-                  <img
-                    src={property.image}
-                    alt={property.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                  {/* Match badge */}
+                  <img src={property.image} alt={property.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   <div className="absolute top-3 left-3">
                     <span className="inline-block bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded font-mono uppercase tracking-wider">
                       {property.match}% match
                     </span>
                   </div>
-                  {/* Overlay card */}
                   <div className="absolute bottom-3 left-3 right-3 bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-border/30">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h3 className="font-semibold text-foreground text-sm truncate">{property.title}</h3>
@@ -186,7 +177,6 @@ const Properties = () => {
         </MarketingShell>
       </section>
 
-      {/* CTA */}
       <section className="px-6 lg:px-16 xl:px-20 py-20 bg-[hsl(var(--dark-bg))]">
         <MarketingShell>
           <div className="text-center max-w-2xl mx-auto">

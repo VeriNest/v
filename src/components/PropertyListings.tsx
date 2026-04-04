@@ -65,7 +65,10 @@ const PropertyListings = () => {
             </p>
             <h2 className="font-serif text-3xl lg:text-4xl text-foreground">Curated Listings</h2>
           </div>
-          <Button variant="ghost" className="gap-2 text-primary hover:text-primary/80 hover:bg-transparent text-sm font-medium px-0">
+          <Button
+            variant="ghost"
+            className="gap-2 text-primary hover:text-primary/80 hover:bg-transparent text-sm font-medium px-0"
+          >
             View All Properties <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
@@ -81,7 +84,15 @@ const PropertyListings = () => {
   );
 };
 
-function PropertyCard({ property, className = "", featured = false }: { property: typeof properties[0]; className?: string; featured?: boolean }) {
+function PropertyCard({
+  property,
+  className = "",
+  featured = false,
+}: {
+  property: (typeof properties)[0];
+  className?: string;
+  featured?: boolean;
+}) {
   return (
     <div className={`relative group rounded-2xl overflow-hidden cursor-pointer ${className}`}>
       <img
@@ -102,7 +113,9 @@ function PropertyCard({ property, className = "", featured = false }: { property
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className={`font-semibold text-foreground truncate ${featured ? "text-base" : "text-sm"}`}>{property.name}</h3>
+              <h3 className={`font-semibold text-foreground truncate ${featured ? "text-base" : "text-sm"}`}>
+                {property.name}
+              </h3>
               <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded font-mono uppercase shrink-0">
                 {property.match}% match
               </span>
@@ -112,10 +125,16 @@ function PropertyCard({ property, className = "", featured = false }: { property
             </p>
           </div>
           <div className="text-right shrink-0">
-            <p className={`font-bold text-foreground font-mono ${featured ? "text-base" : "text-sm"}`}>{property.price}</p>
+            <p className={`font-bold text-foreground font-mono ${featured ? "text-base" : "text-sm"}`}>
+              {property.price}
+            </p>
             <div className="flex items-center gap-2.5 text-xs text-muted-foreground mt-0.5">
-              <span className="flex items-center gap-1"><Bed className="w-3.5 h-3.5" /> {property.beds}</span>
-              <span className="flex items-center gap-1"><Bath className="w-3.5 h-3.5" /> {property.baths}</span>
+              <span className="flex items-center gap-1">
+                <Bed className="w-3.5 h-3.5" /> {property.beds}
+              </span>
+              <span className="flex items-center gap-1">
+                <Bath className="w-3.5 h-3.5" /> {property.baths}
+              </span>
             </div>
           </div>
         </div>
@@ -126,7 +145,9 @@ function PropertyCard({ property, className = "", featured = false }: { property
               <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
               <span className="font-medium text-foreground">{property.rating}</span>
             </span>
-            <span className="flex items-center gap-1"><Maximize className="w-3 h-3" /> {property.sqft} sqft</span>
+            <span className="flex items-center gap-1">
+              <Maximize className="w-3 h-3" /> {property.sqft} sqft
+            </span>
           </div>
           <Button size="sm" variant="ghost" className="h-7 text-xs gap-1 text-primary hover:text-primary/80 px-2">
             View Details <ArrowRight className="h-3 w-3" />
