@@ -52,7 +52,7 @@ export default function Onboarding() {
   const handleComplete = () => {
     if (role) {
       localStorage.setItem("dwello_role", role);
-      navigate(role === "tenant" ? "/seeker" : "/provider");
+      navigate(role === "tenant" ? "/seeker" : role === "landlord" ? "/landlord" : "/provider");
     }
   };
 

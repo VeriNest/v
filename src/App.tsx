@@ -25,6 +25,15 @@ import AdminReports from "./pages/admin/Reports.tsx";
 import AdminVerifications from "./pages/admin/Verifications.tsx";
 import AdminAnnouncements from "./pages/admin/Announcements.tsx";
 import AdminSettings from "./pages/admin/Settings.tsx";
+import LandlordLayout from "./components/landlord/LandlordLayout.tsx";
+import LandlordDashboard from "./pages/landlord/Dashboard.tsx";
+import LandlordProperties from "./pages/landlord/Properties.tsx";
+import LandlordUnits from "./pages/landlord/Units.tsx";
+import LandlordCollections from "./pages/landlord/Collections.tsx";
+import LandlordPayouts from "./pages/landlord/Payouts.tsx";
+import LandlordMaintenance from "./pages/landlord/Maintenance.tsx";
+import LandlordCalendar from "./pages/landlord/Calendar.tsx";
+import LandlordSettings from "./pages/landlord/Settings.tsx";
 
 // Seeker
 import SeekerLayout from "./components/seeker/SeekerLayout.tsx";
@@ -99,6 +108,18 @@ const App = () => (
             <Route path="payouts" element={<Payouts />} />
             <Route path="calendar" element={<ProviderCalendar />} />
             <Route path="settings" element={<ProviderSettings />} />
+          </Route>
+
+          <Route path="/landlord" element={<LandlordLayout />}>
+            <Route index element={<LandlordDashboard />} />
+            <Route path="properties" element={<LandlordProperties />} />
+            <Route path="properties/new" element={<AddListing />} />
+            <Route path="units" element={<LandlordUnits />} />
+            <Route path="collections" element={<LandlordCollections />} />
+            <Route path="payouts" element={<LandlordPayouts />} />
+            <Route path="maintenance" element={<LandlordMaintenance />} />
+            <Route path="calendar" element={<LandlordCalendar />} />
+            <Route path="settings" element={<LandlordSettings />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

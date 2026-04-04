@@ -244,7 +244,7 @@ function RecentLeadsSkeleton({ rows = 4 }: { rows?: number }) {
 }
 
 /* ── Main Dashboard Skeleton ── */
-export function DashboardSkeleton({ variant }: { variant: "admin" | "provider" | "seeker" }) {
+export function DashboardSkeleton({ variant }: { variant: "admin" | "provider" | "landlord" | "seeker" }) {
   return (
     <div className="space-y-6">
       {/* KYC banner placeholder for provider/seeker */}
@@ -272,7 +272,7 @@ export function DashboardSkeleton({ variant }: { variant: "admin" | "provider" |
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <AreaChartSkeleton />
-        {variant === "admin" ? <BarChartSkeleton /> : variant === "provider" ? <TopListingsSkeleton /> : <SavedPropertySkeleton />}
+        {variant === "admin" ? <BarChartSkeleton /> : variant === "seeker" ? <SavedPropertySkeleton /> : <TopListingsSkeleton />}
       </div>
 
       {/* Bottom row */}

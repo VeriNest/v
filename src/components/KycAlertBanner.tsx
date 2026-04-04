@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 interface KycAlertBannerProps {
-  variant: "provider" | "seeker";
+  variant: "provider" | "landlord" | "seeker";
 }
 
 export function KycAlertBanner({ variant }: KycAlertBannerProps) {
@@ -26,7 +26,9 @@ export function KycAlertBanner({ variant }: KycAlertBannerProps) {
     setDismissed(true);
   };
 
-  if (variant === "provider") {
+  if (variant === "provider" || variant === "landlord") {
+    const isLandlord = variant === "landlord";
+
     return (
       <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5 flex items-start gap-4">
         <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
@@ -37,7 +39,9 @@ export function KycAlertBanner({ variant }: KycAlertBannerProps) {
             <div>
               <h3 className="text-sm font-semibold text-foreground">Complete your verification</h3>
               <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                Verified agents get <span className="font-semibold text-amber-700">3× more leads</span> and appear higher in search results. Upload your documents to build trust with tenants.
+                {isLandlord
+                  ? "Verified landlords unlock ownership trust badges, faster portfolio approvals, and stronger tenant confidence."
+                  : "Verified agents get 3x more leads and appear higher in search results. Upload your documents to build trust with tenants."}
               </p>
             </div>
             <button onClick={handleDismiss} className="text-muted-foreground hover:text-foreground transition-colors shrink-0 mt-0.5">
@@ -52,13 +56,13 @@ export function KycAlertBanner({ variant }: KycAlertBannerProps) {
           </div>
           <div className="flex items-center gap-2 mt-3">
             <Button size="sm" className="h-8 text-xs gap-1.5 bg-amber-600 hover:bg-amber-700 text-white" asChild>
-              <Link to="/provider/settings">
+              <Link to={isLandlord ? "/landlord/settings" : "/provider/settings"}>
                 Complete Verification <ArrowRight className="h-3 w-3" />
               </Link>
             </Button>
             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
               <ShieldCheck className="h-3 w-3 text-emerald-500" />
-              <span>Trusted badge unlocked after verification</span>
+              <span>{isLandlord ? "Ownership trust badge unlocked after verification" : "Trusted badge unlocked after verification"}</span>
             </div>
           </div>
         </div>
@@ -66,7 +70,6 @@ export function KycAlertBanner({ variant }: KycAlertBannerProps) {
     );
   }
 
-  // Seeker variant — lighter
   return (
     <div className="rounded-2xl border border-blue-200/60 bg-blue-50/40 p-4 flex items-center gap-3">
       <div className="h-9 w-9 rounded-xl bg-blue-100/80 flex items-center justify-center shrink-0">
