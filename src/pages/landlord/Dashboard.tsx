@@ -84,7 +84,7 @@ export default function LandlordDashboard() {
       render: () => (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
-            <Card key={stat.title} data-search-id={`landlord-stat-${toSearchId(stat.title)}`} className="border border-border/60 shadow-none transition-shadow duration-200 hover:shadow-md">
+            <Card key={stat.title} data-search-id={`landlord-stat-${toSearchId(stat.title)}`} className="border border-border/60 shadow-none">
               <CardContent className="p-5">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/8">

@@ -129,7 +129,7 @@ export default function Transactions() {
                         {items.map((t) => {
                           const s = statusStyles[t.status];
                           return (
-                            <tr key={t.id} className="border-b border-border/40 hover:bg-accent/30">
+                            <tr key={t.id} className="border-b border-border/40">
                               <td className="font-mono text-xs text-muted-foreground py-3 px-4">{t.id}</td>
                               <td className="font-bold text-sm text-foreground py-3 px-4">{t.amount}</td>
                               <td className="py-3 px-4"><span className={`text-sm font-medium ${typeStyles[t.type]}`}>{t.type}</span></td>

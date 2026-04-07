@@ -45,7 +45,7 @@ const matchData = [
 export const stats = [
   { title: "Active Posts", value: "3", change: "2 getting offers", icon: FileText, subtitle: "Needs published" },
   { title: "Offers Received", value: "12", change: "+5 today", icon: Inbox, subtitle: "Across all posts" },
-  { title: "Upcoming Viewings", value: "2", change: "This week", icon: CalendarCheck, subtitle: "Next: Tomorrow 2PM" },
+  { title: "Upcoming Viewings", value: "2", change: "This week", icon: CalendarCheck, subtitle: "Next: Tomorrow 2PM", href: "/seeker/bookings?section=viewings" },
   { title: "Match Rate", value: "87%", change: "Above avg", icon: TrendingUp, subtitle: "Offer relevance score" },
 ];
 
@@ -98,16 +98,31 @@ export default function SeekerDashboard() {
         render: () => (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat) => (
-              <Card key={stat.title} data-search-id={`seeker-stat-${toSearchId(stat.title)}`} className="border border-border/60 shadow-none transition-shadow duration-200 hover:shadow-md">
-                <CardContent className="p-5">
-                  <div className="mb-3 flex items-center justify-between">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/8">
-                      <stat.icon className="h-5 w-5 text-primary" />
+              <Card key={stat.title} data-search-id={`seeker-stat-${toSearchId(stat.title)}`} className="border border-border/60 shadow-none">
+                <CardContent className="p-0">
+                  {stat.href ? (
+                    <Link to={stat.href} className="block p-5">
+                      <div className="mb-3 flex items-center justify-between">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/8">
+                          <stat.icon className="h-5 w-5 text-primary" />
+                        </div>
+                        <span className="text-xs text-muted-foreground">{stat.change}</span>
+                      </div>
+                      <p className="text-2xl font-bold tracking-tight text-foreground">{stat.value}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{stat.subtitle}</p>
+                    </Link>
+                  ) : (
+                    <div className="p-5">
+                      <div className="mb-3 flex items-center justify-between">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/8">
+                          <stat.icon className="h-5 w-5 text-primary" />
+                        </div>
+                        <span className="text-xs text-muted-foreground">{stat.change}</span>
+                      </div>
+                      <p className="text-2xl font-bold tracking-tight text-foreground">{stat.value}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{stat.subtitle}</p>
                     </div>
-                    <span className="text-xs text-muted-foreground">{stat.change}</span>
-                  </div>
-                  <p className="text-2xl font-bold tracking-tight text-foreground">{stat.value}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{stat.subtitle}</p>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -171,7 +186,7 @@ export default function SeekerDashboard() {
             </CardHeader>
             <CardContent className="space-y-3 pt-0">
               {savedProperties.map((property) => (
-                <div key={property.name} data-search-id={`seeker-overview-saved-${toSearchId(property.name)}`} className="group flex gap-3 rounded-xl border border-border/60 p-2 transition-colors hover:border-primary/20">
+                <div key={property.name} data-search-id={`seeker-overview-saved-${toSearchId(property.name)}`} className="flex gap-3 rounded-xl border border-border/60 p-2">
                   <img src={property.img} alt={property.name} className="h-16 w-16 shrink-0 rounded-lg object-cover" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-foreground">{property.name}</p>
@@ -180,7 +195,7 @@ export default function SeekerDashboard() {
                     </p>
                     <p className="mt-1 text-sm font-semibold text-foreground">{property.price}</p>
                   </div>
-                  <button type="button" className="self-start p-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <button type="button" className="self-start p-1">
                     <Heart className="h-4 w-4 fill-red-500 text-red-500" />
                   </button>
                 </div>
@@ -214,7 +229,7 @@ export default function SeekerDashboard() {
             <CardContent className="pt-0">
               <div className="space-y-1">
                 {recentOffers.map((offer) => (
-                  <div key={offer.id} data-search-id={`seeker-overview-offer-${offer.id}`} className="group flex flex-col gap-2 rounded-lg p-3 transition-colors hover:bg-accent/50 sm:flex-row sm:items-center sm:gap-3">
+                  <div key={offer.id} data-search-id={`seeker-overview-offer-${offer.id}`} className="flex flex-col gap-2 rounded-lg p-3 sm:flex-row sm:items-center sm:gap-3">
                     <div className="flex min-w-0 flex-1 items-center gap-3">
                       <Avatar className="h-9 w-9 shrink-0 border border-border/60">
                         <AvatarFallback className="bg-primary/10 text-[10px] font-medium text-primary">{offer.initials}</AvatarFallback>
@@ -294,7 +309,7 @@ export default function SeekerDashboard() {
           <Button variant="outline" size="sm" className="h-9 gap-2 text-sm">
             <Search className="h-4 w-4" /> <span className="hidden sm:inline">Browse</span> Properties
           </Button>
-          <Button size="sm" className="h-9 gap-2 bg-primary text-sm text-primary-foreground hover:bg-primary/90" asChild>
+          <Button size="sm" className="h-9 gap-2 bg-primary text-sm text-primary-foreground" asChild>
             <Link to="/seeker/post"><Plus className="h-4 w-4" /> Post a Need</Link>
           </Button>
         </div>

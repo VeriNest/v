@@ -91,7 +91,7 @@ export default function AdminVerifications() {
 
         <TabsContent value="pending" className="space-y-3">
           {pendingVerifications.map((v) => (
-            <Card key={v.id} className="border border-border/60 shadow-sm hover:shadow-md transition-all">
+            <Card key={v.id} className="border border-border/60 shadow-sm">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap">
                   <div className="flex items-start gap-3 min-w-0">
@@ -124,7 +124,7 @@ export default function AdminVerifications() {
                     <Button size="sm" className="h-8 gap-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white">
                       <CheckCircle2 className="h-3 w-3" /> Approve
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8 gap-1 text-xs text-destructive border-destructive/30 hover:bg-destructive/5">
+                    <Button variant="outline" size="sm" className="h-8 gap-1 text-xs text-destructive border-destructive/30">
                       <XCircle className="h-3 w-3" /> Reject
                     </Button>
                   </div>

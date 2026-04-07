@@ -80,7 +80,7 @@ export default function ProviderCalendar() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {stats.map((s) => (
-          <Card key={s.label} className="border border-border/60 shadow-sm hover:shadow-md transition-shadow">
+          <Card key={s.label} className="border border-border/60 shadow-sm">
             <CardContent className="p-4 flex items-start gap-3">
               <div className={`h-9 w-9 rounded-lg ${s.iconBg} flex items-center justify-center shrink-0`}>
                 <s.icon className={`h-4 w-4 ${s.accent}`} />
@@ -139,11 +139,11 @@ export default function ProviderCalendar() {
                               key={`${di}-${hi}`}
                               className={`border-t border-l border-border/40 min-h-[44px] relative transition-colors cursor-pointer ${
                                 isToday ? "bg-primary/[0.02]" : "bg-background"
-                              } hover:bg-accent/20`}
+                              }`}
                             >
                               {booking && (
                                 <div
-                                  className={`absolute inset-x-1 top-1 rounded-md px-2 py-1.5 text-xs transition-shadow hover:shadow-md ${
+                                  className={`absolute inset-x-1 top-1 rounded-md px-2 py-1.5 text-xs ${
                                     booking.status === "Confirmed"
                                       ? "bg-primary/10 text-primary border border-primary/20"
                                       : "bg-amber-50 text-amber-700 border border-amber-200"
@@ -188,7 +188,7 @@ export default function ProviderCalendar() {
                       { time: "10:00 AM", guest: "Emeka N.", type: "Check-in", color: "bg-emerald-500" },
                       { time: "2:00 PM", guest: "Sarah K.", type: "Check-out", color: "bg-primary" },
                     ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                      <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30">
                         <div className={`h-1.5 w-1.5 rounded-full ${item.color} shrink-0`} />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium text-foreground truncate">{item.guest}</p>
@@ -208,7 +208,7 @@ export default function ProviderCalendar() {
           {upcomingBookings.map((b) => {
             const s = statusConfig[b.status];
             return (
-              <Card key={b.id} className="border border-border/60 shadow-sm hover:shadow-md transition-all group">
+              <Card key={b.id} className="border border-border/60 shadow-sm">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
                     <div className="flex items-center gap-3 min-w-0">

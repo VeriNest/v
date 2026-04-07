@@ -133,7 +133,7 @@ export default function Disputes() {
                           const t = typeIcon[d.type];
                           const TIcon = t.icon;
                           return (
-                            <tr key={d.id} className="border-b border-border/40 group hover:bg-accent/30">
+                            <tr key={d.id} className="border-b border-border/40">
                               <td className="py-3 px-4">
                                 <div className="max-w-[200px]">
                                   <p className="font-medium text-sm text-foreground truncate">{d.title}</p>
@@ -157,7 +157,7 @@ export default function Disputes() {
                                 <span className={`text-sm ${d.assigned === "Unassigned" ? "text-destructive font-medium" : "text-muted-foreground"}`}>{d.assigned}</span>
                               </td>
                               <td className="text-muted-foreground text-sm py-3 px-4">{d.date}</td>
-                              <td className="py-3 px-4"><Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4" /></Button></td>
+                              <td className="py-3 px-4"><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></td>
                             </tr>
                           );
                         })}

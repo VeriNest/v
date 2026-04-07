@@ -98,7 +98,7 @@ export default function LandlordMaintenance() {
           <TabsContent key={group.key} value={group.key}>
             <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0 xl:grid-cols-3">
               {group.items.map((item) => (
-                <Card key={item.issue} className="border border-border/60 shadow-sm hover:shadow-md transition-all">
+                <Card key={item.issue} className="border border-border/60 shadow-sm">
                   <CardContent className="p-4 sm:p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">

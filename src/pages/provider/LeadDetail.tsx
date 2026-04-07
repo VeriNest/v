@@ -48,7 +48,7 @@ export default function LeadDetail() {
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <button onClick={() => navigate("/provider/inbox")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+      <button onClick={() => navigate("/provider/inbox")} className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <ArrowLeft className="h-4 w-4" /> Back to Inbox
       </button>
 

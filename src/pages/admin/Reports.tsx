@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -87,7 +86,7 @@ export default function AdminReports() {
       {/* Summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {summaryStats.map((s) => (
-          <Card key={s.label} className="border border-border/60 shadow-sm hover:shadow-md transition-shadow">
+          <Card key={s.label} className="border border-border/60 shadow-sm">
             <CardContent className="p-4 flex items-start gap-3">
               <div className={`h-9 w-9 rounded-lg ${s.iconBg} flex items-center justify-center shrink-0`}>
                 <s.icon className={`h-4 w-4 ${s.accent}`} />
@@ -147,28 +146,28 @@ export default function AdminReports() {
               </CardContent>
             </Card>
 
-            <Card className="border border-border/60 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-semibold">Top Locations</CardTitle>
-                <p className="text-xs text-muted-foreground">Revenue by area</p>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {topLocations.map((loc) => (
-                  <div key={loc.location} className="flex items-center justify-between p-2.5 rounded-lg hover:bg-muted/40 transition-colors">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{loc.location}</p>
-                      <p className="text-[11px] text-muted-foreground">{loc.bookings} bookings</p>
+              <Card className="border border-border/60 shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-semibold">Top Locations</CardTitle>
+                  <p className="text-xs text-muted-foreground">Revenue by area</p>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {topLocations.map((loc) => (
+                    <div key={loc.location} className="flex items-center justify-between p-2.5 rounded-lg">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{loc.location}</p>
+                        <p className="text-[11px] text-muted-foreground">{loc.bookings} bookings</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-foreground">{loc.revenue}</p>
+                        <p className={`text-[11px] font-medium ${loc.growth > 0 ? "text-emerald-600" : "text-red-500"}`}>
+                          {loc.growth > 0 ? "+" : ""}{loc.growth}%
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-foreground">{loc.revenue}</p>
-                      <p className={`text-[11px] font-medium ${loc.growth > 0 ? "text-emerald-600" : "text-red-500"}`}>
-                        {loc.growth > 0 ? "+" : ""}{loc.growth}%
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+                  ))}
+                </CardContent>
+              </Card>
           </div>
         </TabsContent>
 

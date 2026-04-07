@@ -111,7 +111,7 @@ export function SendOfferSheet({ open, onOpenChange, leadNeed, onOfferSent }: Se
 
           <div className="space-y-2">
             <Label className="text-sm font-medium">Attach Photos</Label>
-            <div className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/40 transition-colors">
+            <div className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer">
               <ImagePlus className="h-8 w-8 mx-auto text-muted-foreground/50" />
               <p className="text-xs text-muted-foreground mt-2">Drag & drop or click to upload</p>
               <p className="text-[10px] text-muted-foreground">Available after backend is connected</p>

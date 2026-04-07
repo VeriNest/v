@@ -56,7 +56,7 @@ export default function SeekerSettings() {
             </Avatar>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 cursor-pointer"
             >
               <Camera className="h-4 w-4 text-background" />
             </button>

@@ -146,7 +146,7 @@ export default function UsersPage() {
                           const vStyle = verificationStyles[u.verification];
                           const VIcon = vStyle.icon;
                           return (
-                            <tr key={u.id} data-search-id={`admin-user-${u.id}`} className="border-b border-border/40 group hover:bg-accent/30">
+                            <tr key={u.id} data-search-id={`admin-user-${u.id}`} className="border-b border-border/40">
                               <td className="py-3 px-4">
                                 <div className="flex items-center gap-3">
                                   <div className="relative">
@@ -177,7 +177,7 @@ export default function UsersPage() {
                                 <span className={`text-sm ${u.activity === "Active now" ? "text-emerald-600 font-medium" : "text-muted-foreground"}`}>{u.activity}</span>
                               </td>
                               <td className="text-muted-foreground text-sm py-3 px-4">{u.joined}</td>
-                              <td className="py-3 px-4"><Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4" /></Button></td>
+                              <td className="py-3 px-4"><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></td>
                             </tr>
                           );
                         })}

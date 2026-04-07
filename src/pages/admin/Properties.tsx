@@ -138,7 +138,7 @@ export default function Properties() {
                         {items.map((property) => {
                           const status = statusStyles[property.status];
                           return (
-                            <tr key={property.id} data-search-id={`admin-property-${property.id}`} className="border-b border-border/40 group hover:bg-accent/30">
+                            <tr key={property.id} data-search-id={`admin-property-${property.id}`} className="border-b border-border/40">
                               <td className="py-3 px-4">
                                 <div className="flex items-center gap-2.5">
                                   <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center shrink-0"><Building2 className="h-4 w-4 text-primary" /></div>
@@ -154,7 +154,7 @@ export default function Properties() {
                                 </span>
                               </td>
                               <td className="text-muted-foreground text-sm py-3 px-4">{property.date}</td>
-                              <td className="py-3 px-4"><Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4" /></Button></td>
+                              <td className="py-3 px-4"><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></td>
                             </tr>
                           );
                         })}

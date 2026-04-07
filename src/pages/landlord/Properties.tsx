@@ -83,7 +83,7 @@ export default function LandlordProperties() {
           <TabsContent key={group.key} value={group.key}>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {group.items.map((property) => (
-                <Card key={property.id} data-search-id={`landlord-property-${property.id}`} className="border border-border/60 shadow-sm hover:shadow-md transition-all">
+                <Card key={property.id} data-search-id={`landlord-property-${property.id}`} className="border border-border/60 shadow-sm">
                   <CardContent className="p-5 space-y-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>

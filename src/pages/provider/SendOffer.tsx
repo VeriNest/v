@@ -144,7 +144,7 @@ export default function SendOffer() {
                     className={`w-full p-4 rounded-xl border text-left transition-all ${
                       selectedListing === listing.id
                         ? "border-primary bg-primary/5 shadow-sm"
-                        : "border-border/60 hover:border-primary/30 hover:bg-accent/30"
+                        : "border-border/60"
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -248,7 +248,7 @@ export default function SendOffer() {
 
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">Property Photos</label>
-                  <div className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary/40 transition-colors">
+                  <div className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer">
                     <ImagePlus className="h-10 w-10 mx-auto text-muted-foreground/40" />
                     <p className="text-sm text-muted-foreground mt-2">Drag & drop or click to upload</p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">Available after backend is connected</p>

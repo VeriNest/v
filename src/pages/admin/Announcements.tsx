@@ -1,18 +1,14 @@
-import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
 import {
-  Megaphone, Plus, Send, Clock, CheckCircle2, Users, Building2,
+  Megaphone, Plus, Send, Clock, Users,
   AlertTriangle, Info, Trash2, Edit, Eye
 } from "lucide-react";
 
-const announcements = [
+export const announcements = [
   {
     id: 1,
     title: "Platform Maintenance - March 30th",
@@ -45,7 +41,7 @@ const announcements = [
   },
   {
     id: 4,
-    title: "Fraud Alert — Fake Listings Detected",
+    title: "Fraud Alert - Fake Listings Detected",
     message: "We've identified several fraudulent listings in the Lekki area. All affected listings have been removed and accounts suspended.",
     audience: "All Users",
     type: "critical",
@@ -74,8 +70,6 @@ const stats = [
 ];
 
 export default function AdminAnnouncements() {
-  const [showCompose, setShowCompose] = useState(false);
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -83,8 +77,10 @@ export default function AdminAnnouncements() {
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Announcements</h1>
           <p className="text-sm text-muted-foreground mt-1">Broadcast messages and alerts to platform users</p>
         </div>
-        <Button size="sm" className="h-9 gap-1.5 text-sm" onClick={() => setShowCompose(!showCompose)}>
-          <Plus className="h-3.5 w-3.5" /> New Announcement
+        <Button size="sm" className="h-9 gap-1.5 text-sm" asChild>
+          <Link to="/admin/announcements/new">
+            <Plus className="h-3.5 w-3.5" /> New Announcement
+          </Link>
         </Button>
       </div>
 
@@ -104,68 +100,6 @@ export default function AdminAnnouncements() {
         ))}
       </div>
 
-      {showCompose && (
-        <Card className="border border-primary/20 shadow-sm bg-primary/[0.02]">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Megaphone className="h-4 w-4 text-primary" /> Compose Announcement
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">Title</label>
-                <Input placeholder="Announcement title..." />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">Audience</label>
-                  <Select defaultValue="all">
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Users</SelectItem>
-                      <SelectItem value="seekers">Seekers Only</SelectItem>
-                      <SelectItem value="providers">Providers Only</SelectItem>
-                      <SelectItem value="agents">Agents Only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">Type</label>
-                  <Select defaultValue="info">
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="info">Info</SelectItem>
-                      <SelectItem value="warning">Warning</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">Message</label>
-              <Textarea placeholder="Write your announcement..." rows={3} />
-            </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Switch />
-                <span className="text-sm text-muted-foreground">Send push notification</span>
-              </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button variant="outline" size="sm" onClick={() => setShowCompose(false)}>Cancel</Button>
-                <Button variant="outline" size="sm" className="gap-1"><Clock className="h-3 w-3" /> Save Draft</Button>
-                <Button size="sm" className="gap-1"><Send className="h-3 w-3" /> Publish</Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <Tabs defaultValue="all" className="space-y-4">
         <TabsList className="bg-muted/50 p-1 h-auto">
           <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm px-4">All</TabsTrigger>
@@ -181,7 +115,7 @@ export default function AdminAnnouncements() {
                 const t = typeConfig[a.type];
                 const TypeIcon = t.icon;
                 return (
-                  <Card key={a.id} className="border border-border/60 shadow-sm hover:shadow-md transition-all">
+                  <Card key={a.id} className="border border-border/60 shadow-sm">
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-3 min-w-0">
@@ -203,7 +137,7 @@ export default function AdminAnnouncements() {
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
                           <Button variant="ghost" size="icon" className="h-7 w-7"><Edit className="h-3 w-3" /></Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"><Trash2 className="h-3 w-3" /></Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"><Trash2 className="h-3 w-3" /></Button>
                         </div>
                       </div>
                     </CardContent>

@@ -165,7 +165,7 @@ export default function PostNeed() {
                             className={`p-4 rounded-xl border text-left transition-all ${
                               propertyType === type.value
                                 ? "border-primary bg-primary/5 shadow-sm"
-                                : "border-border/60 hover:border-primary/30 hover:bg-accent/30"
+                                : "border-border/60"
                             }`}
                           >
                             <p className={`text-sm font-semibold ${propertyType === type.value ? "text-primary" : "text-foreground"}`}>{type.label}</p>
@@ -191,7 +191,7 @@ export default function PostNeed() {
                             className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
                               bedrooms === opt.value
                                 ? "border-primary bg-primary text-primary-foreground"
-                                : "border-border/60 text-muted-foreground hover:border-primary/30"
+                                : "border-border/60 text-muted-foreground"
                             }`}
                           >
                             {opt.label}
@@ -213,7 +213,7 @@ export default function PostNeed() {
                               className={`p-3 rounded-xl border text-left transition-all ${
                                 urgency === level.value
                                   ? `${level.bg} shadow-sm`
-                                  : "border-border/60 hover:border-primary/30"
+                                  : "border-border/60"
                               }`}
                             >
                               <div className="flex items-center gap-2">
@@ -308,10 +308,10 @@ export default function PostNeed() {
                             key={tag}
                             variant="outline"
                             onClick={() => toggleTag(tag)}
-                            className={`cursor-pointer px-3 py-1.5 transition-all duration-200 text-xs ${
+                            className={`cursor-pointer px-3 py-1.5 text-xs ${
                               selectedTags.includes(tag)
-                                ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
-                                : "hover:bg-accent hover:border-primary/30 text-muted-foreground"
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "text-muted-foreground"
                             }`}
                           >
                             {tag}

@@ -78,7 +78,7 @@ export default function LandlordCalendar() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((s) => (
-          <Card key={s.label} className="border border-border/60 shadow-sm hover:shadow-md transition-shadow">
+          <Card key={s.label} className="border border-border/60 shadow-sm">
             <CardContent className="flex items-start gap-3 p-4">
               <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${s.iconBg}`}>
                 <s.icon className={`h-4 w-4 ${s.accent}`} />
@@ -133,11 +133,11 @@ export default function LandlordCalendar() {
                               key={`${di}-${hi}`}
                               className={`relative min-h-[44px] cursor-pointer border-l border-t border-border/40 transition-colors ${
                                 isToday ? "bg-primary/[0.02]" : "bg-background"
-                              } hover:bg-accent/20`}
+                              }`}
                             >
                               {event ? (
                                 <div
-                                  className={`absolute inset-x-1 top-1 rounded-md border px-2 py-1.5 text-xs transition-shadow hover:shadow-md ${
+                                  className={`absolute inset-x-1 top-1 rounded-md border px-2 py-1.5 text-xs ${
                                     event.status === "Scheduled"
                                       ? "border-primary/20 bg-primary/10 text-primary"
                                       : "border-amber-200 bg-amber-50 text-amber-700"
@@ -175,7 +175,7 @@ export default function LandlordCalendar() {
                     { time: "10:00 AM", guest: "Palm Residence A1", type: "Rent follow-up", color: "bg-emerald-500" },
                     { time: "2:00 PM", guest: "Lekki Court B2", type: "Inspection visit", color: "bg-primary" },
                   ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2.5 rounded-lg bg-muted/30 p-2 transition-colors hover:bg-muted/50">
+                    <div key={i} className="flex items-center gap-2.5 rounded-lg bg-muted/30 p-2">
                       <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${item.color}`} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-medium text-foreground">{item.guest}</p>
@@ -193,7 +193,7 @@ export default function LandlordCalendar() {
           {upcomingEvents.map((b) => {
             const s = statusConfig[b.status];
             return (
-              <Card key={b.id} className="group border border-border/60 shadow-sm transition-all hover:shadow-md">
+              <Card key={b.id} className="border border-border/60 shadow-sm">
                 <CardContent className="p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                     <div className="flex min-w-0 items-center gap-3">

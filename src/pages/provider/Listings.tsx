@@ -115,8 +115,8 @@ export default function Listings() {
                   {items.map((listing) => {
                     const status = statusStyles[listing.status] || statusStyles.Draft;
                     return (
-                      <div key={listing.id} data-search-id={`provider-listing-${listing.id}`} className="relative rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group cursor-pointer">
-                        <img src={listing.image} alt={listing.title} className="w-full h-[280px] object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div key={listing.id} data-search-id={`provider-listing-${listing.id}`} className="relative rounded-2xl overflow-hidden shadow-md group cursor-pointer">
+                        <img src={listing.image} alt={listing.title} className="w-full h-[280px] object-cover" />
 
                         <div className="absolute top-3 left-3">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${status.bg} ${status.color}`}>
@@ -210,7 +210,7 @@ export default function Listings() {
                               </TableCell>
                               <TableCell><div className="flex items-center gap-1 text-sm text-muted-foreground"><Eye className="h-3.5 w-3.5" />{listing.views}</div></TableCell>
                               <TableCell><span className={`text-sm font-medium ${listing.offers > 0 ? "text-primary" : "text-muted-foreground"}`}>{listing.offers}</span></TableCell>
-                              <TableCell><Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity"><MoreHorizontal className="h-4 w-4" /></Button></TableCell>
+                              <TableCell><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></TableCell>
                             </TableRow>
                           );
                         })}

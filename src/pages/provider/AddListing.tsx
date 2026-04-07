@@ -172,7 +172,7 @@ export default function AddListing() {
                             className={`p-4 rounded-xl border text-left transition-all ${
                               listingType === type.value
                                 ? "border-primary bg-primary/5 shadow-sm"
-                                : "border-border/60 hover:border-primary/30 hover:bg-accent/30"
+                                : "border-border/60"
                             }`}
                           >
                             <p className={`text-sm font-semibold ${listingType === type.value ? "text-primary" : "text-foreground"}`}>{type.label}</p>
@@ -210,7 +210,7 @@ export default function AddListing() {
                             className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
                               bedrooms === opt.value
                                 ? "border-primary bg-primary text-primary-foreground"
-                                : "border-border/60 text-muted-foreground hover:border-primary/30"
+                                : "border-border/60 text-muted-foreground"
                             }`}
                           >
                             {opt.label}
@@ -315,10 +315,10 @@ export default function AddListing() {
                             key={tag}
                             variant="outline"
                             onClick={() => toggleAmenity(tag)}
-                            className={`cursor-pointer px-3 py-1.5 transition-all duration-200 text-xs ${
+                            className={`cursor-pointer px-3 py-1.5 text-xs ${
                               selectedAmenities.includes(tag)
-                                ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
-                                : "hover:bg-accent hover:border-primary/30 text-muted-foreground"
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "text-muted-foreground"
                             }`}
                           >
                             {tag}
@@ -342,7 +342,7 @@ export default function AddListing() {
 
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-foreground">Property Photos</label>
-                      <div className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary/40 transition-colors">
+                      <div className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer">
                         <ImagePlus className="h-10 w-10 mx-auto text-muted-foreground/40" />
                         <p className="text-sm text-muted-foreground mt-2">Drag & drop or click to upload</p>
                         <p className="text-[11px] text-muted-foreground mt-0.5">Available after backend is connected</p>
@@ -554,7 +554,7 @@ export default function AddListing() {
                         {listing.status}
                       </Badge>
                       <span className="text-xs text-muted-foreground flex items-center gap-1"><Eye className="h-3 w-3" />{listing.views}</span>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>

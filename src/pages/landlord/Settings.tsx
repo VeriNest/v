@@ -34,7 +34,7 @@ export default function LandlordSettings() {
             <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-primary/20">
               {avatarUrl ? <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" /> : <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">LO</AvatarFallback>}
             </Avatar>
-            <button onClick={() => fileInputRef.current?.click()} className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+            <button onClick={() => fileInputRef.current?.click()} className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 cursor-pointer">
               <Camera className="h-4 w-4 text-background" />
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />

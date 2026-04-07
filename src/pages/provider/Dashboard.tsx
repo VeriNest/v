@@ -156,7 +156,7 @@ export default function ProviderDashboard() {
               <Card
                 key={stat.title}
                 data-search-id={`provider-stat-${toSearchId(stat.title)}`}
-                className="border border-border/60 shadow-none transition-shadow duration-200 hover:shadow-md"
+                className="border border-border/60 shadow-none"
               >
                 <CardContent className="p-5">
                   <div className="mb-3 flex items-center justify-between">
@@ -282,7 +282,7 @@ export default function ProviderDashboard() {
                 <div
                   key={listing.name}
                   data-search-id={`provider-top-${toSearchId(listing.name)}`}
-                  className="rounded-xl border border-border/60 p-3 transition-colors hover:border-primary/20"
+                  className="rounded-xl border border-border/60 p-3"
                 >
                   <p className="mb-2 text-sm font-medium text-foreground">{listing.name}</p>
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -338,7 +338,7 @@ export default function ProviderDashboard() {
                   <div
                     key={lead.id}
                     data-search-id={`provider-overview-lead-${lead.id}`}
-                    className="group flex flex-col gap-2 rounded-lg p-3 transition-colors hover:bg-accent/50 sm:flex-row sm:items-center sm:gap-3"
+                    className="flex flex-col gap-2 rounded-lg p-3 sm:flex-row sm:items-center sm:gap-3"
                   >
                     <div className="flex min-w-0 flex-1 items-center gap-3">
                       <Avatar className="h-9 w-9 shrink-0 border border-border/60">
@@ -367,7 +367,7 @@ export default function ProviderDashboard() {
                       ) : null}
                       <Button
                         size="sm"
-                        className="h-7 bg-primary text-xs text-primary-foreground transition-opacity hover:bg-primary/90 sm:opacity-0 sm:group-hover:opacity-100"
+                        className="h-7 bg-primary text-xs text-primary-foreground"
                       >
                         Send Offer
                       </Button>
@@ -461,7 +461,7 @@ export default function ProviderDashboard() {
           </Button>
           <Button
             size="sm"
-            className="h-9 gap-2 bg-primary text-sm text-primary-foreground hover:bg-primary/90"
+            className="h-9 gap-2 bg-primary text-sm text-primary-foreground"
             asChild
           >
             <Link to="/provider/listings/new">

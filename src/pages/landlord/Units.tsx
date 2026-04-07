@@ -115,7 +115,7 @@ export default function LandlordUnits() {
             {resolvedView === "cards" ? (
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {group.items.map((unit) => (
-                  <Card key={unit.id} data-search-id={`landlord-unit-${unit.id}`} className="border border-border/60 shadow-sm hover:shadow-md transition-all">
+                  <Card key={unit.id} data-search-id={`landlord-unit-${unit.id}`} className="border border-border/60 shadow-sm">
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex gap-3 min-w-0">

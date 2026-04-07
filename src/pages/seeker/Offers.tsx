@@ -76,19 +76,25 @@ export default function Offers() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-3">
-          {filtered.map((offer) => (
-            <OfferCard key={offer.id} offer={offer} />
-          ))}
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.map((offer) => (
+              <OfferCard key={offer.id} offer={offer} />
+            ))}
+          </div>
         </TabsContent>
         <TabsContent value="new" className="space-y-3">
-          {filtered.filter(o => o.status === "New").map((offer) => (
-            <OfferCard key={offer.id} offer={offer} />
-          ))}
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.filter(o => o.status === "New").map((offer) => (
+              <OfferCard key={offer.id} offer={offer} />
+            ))}
+          </div>
         </TabsContent>
         <TabsContent value="saved" className="space-y-3">
-          {filtered.filter(o => o.status === "Saved").map((offer) => (
-            <OfferCard key={offer.id} offer={offer} />
-          ))}
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {filtered.filter(o => o.status === "Saved").map((offer) => (
+              <OfferCard key={offer.id} offer={offer} />
+            ))}
+          </div>
         </TabsContent>
       </Tabs>
     </div>
@@ -97,57 +103,64 @@ export default function Offers() {
 
 function OfferCard({ offer }: { offer: typeof offers[0] }) {
   return (
-    <Card data-search-id={`seeker-offer-${offer.id}`} className="border border-border/60 shadow-sm hover:shadow-md transition-all duration-200 group">
-      <CardContent className="p-0">
-        <div className="flex">
-          <div className={`w-1 shrink-0 rounded-l-lg ${matchBg(offer.match)}`} />
-          <div className="flex-1 p-4 sm:p-5">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-              <div className="flex gap-3 min-w-0">
-                <Avatar className="h-10 w-10 border border-border/60 shrink-0">
-                  <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">{offer.initials}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-sm text-foreground truncate">{offer.property}</h3>
-                    {offer.status === "New" && (
-                      <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                    <span className="font-medium">{offer.provider}</span>
-                    <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium ${roleStyles[offer.role]}`}>{offer.role}</span>
-                    <span className="flex items-center gap-0.5">
-                      {offer.trust === "Verified" ? <ShieldCheck className="h-3 w-3 text-emerald-600" /> : <Clock className="h-3 w-3 text-amber-500" />}
-                      {offer.trust}
-                    </span>
-                  </div>
-                  <div className="flex gap-1.5 flex-wrap pt-0.5">
-                    {offer.features.map((f) => (
-                      <span key={f} className="bg-muted px-2 py-0.5 rounded text-[11px] text-muted-foreground">{f}</span>
-                    ))}
-                  </div>
-                </div>
+    <Card data-search-id={`seeker-offer-${offer.id}`} className="overflow-hidden border border-border/60 shadow-sm">
+      <CardContent className="space-y-4 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 gap-3">
+            <Avatar className="h-10 w-10 border border-border/60 shrink-0">
+              <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">{offer.initials}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 space-y-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-semibold text-sm text-foreground">{offer.property}</h3>
+                {offer.status === "New" ? <span className="h-2 w-2 rounded-full bg-primary animate-pulse" /> : null}
               </div>
-              <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1 ml-13 sm:ml-0 shrink-0">
-                <p className="text-base font-bold text-foreground">{offer.price}</p>
-                <div className="flex items-center gap-1 text-xs">
-                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                  <span className="font-medium text-foreground">{offer.rating}</span>
-                </div>
-                <p className={`text-xs font-semibold ${matchColor(offer.match)} flex items-center gap-0.5`}>
-                  <ArrowUpRight className="h-3 w-3" />{offer.match}%
-                </p>
-                <p className="text-[11px] text-muted-foreground flex items-center gap-0.5"><Zap className="h-3 w-3" />{offer.responseTime}</p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                <span className="font-medium">{offer.provider}</span>
+                <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium ${roleStyles[offer.role]}`}>{offer.role}</span>
               </div>
-            </div>
-            <div className="flex gap-2 mt-4 pt-3 border-t border-border/60 flex-wrap">
-              <Button size="sm">View Details</Button>
-              <Button size="sm" variant="outline">Schedule Viewing</Button>
-              <Button size="sm" variant="ghost" className="text-xs text-muted-foreground hidden sm:inline-flex">View Original Request</Button>
-              <Button size="sm" variant="ghost" className="sm:ml-auto text-muted-foreground">Save</Button>
             </div>
           </div>
+          <div className="rounded-xl border border-border/60 bg-muted/30 px-3 py-2 text-right text-xs text-muted-foreground">
+            <p className="font-medium text-foreground">{offer.price}</p>
+            <p className={`mt-1 inline-flex items-center gap-0.5 font-semibold ${matchColor(offer.match)}`}>
+              <ArrowUpRight className="h-3 w-3" /> {offer.match}% match
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-xl border border-border/60 bg-muted/30 px-3 py-2">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Trust</p>
+            <p className="mt-1 flex items-center gap-1 text-sm font-medium text-foreground">
+              {offer.trust === "Verified" ? <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> : <Clock className="h-3.5 w-3.5 text-amber-500" />}
+              {offer.trust}
+            </p>
+          </div>
+          <div className="rounded-xl border border-border/60 bg-muted/30 px-3 py-2">
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Response</p>
+            <p className="mt-1 flex items-center gap-1 text-sm font-medium text-foreground">
+              <Zap className="h-3.5 w-3.5 text-primary" />
+              {offer.responseTime}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-1.5 flex-wrap">
+          {offer.features.map((f) => (
+            <span key={f} className="rounded-full bg-muted px-2.5 py-1 text-[11px] text-muted-foreground">{f}</span>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-secondary/30 px-3 py-2.5">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+              <span className="font-medium text-foreground">{offer.rating}</span>
+            </span>
+            <span>{offer.status}</span>
+          </div>
+          <Button size="sm" variant="outline">View Details</Button>
         </div>
       </CardContent>
     </Card>

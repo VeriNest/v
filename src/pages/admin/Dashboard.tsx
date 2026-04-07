@@ -109,7 +109,7 @@ export default function Dashboard() {
         render: () => (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat) => (
-              <Card key={stat.title} data-search-id={`admin-stat-${toSearchId(stat.title)}`} className="border border-border/60 shadow-none transition-shadow duration-200 hover:shadow-md">
+              <Card key={stat.title} data-search-id={`admin-stat-${toSearchId(stat.title)}`} className="border border-border/60 shadow-none">
                 <CardContent className="p-5">
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/8">
@@ -226,7 +226,7 @@ export default function Dashboard() {
             <CardContent className="pt-0">
               <div className="space-y-1">
                 {recentActivity.map((item) => (
-                  <div key={item.id} data-search-id={`admin-activity-${item.id}`} className="group flex items-center gap-3 rounded-lg p-3 transition-colors hover:bg-accent/50">
+                  <div key={item.id} data-search-id={`admin-activity-${item.id}`} className="flex items-center gap-3 rounded-lg p-3">
                     <Avatar className="h-9 w-9 border border-border/60">
                       <AvatarFallback className={`text-[10px] font-medium ${typeStyles[item.type]}`}>
                         {item.avatar}
@@ -260,13 +260,13 @@ export default function Dashboard() {
                 <Link
                   key={action.label}
                   to={action.to}
-                  className="group flex w-full items-center gap-3 rounded-xl border border-border/60 p-3 text-left transition-all duration-150 hover:border-primary/30 hover:bg-primary/5"
+                  className="flex w-full items-center gap-3 rounded-xl border border-border/60 p-3 text-left"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/8 transition-colors group-hover:bg-primary/15">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/8">
                     <action.icon className="h-4.5 w-4.5 text-primary" />
                   </div>
                   <span className="text-sm font-medium text-foreground">{action.label}</span>
-                  <ArrowUpRight className="ml-auto h-4 w-4 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                  <ArrowUpRight className="ml-auto h-4 w-4 text-muted-foreground" />
                 </Link>
               ))}
 

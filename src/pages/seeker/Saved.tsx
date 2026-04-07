@@ -43,9 +43,9 @@ export default function Saved() {
       {view === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {filtered.map((item) => (
-            <div key={item.id} data-search-id={`seeker-saved-${item.id}`} className="relative rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 group cursor-pointer">
+            <div key={item.id} data-search-id={`seeker-saved-${item.id}`} className="relative rounded-2xl overflow-hidden shadow-md group cursor-pointer">
               {/* Image */}
-              <img src={item.image} alt={item.property} className="w-full h-[320px] object-cover group-hover:scale-105 transition-transform duration-500" />
+              <img src={item.image} alt={item.property} className="w-full h-[320px] object-cover" />
 
               {/* Heart button */}
               <button className="absolute top-3 right-3 w-9 h-9 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm hover:bg-background transition-colors">
@@ -96,7 +96,7 @@ export default function Saved() {
       ) : (
         <div className="space-y-3">
           {filtered.map((item) => (
-            <div key={item.id} data-search-id={`seeker-saved-${item.id}`} className="flex flex-col sm:flex-row bg-card border border-border/60 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group">
+            <div key={item.id} data-search-id={`seeker-saved-${item.id}`} className="flex flex-col sm:flex-row bg-card border border-border/60 rounded-xl overflow-hidden shadow-sm group">
               <div className="relative w-full sm:w-40 h-48 sm:h-32 shrink-0">
                 <img src={item.image} alt={item.property} className="w-full h-full object-cover" />
                 <button className="absolute top-2 right-2 w-7 h-7 bg-background/90 backdrop-blur-sm rounded-full flex items-center justify-center">

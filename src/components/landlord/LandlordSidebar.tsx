@@ -50,7 +50,7 @@ export function LandlordSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === "/landlord"}
-                      className={`text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150 ${collapsed ? "justify-center px-0 mx-auto w-10 h-10" : "h-9 px-3"}`}
+                      className={`text-muted-foreground rounded-lg ${collapsed ? "justify-center px-0 mx-auto w-10 h-10" : "h-9 px-3"}`}
                       activeClassName="bg-primary/10 text-primary font-medium"
                     >
                       <item.icon className={`h-4 w-4 shrink-0 ${collapsed ? "mr-0" : "mr-2.5"}`} />
@@ -69,7 +69,7 @@ export function LandlordSidebar() {
               <SidebarMenuButton asChild tooltip="Settings">
                 <NavLink
                   to="/landlord/settings"
-                  className={`text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150 ${collapsed ? "justify-center px-0 mx-auto w-10 h-10" : "h-9 px-3"}`}
+                  className={`text-muted-foreground rounded-lg ${collapsed ? "justify-center px-0 mx-auto w-10 h-10" : "h-9 px-3"}`}
                   activeClassName="bg-primary/10 text-primary font-medium"
                 >
                   <Settings className={`h-4 w-4 shrink-0 ${collapsed ? "mr-0" : "mr-2.5"}`} />
@@ -81,7 +81,7 @@ export function LandlordSidebar() {
               <SidebarMenuButton asChild tooltip="Back to Site">
                 <NavLink
                   to="/"
-                  className={`text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150 ${collapsed ? "justify-center px-0 mx-auto w-10 h-10" : "h-9 px-3"}`}
+                  className={`text-muted-foreground rounded-lg ${collapsed ? "justify-center px-0 mx-auto w-10 h-10" : "h-9 px-3"}`}
                 >
                   <ChevronLeft className={`h-4 w-4 shrink-0 ${collapsed ? "mr-0" : "mr-2.5"}`} />
                   {!collapsed && <span className="text-sm">Back to Site</span>}
@@ -92,7 +92,7 @@ export function LandlordSidebar() {
               <SidebarMenuButton asChild tooltip="Sign Out">
                 <NavLink
                   to="/login"
-                  className={`text-destructive/70 hover:text-destructive hover:bg-destructive/5 rounded-lg transition-all duration-150 ${collapsed ? "justify-center px-0 mx-auto w-10 h-10" : "h-9 px-3"}`}
+                  className={`text-destructive/70 rounded-lg ${collapsed ? "justify-center px-0 mx-auto w-10 h-10" : "h-9 px-3"}`}
                 >
                   <LogOut className={`h-4 w-4 shrink-0 ${collapsed ? "mr-0" : "mr-2.5"}`} />
                   {!collapsed && <span className="text-sm">Sign Out</span>}

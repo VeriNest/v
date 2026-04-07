@@ -76,7 +76,7 @@ export default function AdminSettings() {
             </Avatar>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 cursor-pointer"
             >
               <Camera className="h-4 w-4 text-background" />
             </button>
@@ -272,7 +272,7 @@ export default function AdminSettings() {
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${roleColors[m.role]}`}>{m.role}</span>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="sm" className="h-7 text-xs">Edit</Button>
-                        <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive hover:text-destructive">Remove</Button>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive">Remove</Button>
                       </div>
                     </div>
                   </div>
@@ -314,7 +314,7 @@ export default function AdminSettings() {
                         </TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="sm" className="h-7 text-xs">Edit</Button>
-                          <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive hover:text-destructive">Remove</Button>
+                          <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive">Remove</Button>
                         </TableCell>
                       </TableRow>
                     ))}
