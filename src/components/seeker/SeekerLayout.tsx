@@ -7,6 +7,7 @@ import { ShieldCheck, ShieldAlert } from "lucide-react";
 import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardHeaderSearch } from "@/components/search/DashboardHeaderSearch";
 import { DashboardNotifications } from "@/components/dashboard/DashboardNotifications";
+import { DashboardThemeToggle } from "@/components/dashboard/DashboardThemeToggle";
 
 export default function SeekerLayout() {
   const { avatarUrl } = useAvatar();
@@ -23,6 +24,7 @@ export default function SeekerLayout() {
             <SidebarTrigger className="ml-0 hidden md:flex" />
             <DashboardHeaderSearch role="seeker" placeholder="Search properties, offers, bookings..." />
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
+              <DashboardThemeToggle />
               <DashboardNotifications role="seeker" />
               <div className="h-8 w-px bg-border/60 hidden sm:block" />
               <Link to="/seeker/settings" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">

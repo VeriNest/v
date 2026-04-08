@@ -58,9 +58,9 @@ export default function LandlordSettings() {
             <p className="font-semibold text-foreground truncate">Landlord Account</p>
             <p className="text-sm text-muted-foreground truncate">owner@dwello.ng</p>
           </div>
-          <div className="flex gap-1.5 shrink-0">
-            <Badge className="bg-primary/10 text-primary border-primary/20" variant="outline">Landlord</Badge>
-            <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20" variant="outline">Verified</Badge>
+          <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+            <Badge className="whitespace-nowrap bg-primary/10 text-primary border-primary/20" variant="outline">Landlord</Badge>
+            <Badge className="whitespace-nowrap bg-emerald-500/10 text-emerald-600 border-emerald-500/20" variant="outline">Verified</Badge>
           </div>
         </CardContent>
       </Card>
@@ -186,7 +186,7 @@ export default function LandlordSettings() {
             <CardContent className="divide-y divide-border/60">
               <div className="flex items-center justify-between gap-3 py-4 first:pt-0">
                 <div><p className="font-medium text-sm text-foreground">Ownership verification</p><p className="text-xs text-muted-foreground">National ID and title deed currently on file.</p></div>
-                <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Verified</Badge>
+                <Badge variant="outline" className="shrink-0 whitespace-nowrap text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Verified</Badge>
               </div>
               <div className="flex items-center justify-between gap-3 py-4">
                 <div><p className="font-medium text-sm text-foreground">Property compliance documents</p><p className="text-xs text-muted-foreground">Track expiring C of O, tax receipts, and inspection records.</p></div>

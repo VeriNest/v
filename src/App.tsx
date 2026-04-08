@@ -60,16 +60,18 @@ import ProviderSettings from "./pages/provider/Settings.tsx";
 import LeadDetail from "./pages/provider/LeadDetail.tsx";
 import SendOffer from "./pages/provider/SendOffer.tsx";
 import DashboardSearch from "./pages/shared/DashboardSearch.tsx";
+import { ThemeProvider } from "@/components/theme-provider";
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AvatarProvider>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
+    <ThemeProvider>
+      <AvatarProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
@@ -137,10 +139,11 @@ const App = () => (
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-    </AvatarProvider>
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+      </AvatarProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

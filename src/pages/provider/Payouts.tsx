@@ -71,7 +71,7 @@ export default function Payouts() {
                     <div><CardTitle className="text-base">Payout History</CardTitle><CardDescription>Your earnings and fee breakdown</CardDescription></div>
                     <div className="flex items-center gap-3">
                       <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search..." className="pl-9 w-[200px] h-9" /></div>
-                      <Button variant="outline" size="sm" className="gap-1.5"><Filter className="h-3.5 w-3.5" /> Filter</Button>
+                      <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span></Button>
                     </div>
                   </div>
                 </CardHeader>

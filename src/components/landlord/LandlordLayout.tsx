@@ -7,6 +7,7 @@ import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardHeaderSearch } from "@/components/search/DashboardHeaderSearch";
 import { DashboardNotifications } from "@/components/dashboard/DashboardNotifications";
+import { DashboardThemeToggle } from "@/components/dashboard/DashboardThemeToggle";
 
 export default function LandlordLayout() {
   const { avatarUrl } = useAvatar();
@@ -23,6 +24,7 @@ export default function LandlordLayout() {
             <SidebarTrigger className="ml-0 hidden md:flex" />
             <DashboardHeaderSearch role="landlord" placeholder="Search units, collections, settings..." />
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
+              <DashboardThemeToggle />
               <DashboardNotifications role="landlord" />
               <div className="h-8 w-px bg-border/60 hidden sm:block" />
               <Link to="/landlord/settings" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">

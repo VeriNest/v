@@ -40,9 +40,6 @@ export default function LandlordMaintenance() {
           <p className="mt-1 text-sm text-muted-foreground">Operational queue for repairs, inspections, vendor follow-up, and resolution tracking.</p>
         </div>
         <div className="flex items-center gap-2 self-start">
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <Filter className="h-3.5 w-3.5" /> Filter
-          </Button>
           <Button size="sm" className="gap-1.5" asChild>
             <Link to="/landlord/maintenance/new">
               <Plus className="h-3.5 w-3.5" /> Add Issue
@@ -86,9 +83,14 @@ export default function LandlordMaintenance() {
           <TabsTrigger value="progress" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">In Progress ({inProgress.length})</TabsTrigger>
           <TabsTrigger value="resolved" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Resolved ({resolved.length})</TabsTrigger>
         </TabsList>
-          <div className="relative w-full sm:w-[220px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search work orders..." className="h-9 w-full pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Search work orders..." className="h-9 w-full pl-9 sm:w-[220px]" value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
+              <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
+            </Button>
           </div>
         </div>
 
@@ -107,11 +109,11 @@ export default function LandlordMaintenance() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-medium text-foreground">{item.issue}</p>
-                          <Badge variant="outline" className={priorityStyles[item.priority]}>{item.priority}</Badge>
+                          <Badge variant="outline" className={`shrink-0 whitespace-nowrap ${priorityStyles[item.priority]}`}>{item.priority}</Badge>
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">{item.unit}</p>
                       </div>
-                      <Badge variant="outline" className={`shrink-0 text-[10px] ${statusStyles[item.status]}`}>{item.status}</Badge>
+                      <Badge variant="outline" className={`shrink-0 whitespace-nowrap text-[10px] ${statusStyles[item.status]}`}>{item.status}</Badge>
                     </div>
 
                     <div className="mt-3 grid grid-cols-2 gap-2 text-xs">

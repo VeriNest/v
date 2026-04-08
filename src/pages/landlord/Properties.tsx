@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Building2, DoorOpen, FileWarning, Plus, Search, Wallet, Wrench, MoreHorizontal } from "lucide-react";
+import { Building2, DoorOpen, FileWarning, Filter, Plus, Search, Wallet, Wrench } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -64,14 +64,19 @@ export default function LandlordProperties() {
 
       <Tabs defaultValue="all" className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <TabsList className="bg-muted/50 p-1 h-auto">
-            <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
-            <TabsTrigger value="stable" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Fully Occupied ({occupied.length})</TabsTrigger>
-            <TabsTrigger value="attention" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Needs Attention ({attention.length})</TabsTrigger>
+          <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
+            <TabsTrigger value="all" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
+            <TabsTrigger value="stable" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Fully Occupied ({occupied.length})</TabsTrigger>
+            <TabsTrigger value="attention" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Needs Attention ({attention.length})</TabsTrigger>
           </TabsList>
-          <div className="relative w-full sm:w-[260px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search properties..." className="pl-9 h-9" value={search} onChange={(event) => setSearch(event.target.value)} />
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Search properties..." className="h-9 w-full pl-9 sm:w-[220px]" value={search} onChange={(event) => setSearch(event.target.value)} />
+            </div>
+            <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
+              <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
+            </Button>
           </div>
         </div>
 
@@ -86,15 +91,14 @@ export default function LandlordProperties() {
                 <Card key={property.id} data-search-id={`landlord-property-${property.id}`} className="border border-border/60 shadow-sm">
                   <CardContent className="p-5 space-y-4">
                     <div className="flex items-start justify-between gap-3">
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-base font-semibold text-foreground">{property.name}</p>
                         <p className="text-xs text-muted-foreground mt-1">{property.location}</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className={`text-[10px] ${property.status === "Healthy" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : property.status === "Attention" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : "bg-destructive/10 text-destructive border-destructive/20"}`}>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge variant="outline" className={`px-2 py-0.5 text-[10px] ${property.status === "Healthy" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : property.status === "Attention" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : "bg-destructive/10 text-destructive border-destructive/20"}`}>
                           {property.status}
                         </Badge>
-                        <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
                       </div>
                     </div>
 

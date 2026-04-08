@@ -1,18 +1,14 @@
-import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import {
-  Building2,
-  CalendarCheck,
-  CheckCircle2,
-  Clock,
-  Eye,
-  Lock,
+  ArrowRight,
+  CalendarDays,
+  Clock3,
+  CreditCard,
   MapPin,
-  MessageSquare,
-  Navigation,
   Search,
+  ShieldCheck,
   Wallet,
-  XCircle,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -20,146 +16,225 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
+import { useSearchFocus } from "@/hooks/use-search-focus";
 
-type Booking = {
-  id: string;
-  property: string;
-  provider: string;
-  amount: string;
-  status: "Escrow" | "Confirmed" | "Completed" | "Cancelled";
-  stage: string;
-  date: string;
-  daysLeft: number;
-};
-
-type Viewing = {
-  id: string;
-  property: string;
-  host: string;
-  address: string;
-  slot: string;
-  status: "Confirmed" | "Pending" | "Completed" | "Cancelled";
-  paymentState: string;
-  note: string;
-};
-
-export const bookings: Booking[] = [
-  { id: "BK-001", property: "3 Bed Flat, Lekki Phase 1", provider: "Adebayo Johnson", amount: "NGN 2,500,000", status: "Escrow", stage: "Awaiting Viewing", date: "Mar 20, 2024", daysLeft: 5 },
-  { id: "BK-002", property: "2 Bed Serviced, Victoria Island", provider: "ShortStay NG", amount: "NGN 135,000", status: "Confirmed", stage: "Check-in Mar 22", date: "Mar 18, 2024", daysLeft: 2 },
-  { id: "BK-003", property: "Studio, Wuse 2 Abuja", provider: "Chioma Okafor", amount: "NGN 1,200,000", status: "Completed", stage: "Moved In", date: "Feb 15, 2024", daysLeft: 0 },
-  { id: "BK-004", property: "1 Bed, Garki Area 11", provider: "Abuja Rentals", amount: "NGN 850,000", status: "Cancelled", stage: "Refund Processed", date: "Jan 10, 2024", daysLeft: 0 },
-];
-
-export const viewings: Viewing[] = [
+export const bookings = [
   {
-    id: "VW-101",
-    property: "Palm Residence A1",
-    host: "Bode Akin",
-    address: "12 Admiralty Way, Lekki Phase 1",
-    slot: "Tomorrow, 2:00 PM",
-    status: "Confirmed",
-    paymentState: "Escrow hold in place",
-    note: "Bring a valid ID for gate access.",
+    id: "BK-402",
+    property: "The Maple Court",
+    location: "Lekki Phase 1",
+    host: "Adebayo Johnson",
+    amount: "N2,500,000",
+    paymentStatus: "Escrow held",
+    status: "Awaiting viewing",
+    dateLabel: "Viewing tomorrow, 2:00 PM",
+    detail: "Annual rent booking",
   },
   {
-    id: "VW-102",
-    property: "Admiralty Suites 4C",
+    id: "BK-311",
+    property: "Apex Studio",
+    location: "Wuse 2",
     host: "Chioma Okafor",
-    address: "5 Bisola Durosinmi Etti, Victoria Island",
-    slot: "Friday, 11:30 AM",
-    status: "Pending",
-    paymentState: "No payment required yet",
-    note: "Host confirmation pending.",
+    amount: "N1,200,000",
+    paymentStatus: "Payment confirmed",
+    status: "Confirmed",
+    dateLabel: "Check-in Apr 14",
+    detail: "Studio apartment",
   },
   {
-    id: "VW-103",
-    property: "Lekki Court B2",
-    host: "Amber Foods Realty",
-    address: "Lekki Phase 1, Lagos",
-    slot: "Mar 12, 10:00 AM",
-    status: "Completed",
-    paymentState: "Offer comparison open",
-    note: "Viewing completed. Decide before Mar 18.",
+    id: "BK-128",
+    property: "Harbour View",
+    location: "Victoria Island",
+    host: "ShortStay NG",
+    amount: "N135,000",
+    paymentStatus: "Part payment made",
+    status: "Pending balance",
+    dateLabel: "Short-let, 3 nights",
+    detail: "Serviced apartment",
   },
 ];
 
-const bookingStatusConfig = {
-  Escrow: { color: "text-amber-700", bg: "bg-amber-50 border-amber-200", icon: Lock },
-  Confirmed: { color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200", icon: CheckCircle2 },
-  Completed: { color: "text-muted-foreground", bg: "bg-muted border-border", icon: CheckCircle2 },
-  Cancelled: { color: "text-destructive", bg: "bg-destructive/5 border-destructive/20", icon: XCircle },
-} satisfies Record<Booking["status"], { color: string; bg: string; icon: typeof Lock }>;
+export const viewings = [
+  {
+    id: "VW-22",
+    property: "Palm Residence A1",
+    location: "Lekki Phase 1",
+    host: "Bode Akin",
+    amount: "N850,000",
+    status: "Scheduled",
+    time: "Tomorrow, 10:00 AM",
+    note: "Gate code will be shared one hour before arrival.",
+  },
+  {
+    id: "VW-09",
+    property: "Admiralty Suites 4C",
+    location: "Ikoyi",
+    host: "Nova Realty",
+    amount: "N1,450,000",
+    status: "Pending confirmation",
+    time: "Apr 12, 1:00 PM",
+    note: "Host requested a quick call before the visit.",
+  },
+  {
+    id: "VW-31",
+    property: "Lekki Court B2",
+    location: "Lekki Phase 1",
+    host: "Ruth Samuel",
+    amount: "Vendor visit",
+    status: "Scheduled",
+    time: "Apr 15, 3:30 PM",
+    note: "Inspection focused on water pressure and finishing.",
+  },
+];
 
-const viewingStatusConfig = {
-  Confirmed: { color: "text-emerald-700", bg: "bg-emerald-50 border-emerald-200", icon: CalendarCheck },
-  Pending: { color: "text-amber-700", bg: "bg-amber-50 border-amber-200", icon: Clock },
-  Completed: { color: "text-muted-foreground", bg: "bg-muted border-border", icon: CheckCircle2 },
-  Cancelled: { color: "text-destructive", bg: "bg-destructive/5 border-destructive/20", icon: XCircle },
-} satisfies Record<Viewing["status"], { color: string; bg: string; icon: typeof Clock }>;
+const bookingStatusStyles: Record<string, string> = {
+  Confirmed: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  "Awaiting viewing": "bg-primary/10 text-primary border-primary/20",
+  "Pending balance": "bg-amber-50 text-amber-700 border-amber-200",
+};
 
-export default function Bookings() {
-  const [search, setSearch] = useState("");
-  const [params, setParams] = useSearchParams();
-  const section = params.get("section") === "viewings" ? "viewings" : "bookings";
+const viewingStatusStyles: Record<string, string> = {
+  Scheduled: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  "Pending confirmation": "bg-amber-50 text-amber-700 border-amber-200",
+};
 
-  const bookingResults = useMemo(() => {
-    const filtered = bookings.filter((item) =>
-      [item.property, item.provider, item.status, item.stage].some((value) =>
-        value.toLowerCase().includes(search.toLowerCase()),
+function StatusTabs({
+  counts,
+  value,
+  onValueChange,
+}: {
+  counts: { all: number; active: number; pending: number };
+  value: "all" | "active" | "pending";
+  onValueChange: (value: "all" | "active" | "pending") => void;
+}) {
+  return (
+    <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
+      <TabsTrigger value="all" onClick={() => onValueChange("all")} className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+        All ({counts.all})
+      </TabsTrigger>
+      <TabsTrigger value="active" onClick={() => onValueChange("active")} className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+        Active ({counts.active})
+      </TabsTrigger>
+      <TabsTrigger value="pending" onClick={() => onValueChange("pending")} className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+        Pending ({counts.pending})
+      </TabsTrigger>
+    </TabsList>
+  );
+}
+
+export default function SeekerBookings() {
+  useSearchFocus();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const section = searchParams.get("section") === "viewings" ? "viewings" : "bookings";
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
+  const [bookingFilter, setBookingFilter] = useState<"all" | "active" | "pending">("all");
+  const [viewingFilter, setViewingFilter] = useState<"all" | "active" | "pending">("all");
+
+  useEffect(() => {
+    setSearch(searchParams.get("q") ?? "");
+  }, [searchParams]);
+
+  const normalizedQuery = search.trim().toLowerCase();
+
+  const visibleBookings = useMemo(() => {
+    const matches = bookings.filter((item) =>
+      [item.property, item.location, item.host, item.amount, item.status, item.paymentStatus, item.detail].some((value) =>
+        value.toLowerCase().includes(normalizedQuery),
       ),
     );
 
-    return {
-      all: filtered,
-      active: filtered.filter((item) => item.status === "Escrow" || item.status === "Confirmed"),
-      past: filtered.filter((item) => item.status === "Completed" || item.status === "Cancelled"),
-    };
-  }, [search]);
+    if (bookingFilter === "active") {
+      return matches.filter((item) => item.status === "Confirmed" || item.status === "Awaiting viewing");
+    }
+    if (bookingFilter === "pending") {
+      return matches.filter((item) => item.status === "Pending balance");
+    }
+    return matches;
+  }, [normalizedQuery, bookingFilter]);
 
-  const viewingResults = useMemo(() => {
-    const filtered = viewings.filter((item) =>
-      [item.property, item.host, item.address, item.status, item.slot].some((value) =>
-        value.toLowerCase().includes(search.toLowerCase()),
+  const visibleViewings = useMemo(() => {
+    const matches = viewings.filter((item) =>
+      [item.property, item.location, item.host, item.amount, item.status, item.time, item.note].some((value) =>
+        value.toLowerCase().includes(normalizedQuery),
       ),
     );
 
-    return {
-      upcoming: filtered.filter((item) => item.status === "Confirmed"),
-      pending: filtered.filter((item) => item.status === "Pending"),
-      past: filtered.filter((item) => item.status === "Completed" || item.status === "Cancelled"),
-      all: filtered,
-    };
-  }, [search]);
+    if (viewingFilter === "active") {
+      return matches.filter((item) => item.status === "Scheduled");
+    }
+    if (viewingFilter === "pending") {
+      return matches.filter((item) => item.status === "Pending confirmation");
+    }
+    return matches;
+  }, [normalizedQuery, viewingFilter]);
 
-  const updateSection = (next: "bookings" | "viewings") => {
-    const nextParams = new URLSearchParams(params);
-    nextParams.set("section", next);
-    setParams(nextParams);
+  const bookingCounts = {
+    all: bookings.length,
+    active: bookings.filter((item) => item.status === "Confirmed" || item.status === "Awaiting viewing").length,
+    pending: bookings.filter((item) => item.status === "Pending balance").length,
+  };
+
+  const viewingCounts = {
+    all: viewings.length,
+    active: viewings.filter((item) => item.status === "Scheduled").length,
+    pending: viewings.filter((item) => item.status === "Pending confirmation").length,
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-xl font-bold text-foreground sm:text-2xl">Bookings & Viewings</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage viewing appointments, escrow-linked bookings, and completed stays from one place.
+            Keep your visits, secured bookings, and payment checkpoints in one place.
           </p>
         </div>
-        <div className="relative">
+        <div className="relative w-full sm:w-[260px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder={section === "viewings" ? "Search viewings..." : "Search bookings..."}
-            className="h-9 w-full pl-9 sm:w-[220px]"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(event) => {
+              const next = event.target.value;
+              setSearch(next);
+              const nextParams = new URLSearchParams(searchParams);
+              if (next) nextParams.set("q", next);
+              else nextParams.delete("q");
+              setSearchParams(nextParams, { replace: true });
+            }}
+            placeholder="Search bookings or viewings..."
+            className="h-9 pl-9"
           />
         </div>
       </div>
 
-      <Tabs value={section} onValueChange={(value) => updateSection(value as "bookings" | "viewings")} className="space-y-5">
-        <TabsList className="h-auto bg-muted/50 p-1">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          { label: "Bookings", value: bookings.length, icon: Wallet, note: "secured reservations" },
+          { label: "Viewings", value: viewings.length, icon: CalendarDays, note: "scheduled inspections" },
+          { label: "Awaiting action", value: bookingCounts.pending + viewingCounts.pending, icon: Clock3, note: "needs follow-up" },
+          { label: "Escrow tracked", value: "N3.8M", icon: ShieldCheck, note: "active hold value" },
+        ].map((item) => (
+          <Card key={item.label} className="border border-border/60 shadow-sm">
+            <CardContent className="flex items-start gap-3 p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/8">
+                <item.icon className="h-4 w-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+                <p className="text-lg font-bold text-foreground">{item.value}</p>
+                <p className="text-[11px] text-muted-foreground">{item.note}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Tabs value={section} onValueChange={(value) => setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("section", value);
+        return next;
+      })} className="space-y-4">
+        <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
           <TabsTrigger value="bookings" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
             Bookings
           </TabsTrigger>
@@ -168,241 +243,120 @@ export default function Bookings() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="bookings" className="space-y-5">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              { label: "Active", value: bookingResults.active.length.toString(), icon: CalendarCheck, accent: "text-primary", bg: "bg-primary/10" },
-              { label: "In Escrow", value: "NGN 2.5M", icon: Lock, accent: "text-amber-600", bg: "bg-amber-500/10" },
-              { label: "Completed", value: bookingResults.past.filter((b) => b.status === "Completed").length.toString(), icon: CheckCircle2, accent: "text-emerald-600", bg: "bg-emerald-500/10" },
-              { label: "Total Spent", value: "NGN 3.8M", icon: Wallet, accent: "text-foreground", bg: "bg-muted" },
-            ].map((stat) => (
-              <Card key={stat.label} className="border border-border/60 shadow-sm">
-                <CardContent className="flex items-start gap-3 p-4">
-                  <div className={cn("shrink-0 rounded-lg p-2", stat.bg)}>
-                    <stat.icon className={cn("h-4 w-4", stat.accent)} />
+        <TabsContent value="bookings" className="space-y-4">
+          <StatusTabs counts={bookingCounts} value={bookingFilter} onValueChange={setBookingFilter} />
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {visibleBookings.map((item) => (
+              <Card key={item.id} data-search-id={`seeker-booking-${item.id}`} className="border border-border/60 bg-card shadow-sm">
+                <CardContent className="space-y-4 p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-semibold text-foreground">{item.property}</p>
+                      <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{item.location}</span>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className={`shrink-0 px-2 py-0.5 text-[10px] ${bookingStatusStyles[item.status]}`}>
+                      {item.status}
+                    </Badge>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">{stat.label}</p>
-                    <p className={cn("text-lg font-bold", stat.accent)}>{stat.value}</p>
+
+                  <div className="grid grid-cols-2 gap-2.5 text-sm">
+                    <div className="rounded-xl bg-secondary/20 p-3">
+                      <p className="text-[11px] text-muted-foreground">Host</p>
+                      <p className="mt-1 truncate font-medium text-foreground">{item.host}</p>
+                    </div>
+                    <div className="rounded-xl bg-secondary/20 p-3">
+                      <p className="text-[11px] text-muted-foreground">Amount</p>
+                      <p className="mt-1 font-medium text-foreground">{item.amount}</p>
+                    </div>
+                    <div className="rounded-xl bg-secondary/20 p-3">
+                      <p className="text-[11px] text-muted-foreground">Payment</p>
+                      <p className="mt-1 truncate font-medium text-foreground">{item.paymentStatus}</p>
+                    </div>
+                    <div className="rounded-xl bg-secondary/20 p-3">
+                      <p className="text-[11px] text-muted-foreground">Next step</p>
+                      <p className="mt-1 truncate font-medium text-foreground">{item.dateLabel}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-border/50 bg-secondary/15 px-3 py-2.5 text-xs text-muted-foreground">
+                    {item.detail}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 border-t border-border/50 pt-3">
+                    <Button variant="outline" size="sm" className="h-8 rounded-lg px-3 text-xs">
+                      Open booking
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 rounded-lg px-3 text-xs" asChild>
+                      <Link to="/seeker/offers">
+                        Review offer <ArrowRight className="ml-1 h-3 w-3" />
+                      </Link>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">Booking tracker</h2>
-            <p className="text-xs text-muted-foreground">
-              Compact cards for escrow bookings, confirmed stays, and completed rentals.
-            </p>
-          </div>
-
-          <StatusTabs
-            values={[
-              { key: "active", label: `Active (${bookingResults.active.length})` },
-              { key: "past", label: `Past (${bookingResults.past.length})` },
-              { key: "all", label: `All (${bookingResults.all.length})` },
-            ]}
-          >
-            {(tab) => {
-              const items =
-                tab === "active"
-                  ? bookingResults.active
-                  : tab === "past"
-                    ? bookingResults.past
-                    : bookingResults.all;
-
-              return (
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  {items.map((item) => {
-                    const config = bookingStatusConfig[item.status];
-                    const StatusIcon = config.icon;
-
-                    return (
-                      <Card key={item.id} className="group overflow-hidden border border-border/50 bg-gradient-to-br from-background via-background to-muted/20 shadow-sm">
-                        <CardContent className="space-y-4 p-4 sm:p-5">
-                          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-                            <div className="space-y-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <h3 className="text-sm font-semibold text-foreground">{item.property}</h3>
-                                <Badge variant="outline" className={cn("border text-[11px]", config.bg, config.color)}>
-                                  <StatusIcon className="mr-1 h-3 w-3" />
-                                  {item.status}
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-muted-foreground">Host: {item.provider}</p>
-                              <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1.5">
-                                  <Clock className="h-3.5 w-3.5" /> {item.stage}
-                                </span>
-                                <span className="flex items-center gap-1.5">
-                                  <CalendarCheck className="h-3.5 w-3.5" /> {item.date}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="rounded-2xl border border-border/60 bg-background/80 px-3 py-2 text-xs text-muted-foreground shadow-sm backdrop-blur">
-                              <p className="font-medium text-foreground">Amount</p>
-                              <p className="mt-1 text-sm font-semibold text-foreground">{item.amount}</p>
-                            </div>
-                          </div>
-
-                          <div className="rounded-2xl border border-border/60 bg-muted/40 px-3 py-3 text-xs text-muted-foreground">
-                            <span className="font-medium text-foreground">{item.id}</span>
-                            <span className="mx-2 text-border">•</span>
-                            {item.daysLeft > 0 ? `${item.daysLeft} days left before the next booking milestone.` : "This booking flow is closed."}
-                          </div>
-
-                          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                            <Button variant="outline" size="sm" className="gap-1.5 rounded-full">
-                              <Eye className="h-3.5 w-3.5" /> View booking
-                            </Button>
-                            <Button variant="ghost" size="sm" className="justify-start gap-1.5 rounded-full text-primary sm:justify-center">
-                              Payment details
-                            </Button>
-                            <Button variant="ghost" size="sm" className="justify-start gap-1.5 rounded-full text-muted-foreground sm:justify-center">
-                              Help
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              );
-            }}
-          </StatusTabs>
         </TabsContent>
 
-        <TabsContent value="viewings" className="space-y-5">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              { label: "Upcoming", value: viewingResults.upcoming.length.toString(), icon: CalendarCheck, accent: "text-primary", bg: "bg-primary/10" },
-              { label: "Pending", value: viewingResults.pending.length.toString(), icon: Clock, accent: "text-amber-600", bg: "bg-amber-500/10" },
-              { label: "Past", value: viewingResults.past.length.toString(), icon: CheckCircle2, accent: "text-foreground", bg: "bg-muted" },
-              { label: "This Week", value: "2", icon: MapPin, accent: "text-emerald-600", bg: "bg-emerald-500/10" },
-            ].map((stat) => (
-              <Card key={stat.label} className="border border-border/60 shadow-sm">
-                <CardContent className="flex items-start gap-3 p-4">
-                  <div className={cn("shrink-0 rounded-lg p-2", stat.bg)}>
-                    <stat.icon className={cn("h-4 w-4", stat.accent)} />
+        <TabsContent value="viewings" className="space-y-4">
+          <StatusTabs counts={viewingCounts} value={viewingFilter} onValueChange={setViewingFilter} />
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {visibleViewings.map((item) => (
+              <Card key={item.id} data-search-id={`seeker-viewing-${item.id}`} className="border border-border/60 bg-card shadow-sm">
+                <CardContent className="space-y-4 p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-semibold text-foreground">{item.property}</p>
+                      <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3 shrink-0" />
+                        <span className="truncate">{item.location}</span>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className={`shrink-0 px-2 py-0.5 text-[10px] ${viewingStatusStyles[item.status]}`}>
+                      {item.status}
+                    </Badge>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">{stat.label}</p>
-                    <p className={cn("text-lg font-bold", stat.accent)}>{stat.value}</p>
+
+                  <div className="grid grid-cols-2 gap-2.5 text-sm">
+                    <div className="rounded-xl bg-secondary/20 p-3">
+                      <p className="text-[11px] text-muted-foreground">Host</p>
+                      <p className="mt-1 truncate font-medium text-foreground">{item.host}</p>
+                    </div>
+                    <div className="rounded-xl bg-secondary/20 p-3">
+                      <p className="text-[11px] text-muted-foreground">Rent</p>
+                      <p className="mt-1 font-medium text-foreground">{item.amount}</p>
+                    </div>
+                    <div className="rounded-xl bg-secondary/20 p-3">
+                      <p className="text-[11px] text-muted-foreground">Time</p>
+                      <p className="mt-1 truncate font-medium text-foreground">{item.time}</p>
+                    </div>
+                    <div className="rounded-xl bg-secondary/20 p-3">
+                      <p className="text-[11px] text-muted-foreground">Status</p>
+                      <p className="mt-1 truncate font-medium text-foreground">{item.status}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-border/50 bg-secondary/15 px-3 py-2.5 text-xs text-muted-foreground">
+                    {item.note}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 border-t border-border/50 pt-3">
+                    <Button variant="outline" size="sm" className="h-8 rounded-lg px-3 text-xs">
+                      Get directions
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 rounded-lg px-3 text-xs">
+                      Contact host
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">Viewing schedule</h2>
-            <p className="text-xs text-muted-foreground">
-              Compact cards for upcoming visits, confirmations, and completed tours.
-            </p>
-          </div>
-
-          <StatusTabs
-            values={[
-              { key: "upcoming", label: `Upcoming (${viewingResults.upcoming.length})` },
-              { key: "pending", label: `Pending (${viewingResults.pending.length})` },
-              { key: "past", label: `Past (${viewingResults.past.length})` },
-              { key: "all", label: `All (${viewingResults.all.length})` },
-            ]}
-          >
-            {(tab) => {
-              const items =
-                tab === "upcoming"
-                  ? viewingResults.upcoming
-                  : tab === "pending"
-                    ? viewingResults.pending
-                    : tab === "past"
-                      ? viewingResults.past
-                      : viewingResults.all;
-
-              return (
-                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  {items.map((item) => {
-                    const config = viewingStatusConfig[item.status];
-                    const StatusIcon = config.icon;
-
-                    return (
-                      <Card key={item.id} className="overflow-hidden border border-border/50 bg-gradient-to-br from-background via-background to-muted/20 shadow-sm">
-                        <CardContent className="space-y-4 p-4 sm:p-5">
-                          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-                            <div className="space-y-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <h3 className="text-sm font-semibold text-foreground">{item.property}</h3>
-                                <Badge variant="outline" className={cn("border text-[11px]", config.bg, config.color)}>
-                                  <StatusIcon className="mr-1 h-3 w-3" />
-                                  {item.status}
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-muted-foreground">Host: {item.host}</p>
-                              <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {item.slot}</span>
-                                <span className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" /> {item.address}</span>
-                              </div>
-                            </div>
-
-                            <div className="rounded-2xl border border-border/60 bg-background/80 px-3 py-2 text-xs text-muted-foreground shadow-sm backdrop-blur">
-                              <p className="font-medium text-foreground">Payment</p>
-                              <p className="mt-1">{item.paymentState}</p>
-                            </div>
-                          </div>
-
-                          <div className="rounded-2xl border border-border/60 bg-muted/40 px-3 py-3 text-xs text-muted-foreground">
-                            {item.note}
-                          </div>
-
-                          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                            <Button variant="outline" size="sm" className="gap-1.5 rounded-full">
-                              <MessageSquare className="h-3.5 w-3.5" /> Message host
-                            </Button>
-                            <Button variant="ghost" size="sm" className="justify-start gap-1.5 rounded-full text-primary sm:justify-center">
-                              Reschedule
-                            </Button>
-                            <Button variant="ghost" size="sm" className="justify-start gap-1.5 rounded-full text-muted-foreground sm:justify-center">
-                              Cancel
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              );
-            }}
-          </StatusTabs>
         </TabsContent>
       </Tabs>
     </div>
-  );
-}
-
-function StatusTabs({
-  values,
-  children,
-}: {
-  values: { key: string; label: string }[];
-  children: (tab: string) => React.ReactNode;
-}) {
-  return (
-    <Tabs defaultValue={values[0].key} className="space-y-4">
-      <TabsList className="h-auto bg-muted/50 p-1">
-        {values.map((item) => (
-          <TabsTrigger key={item.key} value={item.key} className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            {item.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-
-      {values.map((item) => (
-        <TabsContent key={item.key} value={item.key} className="space-y-3">
-          {children(item.key)}
-        </TabsContent>
-      ))}
-    </Tabs>
   );
 }

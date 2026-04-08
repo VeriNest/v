@@ -195,7 +195,7 @@ export default function LandlordDashboard() {
                     <p className="text-sm font-medium text-foreground">{lease.unit}</p>
                     <p className="text-xs text-muted-foreground">{lease.tenant}</p>
                   </div>
-                  <Badge variant="outline" className="text-[10px] border-amber-200 bg-amber-50 text-amber-700">{lease.due}</Badge>
+                  <Badge variant="outline" className="shrink-0 whitespace-nowrap text-[10px] border-amber-200 bg-amber-50 text-amber-700">{lease.due}</Badge>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">{lease.status}</p>
               </div>
@@ -213,12 +213,15 @@ export default function LandlordDashboard() {
       render: () => (
         <Card className="border border-border/60 shadow-none">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
                 <CardTitle className="text-base font-semibold">Collections Alerts</CardTitle>
-                <Badge variant="outline" className="h-5 gap-1 text-[10px] font-normal"><span className="h-1.5 w-1.5 rounded-full bg-amber-500" />Action needed</Badge>
+                <Badge variant="outline" className="inline-flex h-auto min-h-5 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[10px] font-normal">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                  Action needed
+                </Badge>
               </div>
-              <Button variant="ghost" size="sm" className="h-8 text-xs text-primary" asChild>
+              <Button variant="ghost" size="sm" className="h-8 self-start text-xs text-primary sm:self-auto" asChild>
                 <Link to="/landlord/collections">Open ledger <ArrowRight className="ml-1 h-3 w-3" /></Link>
               </Button>
             </div>
@@ -231,9 +234,9 @@ export default function LandlordDashboard() {
                     <p className="text-sm font-medium text-foreground">{alert.tenant}</p>
                     <p className="text-xs text-muted-foreground">{alert.unit}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                     <span className="text-sm font-semibold text-foreground">{alert.amount}</span>
-                    <Badge variant="outline" className="text-[10px] border-amber-200 bg-amber-50 text-amber-700">{alert.state}</Badge>
+                    <Badge variant="outline" className="shrink-0 whitespace-nowrap text-[10px] border-amber-200 bg-amber-50 text-amber-700">{alert.state}</Badge>
                   </div>
                 </div>
               ))}

@@ -1,14 +1,26 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  Building2,
+  DoorOpen,
+  Filter,
+  Grid3x3,
+  Home,
+  List,
+  Plus,
+  Search,
+  User2,
+  Wallet,
+} from "lucide-react";
+
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useSearchFocus } from "@/hooks/use-search-focus";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, DoorOpen, Filter, Grid3x3, Home, List, Plus, Search, User2, Wallet } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useSearchFocus } from "@/hooks/use-search-focus";
 
 export const units = [
   { id: "UNT-101", name: "Palm Residence A1", property: "Palm Residence", tenant: "Bode Akin", rent: "N850,000", state: "Occupied", lease: "Ends Jun 2026", statusNote: "Paid through Apr", type: "2 Bed Flat" },
@@ -17,10 +29,10 @@ export const units = [
   { id: "UNT-304", name: "Lekki Court B2", property: "Lekki Court", tenant: "Ruth Samuel", rent: "N620,000", state: "Notice given", lease: "Notice ends Apr 2026", statusNote: "Renewal pending", type: "Mini Flat" },
 ];
 
-const stateStyles: Record<string, { className: string }> = {
-  Occupied: { className: "bg-emerald-50 border-emerald-200 text-emerald-700" },
-  Vacant: { className: "bg-amber-50 border-amber-200 text-amber-700" },
-  "Notice given": { className: "bg-primary/10 border-primary/20 text-primary" },
+const stateStyles: Record<string, string> = {
+  Occupied: "bg-emerald-50 border-emerald-200 text-emerald-700",
+  Vacant: "bg-amber-50 border-amber-200 text-amber-700",
+  "Notice given": "bg-primary/10 border-primary/20 text-primary",
 };
 
 export default function LandlordUnits() {
@@ -46,15 +58,14 @@ export default function LandlordUnits() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center justify-between">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Units</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Track occupancy, tenant assignment, lease state, and unit readiness across your portfolio.</p>
+          <h1 className="text-xl font-bold text-foreground sm:text-2xl">Units</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Track occupancy, tenant assignment, lease state, and unit readiness across your portfolio.
+          </p>
         </div>
         <div className="flex items-center gap-2 self-start">
-          <Button variant="outline" size="sm" className="gap-1.5">
-            <Filter className="h-3.5 w-3.5" /> Filter
-          </Button>
           <Button size="sm" className="gap-1.5" asChild>
             <Link to="/landlord/units/new">
               <Plus className="h-3.5 w-3.5" /> Add Unit
@@ -63,7 +74,7 @@ export default function LandlordUnits() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: "Total Units", value: filtered.length.toString(), icon: DoorOpen, accent: "text-foreground", bg: "bg-primary/10" },
           { label: "Occupied", value: occupied.length.toString(), icon: Home, accent: "text-emerald-600", bg: "bg-emerald-500/10" },
@@ -71,8 +82,8 @@ export default function LandlordUnits() {
           { label: "On Notice", value: notice.length.toString(), icon: Wallet, accent: "text-primary", bg: "bg-primary/10" },
         ].map((item) => (
           <Card key={item.label} className="border border-border/60 shadow-sm">
-            <CardContent className="p-4 flex items-start gap-3">
-              <div className={`p-2 rounded-lg ${item.bg} shrink-0`}>
+            <CardContent className="flex items-start gap-3 p-4">
+              <div className={`shrink-0 rounded-lg p-2 ${item.bg}`}>
                 <item.icon className={`h-4 w-4 ${item.accent}`} />
               </div>
               <div>
@@ -85,19 +96,33 @@ export default function LandlordUnits() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
-            <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
-            <TabsTrigger value="occupied" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Occupied ({occupied.length})</TabsTrigger>
-            <TabsTrigger value="vacant" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Vacant ({vacant.length})</TabsTrigger>
-            <TabsTrigger value="notice" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Notice ({notice.length})</TabsTrigger>
+            <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              All ({filtered.length})
+            </TabsTrigger>
+            <TabsTrigger value="occupied" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              Occupied ({occupied.length})
+            </TabsTrigger>
+            <TabsTrigger value="vacant" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              Vacant ({vacant.length})
+            </TabsTrigger>
+            <TabsTrigger value="notice" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+              Notice ({notice.length})
+            </TabsTrigger>
           </TabsList>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+
+          <div className="flex w-full items-center gap-2 sm:w-auto">
             <div className="relative flex-1 sm:flex-none">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search units..." className="pl-9 w-full sm:w-[220px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search units..."
+                className="h-9 w-full pl-9 sm:w-[220px]"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+              />
             </div>
-            <div className="hidden sm:flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+            <div className="hidden items-center gap-1 rounded-lg bg-muted/50 p-1 sm:flex">
               <Button variant={view === "cards" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("cards")}>
                 <Grid3x3 className="h-4 w-4" />
               </Button>
@@ -105,6 +130,9 @@ export default function LandlordUnits() {
                 <List className="h-4 w-4" />
               </Button>
             </div>
+            <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
+              <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
+            </Button>
           </div>
         </div>
 
@@ -116,33 +144,36 @@ export default function LandlordUnits() {
         ].map((group) => (
           <TabsContent key={group.key} value={group.key}>
             {resolvedView === "cards" ? (
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
                 {group.items.map((unit) => (
                   <Card key={unit.id} data-search-id={`landlord-unit-${unit.id}`} className="border border-border/60 shadow-sm">
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between gap-3">
-                        <div className="flex gap-3 min-w-0">
-                          <div className="h-11 w-11 rounded-xl bg-primary/5 flex items-center justify-center shrink-0">
+                        <div className="flex min-w-0 gap-3">
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/5">
                             <Building2 className="h-5 w-5 text-primary" />
                           </div>
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
+                            <div className="flex flex-wrap items-center gap-2">
                               <h3 className="text-sm font-semibold text-foreground">{unit.name}</h3>
-                              <Badge variant="outline" className={`text-[11px] px-2 py-0.5 ${stateStyles[unit.state].className}`}>{unit.state}</Badge>
+                              <Badge variant="outline" className={`px-2 py-0.5 text-[10px] ${stateStyles[unit.state]}`}>
+                                {unit.state}
+                              </Badge>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">{unit.property} · {unit.type}</p>
-                            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground flex-wrap">
+                            <p className="mt-1 text-xs text-muted-foreground">{unit.property} / {unit.type}</p>
+                            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                               <span>{unit.tenant}</span>
                               <span>{unit.lease}</span>
                             </div>
                           </div>
                         </div>
-                        <div className="text-right shrink-0">
+                        <div className="shrink-0 text-right">
                           <p className="text-base font-bold text-foreground">{unit.rent}</p>
-                          <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{unit.id}</p>
+                          <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">{unit.id}</p>
                         </div>
                       </div>
-                      <div className="mt-4 flex items-center justify-between border-t border-border/50 pt-3">
+
+                      <div className="mt-4 flex flex-col gap-2 border-t border-border/50 pt-3 sm:flex-row sm:items-center sm:justify-between">
                         <p className="text-xs text-muted-foreground">{unit.statusNote}</p>
                         <Button variant="outline" size="sm">Open Unit</Button>
                       </div>
@@ -158,7 +189,7 @@ export default function LandlordUnits() {
                     <CardDescription>Showing {group.items.length} units</CardDescription>
                   </div>
                 </CardHeader>
-                <CardContent className="hidden p-0 overflow-x-auto sm:block">
+                <CardContent className="hidden overflow-x-auto p-0 sm:block">
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
@@ -175,7 +206,7 @@ export default function LandlordUnits() {
                         <TableRow key={unit.id} data-search-id={`landlord-unit-${unit.id}`}>
                           <TableCell>
                             <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/5">
                                 <DoorOpen className="h-3.5 w-3.5 text-primary" />
                               </div>
                               <div>
@@ -189,7 +220,9 @@ export default function LandlordUnits() {
                           <TableCell className="text-sm text-muted-foreground">{unit.lease}</TableCell>
                           <TableCell className="text-sm font-semibold text-foreground">{unit.rent}</TableCell>
                           <TableCell>
-                            <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${stateStyles[unit.state].className}`}>{unit.state}</span>
+                            <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${stateStyles[unit.state]}`}>
+                              {unit.state}
+                            </span>
                           </TableCell>
                         </TableRow>
                       ))}

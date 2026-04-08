@@ -312,18 +312,18 @@ export default function ProviderDashboard() {
         render: () => (
           <Card className="border border-border/60 shadow-none">
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-2">
                   <CardTitle className="text-base font-semibold">Recent Leads</CardTitle>
-                  <Badge variant="outline" className="h-5 gap-1 text-[10px] font-normal">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                  <Badge variant="outline" className="inline-flex h-auto min-h-5 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[10px] font-normal">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     {recentLeads.length} new
                   </Badge>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 text-xs text-primary"
+                  className="h-8 self-start text-xs text-primary sm:self-auto"
                   asChild
                 >
                   <Link to="/provider/inbox">
@@ -355,13 +355,13 @@ export default function ProviderDashboard() {
                         </p>
                       </div>
                     </div>
-                    <div className="ml-12 flex items-center gap-2 sm:ml-0">
+                    <div className="ml-12 flex flex-wrap items-center gap-2 sm:ml-0">
                       {lead.urgent ? (
                         <Badge
                           variant="outline"
-                          className="h-5 gap-1 border-red-200 bg-red-50 text-[10px] text-red-600"
+                          className="inline-flex h-auto min-h-5 shrink-0 items-center gap-1 whitespace-nowrap border-red-200 bg-red-50 px-2 py-0.5 text-[10px] text-red-600"
                         >
-                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" />{" "}
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
                           Urgent
                         </Badge>
                       ) : null}

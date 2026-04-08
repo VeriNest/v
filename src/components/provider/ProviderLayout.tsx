@@ -7,6 +7,7 @@ import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardHeaderSearch } from "@/components/search/DashboardHeaderSearch";
 import { DashboardNotifications } from "@/components/dashboard/DashboardNotifications";
+import { DashboardThemeToggle } from "@/components/dashboard/DashboardThemeToggle";
 
 export default function ProviderLayout() {
   const { avatarUrl } = useAvatar();
@@ -23,6 +24,7 @@ export default function ProviderLayout() {
             <SidebarTrigger className="ml-0 hidden md:flex" />
             <DashboardHeaderSearch role="provider" placeholder="Search leads, listings, payouts..." />
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
+              <DashboardThemeToggle />
               <DashboardNotifications role="provider" />
               <div className="h-8 w-px bg-border/60 hidden sm:block" />
               <Link to="/provider/settings" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">

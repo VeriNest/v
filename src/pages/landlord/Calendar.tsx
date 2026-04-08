@@ -1,17 +1,29 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  ArrowRight,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Filter,
+  Home,
+  MapPin,
+  TrendingUp,
+  Users,
+} from "lucide-react";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CalendarDays, ArrowRight, Clock, ChevronLeft, ChevronRight, MapPin, Home, Users, TrendingUp, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const hours = Array.from({ length: 12 }, (_, i) => {
-  const h = i + 7;
-  return h <= 12 ? `${h}:00 AM` : `${h - 12}:00 PM`;
+const hours = Array.from({ length: 12 }, (_, index) => {
+  const hour = index + 7;
+  return hour <= 12 ? `${hour}:00 AM` : `${hour - 12}:00 PM`;
 });
 
 const events = [
@@ -49,7 +61,9 @@ export default function LandlordCalendar() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Calendar</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Manage rent follow-ups, lease reviews, inspections, and portfolio operations</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage rent follow-ups, lease reviews, inspections, and portfolio operations.
+          </p>
         </div>
         <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
           <Select defaultValue="all">
@@ -77,16 +91,16 @@ export default function LandlordCalendar() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stats.map((s) => (
-          <Card key={s.label} className="border border-border/60 shadow-sm">
+        {stats.map((item) => (
+          <Card key={item.label} className="border border-border/60 shadow-sm">
             <CardContent className="flex items-start gap-3 p-4">
-              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${s.iconBg}`}>
-                <s.icon className={`h-4 w-4 ${s.accent}`} />
+              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${item.iconBg}`}>
+                <item.icon className={`h-4 w-4 ${item.accent}`} />
               </div>
               <div>
-                <p className="text-xs font-medium text-muted-foreground">{s.label}</p>
-                <p className={`text-xl font-bold leading-tight ${s.accent}`}>{s.value}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">{s.sub}</p>
+                <p className="text-xs font-medium text-muted-foreground">{item.label}</p>
+                <p className={`text-xl font-bold leading-tight ${item.accent}`}>{item.value}</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">{item.sub}</p>
               </div>
             </CardContent>
           </Card>
@@ -100,7 +114,9 @@ export default function LandlordCalendar() {
           </TabsTrigger>
           <TabsTrigger value="upcoming" className="gap-1.5 px-4 text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
             <Clock className="h-3.5 w-3.5" /> Upcoming
-            <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-semibold">{upcomingEvents.length}</Badge>
+            <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-semibold">
+              {upcomingEvents.length}
+            </Badge>
           </TabsTrigger>
         </TabsList>
 
@@ -113,25 +129,32 @@ export default function LandlordCalendar() {
                     <div className="sticky left-0 z-10 border-b border-border/60 bg-muted/40 px-3 py-3 text-xs font-semibold text-muted-foreground">
                       Time
                     </div>
-                    {days.map((d, i) => (
-                      <div key={d} className={`border-b border-l border-border/60 px-3 py-3 text-center text-xs font-semibold ${i === new Date().getDay() - 1 ? "bg-primary/5 text-primary" : "bg-muted/40 text-muted-foreground"}`}>
-                        <span className="block">{d}</span>
-                        <span className={`mt-0.5 block text-lg font-bold ${i === new Date().getDay() - 1 ? "text-primary" : "text-foreground"}`}>{8 + i}</span>
+                    {days.map((day, index) => (
+                      <div
+                        key={day}
+                        className={`border-b border-l border-border/60 px-3 py-3 text-center text-xs font-semibold ${
+                          index === new Date().getDay() - 1 ? "bg-primary/5 text-primary" : "bg-muted/40 text-muted-foreground"
+                        }`}
+                      >
+                        <span className="block">{day}</span>
+                        <span className={`mt-0.5 block text-lg font-bold ${index === new Date().getDay() - 1 ? "text-primary" : "text-foreground"}`}>
+                          {8 + index}
+                        </span>
                       </div>
                     ))}
 
-                    {hours.map((hour, hi) => (
-                      <div key={`row-${hi}`} className="contents">
+                    {hours.map((hour, hourIndex) => (
+                      <div key={`row-${hourIndex}`} className="contents">
                         <div className="sticky left-0 z-10 flex items-start border-t border-border/40 bg-background px-3 py-2 pt-2.5 text-[11px] text-muted-foreground">
                           {hour}
                         </div>
-                        {days.map((_, di) => {
-                          const event = events.find((b) => b.day === di && b.startHour === hi);
-                          const isToday = di === new Date().getDay() - 1;
+                        {days.map((_, dayIndex) => {
+                          const event = events.find((item) => item.day === dayIndex && item.startHour === hourIndex);
+                          const isToday = dayIndex === new Date().getDay() - 1;
                           return (
                             <div
-                              key={`${di}-${hi}`}
-                              className={`relative min-h-[44px] cursor-pointer border-l border-t border-border/40 transition-colors ${
+                              key={`${dayIndex}-${hourIndex}`}
+                              className={`relative min-h-[44px] border-l border-t border-border/40 ${
                                 isToday ? "bg-primary/[0.02]" : "bg-background"
                               }`}
                             >
@@ -174,12 +197,12 @@ export default function LandlordCalendar() {
                   {[
                     { time: "10:00 AM", guest: "Palm Residence A1", type: "Rent follow-up", color: "bg-emerald-500" },
                     { time: "2:00 PM", guest: "Lekki Court B2", type: "Inspection visit", color: "bg-primary" },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2.5 rounded-lg bg-muted/30 p-2">
+                  ].map((item, index) => (
+                    <div key={index} className="flex items-center gap-2.5 rounded-lg bg-muted/30 p-2">
                       <div className={`h-1.5 w-1.5 shrink-0 rounded-full ${item.color}`} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-medium text-foreground">{item.guest}</p>
-                        <p className="text-[10px] text-muted-foreground">{item.time} · {item.type}</p>
+                        <p className="text-[10px] text-muted-foreground">{item.time} / {item.type}</p>
                       </div>
                     </div>
                   ))}
@@ -190,36 +213,38 @@ export default function LandlordCalendar() {
         </TabsContent>
 
         <TabsContent value="upcoming" className="space-y-3">
-          {upcomingEvents.map((b) => {
-            const s = statusConfig[b.status];
+          {upcomingEvents.map((item) => {
+            const tone = statusConfig[item.status];
             return (
-              <Card key={b.id} className="border border-border/60 shadow-sm">
+              <Card key={item.id} className="border border-border/60 shadow-sm">
                 <CardContent className="p-5">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                     <div className="flex min-w-0 items-center gap-3">
                       <Avatar className="h-10 w-10 shrink-0 border border-border/60">
-                        <AvatarFallback className={`text-xs font-semibold ${b.avatar}`}>{b.initials}</AvatarFallback>
+                        <AvatarFallback className={`text-xs font-semibold ${item.avatar}`}>{item.initials}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-foreground">{b.guest}</p>
+                        <p className="truncate text-sm font-semibold text-foreground">{item.guest}</p>
                         <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                           <MapPin className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{b.property}</span>
+                          <span className="truncate">{item.property}</span>
                         </div>
                       </div>
                     </div>
                     <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:flex-row sm:justify-end sm:gap-4">
                       <div className="hidden text-right sm:block">
                         <p className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
-                          {b.checkIn} <ArrowRight className="h-3 w-3" /> {b.checkOut}
+                          {item.checkIn} <ArrowRight className="h-3 w-3" /> {item.checkOut}
                         </p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">{b.nights} event{b.nights > 1 ? "s" : ""}</p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                          {item.nights} event{item.nights > 1 ? "s" : ""}
+                        </p>
                       </div>
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${s.className}`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
-                        {s.label}
+                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${tone.className}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${tone.dot}`} />
+                        {tone.label}
                       </span>
-                      <p className="text-right text-sm font-bold text-foreground sm:min-w-[80px]">{b.amount}</p>
+                      <p className="text-right text-sm font-bold text-foreground sm:min-w-[80px]">{item.amount}</p>
                     </div>
                   </div>
                 </CardContent>

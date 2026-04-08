@@ -17,11 +17,11 @@ const images = [
 ];
 
 export const initialListings = [
-  { id: "L-001", title: "3 Bedroom Flat, Lekki Phase 1", type: "Rent", price: "₦2,500,000/yr", location: "Lagos", status: "Active", views: 45, offers: 3, beds: 3, baths: 2, rating: 4.8, match: 95, image: images[0] },
-  { id: "L-002", title: "Studio Apartment, Wuse 2", type: "Rent", price: "₦1,200,000/yr", location: "Abuja", status: "Active", views: 32, offers: 2, beds: 1, baths: 1, rating: 4.5, match: 88, image: images[1] },
-  { id: "L-003", title: "2 Bed Serviced Apartment, VI", type: "Short-let", price: "₦45,000/night", location: "Lagos", status: "Active", views: 89, offers: 7, beds: 2, baths: 2, rating: 4.9, match: 92, image: images[2] },
-  { id: "L-004", title: "4 Bedroom Duplex, Maitama", type: "Rent", price: "₦5,000,000/yr", location: "Abuja", status: "Pending", views: 12, offers: 0, beds: 4, baths: 3, rating: 4.6, match: 84, image: images[3] },
-  { id: "L-005", title: "Self-Contain, Surulere", type: "Rent", price: "₦600,000/yr", location: "Lagos", status: "Draft", views: 0, offers: 0, beds: 1, baths: 1, rating: 0, match: 0, image: images[4] },
+  { id: "L-001", title: "3 Bedroom Flat, Lekki Phase 1", type: "Rent", price: "N2,500,000/yr", location: "Lagos", status: "Active", views: 45, offers: 3, beds: 3, baths: 2, rating: 4.8, match: 95, image: images[0] },
+  { id: "L-002", title: "Studio Apartment, Wuse 2", type: "Rent", price: "N1,200,000/yr", location: "Abuja", status: "Active", views: 32, offers: 2, beds: 1, baths: 1, rating: 4.5, match: 88, image: images[1] },
+  { id: "L-003", title: "2 Bed Serviced Apartment, VI", type: "Short-let", price: "N45,000/night", location: "Lagos", status: "Active", views: 89, offers: 7, beds: 2, baths: 2, rating: 4.9, match: 92, image: images[2] },
+  { id: "L-004", title: "4 Bedroom Duplex, Maitama", type: "Rent", price: "N5,000,000/yr", location: "Abuja", status: "Pending", views: 12, offers: 0, beds: 4, baths: 3, rating: 4.6, match: 84, image: images[3] },
+  { id: "L-005", title: "Self-Contain, Surulere", type: "Rent", price: "N600,000/yr", location: "Lagos", status: "Draft", views: 0, offers: 0, beds: 1, baths: 1, rating: 0, match: 0, image: images[4] },
 ];
 
 const statusStyles: Record<string, { color: string; bg: string; dot: string }> = {
@@ -48,26 +48,27 @@ export default function Listings() {
     setSearch(searchParams.get("q") ?? "");
   }, [searchParams]);
 
-  const filtered = listings.filter((listing) =>
-    listing.title.toLowerCase().includes(search.toLowerCase()) ||
-    listing.location.toLowerCase().includes(search.toLowerCase()) ||
-    listing.type.toLowerCase().includes(search.toLowerCase()),
+  const filtered = listings.filter(
+    (listing) =>
+      listing.title.toLowerCase().includes(search.toLowerCase()) ||
+      listing.location.toLowerCase().includes(search.toLowerCase()) ||
+      listing.type.toLowerCase().includes(search.toLowerCase()),
   );
   const active = filtered.filter((listing) => listing.status === "Active");
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">My Listings</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage your property listings and track performance.</p>
+          <h1 className="text-xl font-bold text-foreground sm:text-2xl">My Listings</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Manage your property listings and track performance.</p>
         </div>
         <Button className="gap-2 self-start" size="sm" onClick={() => navigate("/provider/listings/new")}>
           <Plus className="h-4 w-4" /> Add Listing
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           { label: "Total Listings", value: listings.length.toString(), accent: "text-foreground", icon: Building2, bg: "bg-primary/10" },
           { label: "Active", value: active.length.toString(), accent: "text-emerald-600", icon: Building2, bg: "bg-emerald-500/10" },
@@ -75,8 +76,8 @@ export default function Listings() {
           { label: "Offers Received", value: listings.reduce((sum, listing) => sum + listing.offers, 0).toString(), accent: "text-primary", icon: Inbox, bg: "bg-primary/10" },
         ].map((stat) => (
           <Card key={stat.label} className="border border-border/60 shadow-sm">
-            <CardContent className="p-4 flex items-start gap-3">
-              <div className={`p-2 rounded-lg ${stat.bg} shrink-0`}><stat.icon className={`h-4 w-4 ${stat.accent}`} /></div>
+            <CardContent className="flex items-start gap-3 p-4">
+              <div className={`shrink-0 rounded-lg p-2 ${stat.bg}`}><stat.icon className={`h-4 w-4 ${stat.accent}`} /></div>
               <div>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
                 <p className={`text-lg font-bold ${stat.accent}`}>{stat.value}</p>
@@ -88,21 +89,21 @@ export default function Listings() {
 
       <Tabs defaultValue="all" className="space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <TabsList className="bg-muted/50 p-1 h-auto">
-            <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
-            <TabsTrigger value="active" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Active ({active.length})</TabsTrigger>
-            <TabsTrigger value="other" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Pending/Draft</TabsTrigger>
+          <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
+            <TabsTrigger value="all" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
+            <TabsTrigger value="active" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Active ({active.length})</TabsTrigger>
+            <TabsTrigger value="other" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Pending/Draft</TabsTrigger>
           </TabsList>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
             <div className="relative flex-1 sm:flex-none">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search listings..." className="pl-9 w-full sm:w-[200px] h-9" value={search} onChange={(event) => setSearch(event.target.value)} />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input placeholder="Search listings..." className="h-9 w-full pl-9 sm:w-[200px]" value={search} onChange={(event) => setSearch(event.target.value)} />
             </div>
-            <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+            <div className="flex items-center gap-1 rounded-lg bg-muted/50 p-1">
               <Button variant={view === "grid" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("grid")}><Grid3x3 className="h-4 w-4" /></Button>
               <Button variant={view === "table" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("table")}><List className="h-4 w-4" /></Button>
             </div>
-            <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> Filter</Button>
+            <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span></Button>
           </div>
         </div>
 
@@ -111,45 +112,43 @@ export default function Listings() {
           return (
             <TabsContent key={tab} value={tab}>
               {view === "grid" ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                   {items.map((listing) => {
                     const status = statusStyles[listing.status] || statusStyles.Draft;
                     return (
-                      <div key={listing.id} data-search-id={`provider-listing-${listing.id}`} className="relative rounded-2xl overflow-hidden shadow-md group cursor-pointer">
-                        <img src={listing.image} alt={listing.title} className="w-full h-[280px] object-cover" />
+                      <div key={listing.id} data-search-id={`provider-listing-${listing.id}`} className="relative overflow-hidden rounded-2xl border border-border/60 shadow-sm">
+                        <img src={listing.image} alt={listing.title} className="h-[280px] w-full object-cover" />
 
-                        <div className="absolute top-3 left-3">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${status.bg} ${status.color}`}>
+                        <div className="absolute left-3 top-3">
+                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${status.bg} ${status.color}`}>
                             <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />{listing.status}
                           </span>
                         </div>
 
-                        <div className="absolute top-3 right-3">
-                          <span className="bg-card/90 backdrop-blur-sm text-foreground text-[11px] font-medium px-2.5 py-1 rounded-full border border-border/30">
+                        <div className="absolute right-3 top-3">
+                          <span className="rounded-full border border-border/30 bg-card/90 px-2.5 py-1 text-[11px] font-medium text-foreground backdrop-blur-sm">
                             {listing.type}
                           </span>
                         </div>
 
-                        <div className="absolute bottom-3 left-3 right-3 bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-border/30">
+                        <div className="absolute bottom-3 left-3 right-3 rounded-xl border border-border/30 bg-card/95 p-4 shadow-sm backdrop-blur-sm">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold text-foreground text-sm truncate">{listing.title}</h3>
-                              </div>
-                              <p className="text-[11px] text-muted-foreground flex items-center gap-1 font-mono uppercase tracking-wider">
+                              <h3 className="truncate text-sm font-semibold text-foreground">{listing.title}</h3>
+                              <p className="mt-1 flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                                 <MapPin className="h-3 w-3 shrink-0" /> {listing.location}
                               </p>
                             </div>
-                            <div className="text-right shrink-0">
-                              <p className="text-sm font-bold text-foreground font-mono">{listing.price}</p>
-                              <div className="flex items-center gap-2.5 text-xs text-muted-foreground mt-0.5">
-                                <span className="flex items-center gap-1"><Bed className="w-3.5 h-3.5" /> {listing.beds}</span>
-                                <span className="flex items-center gap-1"><Bath className="w-3.5 h-3.5" /> {listing.baths}</span>
+                            <div className="shrink-0 text-right">
+                              <p className="font-mono text-sm font-bold text-foreground">{listing.price}</p>
+                              <div className="mt-0.5 flex items-center gap-2.5 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1"><Bed className="h-3.5 w-3.5" /> {listing.beds}</span>
+                                <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5" /> {listing.baths}</span>
                               </div>
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/40">
+                          <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-2.5">
                             <div className="flex items-center gap-3 text-xs text-muted-foreground">
                               {listing.rating > 0 && (
                                 <span className="flex items-center gap-1">
@@ -160,7 +159,7 @@ export default function Listings() {
                               <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {listing.views} views</span>
                               <span>{listing.offers} offers</span>
                             </div>
-                            <Button size="sm" variant="ghost" className="h-7 text-xs px-2"><MoreHorizontal className="h-4 w-4" /></Button>
+                            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs"><MoreHorizontal className="h-4 w-4" /></Button>
                           </div>
                         </div>
                       </div>
@@ -175,7 +174,7 @@ export default function Listings() {
                       <CardDescription>Showing {items.length} listings</CardDescription>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-0 overflow-x-auto">
+                  <CardContent className="overflow-x-auto p-0">
                     <Table>
                       <TableHeader>
                         <TableRow className="hover:bg-transparent">
@@ -186,25 +185,25 @@ export default function Listings() {
                           <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Status</TableHead>
                           <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Views</TableHead>
                           <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Offers</TableHead>
-                          <TableHead></TableHead>
+                          <TableHead />
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {items.map((listing) => {
                           const status = statusStyles[listing.status] || statusStyles.Draft;
                           return (
-                            <TableRow key={listing.id} data-search-id={`provider-listing-${listing.id}`} className="group">
+                            <TableRow key={listing.id} data-search-id={`provider-listing-${listing.id}`}>
                               <TableCell>
                                 <div className="flex items-center gap-2.5">
-                                  <img src={listing.image} alt={listing.title} className="w-10 h-10 rounded-lg object-cover shrink-0" />
-                                  <span className="font-medium text-sm text-foreground">{listing.title}</span>
+                                  <img src={listing.image} alt={listing.title} className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+                                  <span className="text-sm font-medium text-foreground">{listing.title}</span>
                                 </div>
                               </TableCell>
                               <TableCell><span className={`text-sm font-medium ${typeStyles[listing.type] || "text-foreground"}`}>{listing.type}</span></TableCell>
-                              <TableCell className="font-semibold text-sm text-foreground">{listing.price}</TableCell>
+                              <TableCell className="text-sm font-semibold text-foreground">{listing.price}</TableCell>
                               <TableCell><div className="flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{listing.location}</div></TableCell>
                               <TableCell>
-                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${status.bg} ${status.color}`}>
+                                <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${status.bg} ${status.color}`}>
                                   <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />{listing.status}
                                 </span>
                               </TableCell>

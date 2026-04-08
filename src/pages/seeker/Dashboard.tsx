@@ -138,7 +138,7 @@ export default function SeekerDashboard() {
         render: (controls) => (
           <Card className="border border-border/60 shadow-none">
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <CardTitle className="text-base font-semibold">Match Trends</CardTitle>
                   <p className="mt-0.5 text-xs text-muted-foreground">Weekly property matches for your needs</p>
@@ -214,14 +214,14 @@ export default function SeekerDashboard() {
           <Card className="border border-border/60 shadow-none">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <CardTitle className="text-base font-semibold">Recent Offers</CardTitle>
-                  <Badge variant="outline" className="h-5 gap-1 text-[10px] font-normal">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                  <Badge variant="outline" className="inline-flex h-auto min-h-5 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[10px] font-normal">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     {recentOffers.length} new
                   </Badge>
                 </div>
-                <Button variant="ghost" size="sm" className="h-8 text-xs text-primary" asChild>
+                <Button variant="ghost" size="sm" className="h-8 self-start text-xs text-primary sm:self-auto" asChild>
                   <Link to="/seeker/offers">View All <ArrowRight className="ml-1 h-3 w-3" /></Link>
                 </Button>
               </div>
@@ -239,9 +239,9 @@ export default function SeekerDashboard() {
                         <p className="text-xs text-muted-foreground">by {offer.provider} · {offer.time} ago</p>
                       </div>
                     </div>
-                    <div className="ml-12 flex shrink-0 items-center gap-2 sm:ml-0 sm:gap-3">
-                      <Badge variant="outline" className={`h-5 text-[10px] ${badgeColors[offer.badge]}`}>{offer.badge}</Badge>
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{offer.match}%</span>
+                    <div className="ml-12 flex shrink-0 flex-wrap items-center gap-2 sm:ml-0 sm:gap-3">
+                      <Badge variant="outline" className={`inline-flex h-auto min-h-5 shrink-0 whitespace-nowrap px-2 py-0.5 text-[10px] ${badgeColors[offer.badge]}`}>{offer.badge}</Badge>
+                      <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{offer.match}%</span>
                       <p className="text-sm font-semibold text-foreground">{offer.price}</p>
                     </div>
                   </div>

@@ -210,15 +210,15 @@ export default function Dashboard() {
         render: () => (
           <Card className="border border-border/60 shadow-none">
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap items-center gap-2">
                   <CardTitle className="text-base font-semibold">Recent Activity</CardTitle>
-                  <Badge variant="outline" className="h-5 gap-1 text-[10px] font-normal">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                  <Badge variant="outline" className="inline-flex h-auto min-h-5 shrink-0 items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[10px] font-normal">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     Live
                   </Badge>
                 </div>
-                <Button variant="ghost" size="sm" className="h-8 text-xs text-primary">
+                <Button variant="ghost" size="sm" className="h-8 self-start text-xs text-primary sm:self-auto">
                   View All <ArrowRight className="ml-1 h-3 w-3" />
                 </Button>
               </div>
