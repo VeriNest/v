@@ -46,7 +46,7 @@ export default function LandlordSettings() {
       />
 
       <Card className="border border-border/60 shadow-sm">
-        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-6">
+        <CardContent className="flex flex-col items-center gap-4 pt-6 text-center sm:flex-row sm:items-center sm:text-left">
           <div className="relative group shrink-0">
             <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-primary/20">
               {avatarUrl ? <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" /> : <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">LO</AvatarFallback>}
@@ -56,11 +56,11 @@ export default function LandlordSettings() {
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="font-semibold text-foreground truncate">Landlord Account</p>
             <p className="text-sm text-muted-foreground truncate">owner@dwello.ng</p>
           </div>
-          <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+          <div className="flex shrink-0 flex-wrap justify-center gap-1.5 sm:justify-end">
             <DashboardStatusBadge tone="info">Landlord</DashboardStatusBadge>
             <DashboardStatusBadge tone="success">Verified</DashboardStatusBadge>
           </div>

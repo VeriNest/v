@@ -75,7 +75,7 @@ export default function AdminSettings() {
       />
 
       <Card className="border border-border/60 shadow-sm">
-        <CardContent className="flex flex-col items-start gap-4 pt-6 sm:flex-row sm:items-center">
+        <CardContent className="flex flex-col items-center gap-4 pt-6 text-center sm:flex-row sm:items-center sm:text-left">
           <div className="group relative shrink-0">
             <Avatar className="h-14 w-14 border-2 border-primary/20 sm:h-16 sm:w-16">
               {avatarUrl ? (
@@ -98,7 +98,9 @@ export default function AdminSettings() {
             <p className="truncate text-sm text-muted-foreground">admin@dwello.ng</p>
           </div>
 
-          <DashboardStatusBadge tone="info">Super Admin</DashboardStatusBadge>
+          <div className="flex shrink-0 justify-center sm:justify-end">
+            <DashboardStatusBadge tone="info">Super Admin</DashboardStatusBadge>
+          </div>
         </CardContent>
       </Card>
 
