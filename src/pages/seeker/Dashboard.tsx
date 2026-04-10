@@ -199,19 +199,23 @@ export default function SeekerDashboard() {
                         <AvatarFallback className="bg-primary/10 text-[10px] font-medium text-primary">{offer.initials}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-2">
                           <div className="min-w-0">
                             <div className="truncate text-sm font-medium text-foreground">{offer.property}</div>
-                            <div className="mt-1 text-xs text-muted-foreground">{`by ${offer.provider} | ${offer.time} ago`}</div>
+                            <div className="mt-1 truncate text-xs text-muted-foreground">{`by ${offer.provider} · ${offer.time} ago`}</div>
                           </div>
-                          <div className="shrink-0">
-                            <div className="flex flex-wrap items-center justify-end gap-2">
-                              <DashboardStatusBadge tone={offer.badge === "Agent" ? "info" : offer.badge === "Landlord" ? "neutral" : "warning"}>
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <DashboardStatusBadge
+                                tone={offer.badge === "Agent" ? "info" : offer.badge === "Landlord" ? "neutral" : "warning"}
+                              >
                                 {offer.badge}
                               </DashboardStatusBadge>
-                              <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{offer.match}%</span>
-                              <p className="text-sm font-semibold text-foreground">{offer.price}</p>
+                              <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                                {offer.match}%
+                              </span>
                             </div>
+                            <p className="text-sm font-semibold text-foreground sm:text-right">{offer.price}</p>
                           </div>
                         </div>
                       </div>

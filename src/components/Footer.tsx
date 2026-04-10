@@ -5,6 +5,30 @@ import MarketingShell from "@/components/layout/MarketingShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+const socialLinks = [
+  { label: "Facebook", href: "/contact", icon: Facebook },
+  { label: "Instagram", href: "/contact", icon: Instagram },
+  { label: "Twitter", href: "/contact", icon: Twitter },
+  { label: "LinkedIn", href: "/contact", icon: Linkedin },
+  { label: "YouTube", href: "/contact", icon: Youtube },
+];
+
+const quickLinks = [
+  { label: "Browse Homes", to: "/properties" },
+  { label: "Post a Need", to: "/signup" },
+  { label: "For Agents", to: "/signup?role=agent" },
+  { label: "For Landlords", to: "/signup?role=landlord" },
+  { label: "About Us", to: "/about" },
+  { label: "Contact", to: "/contact" },
+];
+
+const legalLinks = [
+  { label: "Privacy Policy", to: "/about" },
+  { label: "Terms of Service", to: "/about" },
+  { label: "Cookie Policy", to: "/about" },
+  { label: "Sitemap", to: "/" },
+];
+
 const Footer = () => {
   return (
     <footer className="px-6 lg:px-16 xl:px-20 pt-16 pb-8 bg-[hsl(var(--dark-bg))]">
@@ -21,10 +45,15 @@ const Footer = () => {
               Dwello helps seekers, agents, and landlords connect through verified listings, clearer pricing, and faster rental matching.
             </p>
             <div className="flex items-center gap-3">
-              {[Facebook, Instagram, Twitter, Linkedin, Youtube].map((Icon, i) => (
-                <a key={i} href="#" className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-white/35 hover:text-white/70 hover:border-white/25 transition-colors">
+              {socialLinks.map(({ label, href, icon: Icon }) => (
+                <Link
+                  key={label}
+                  to={href}
+                  aria-label={label}
+                  className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-white/35 hover:text-white/70 hover:border-white/25 transition-colors"
+                >
                   <Icon className="w-4 h-4" />
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -32,9 +61,11 @@ const Footer = () => {
           <div>
             <p className="font-serif text-base text-white mb-5">Quick Links</p>
             <ul className="space-y-3">
-              {["Browse Homes", "Post a Need", "For Agents", "For Landlords", "About Us", "Contact"].map((link) => (
-                <li key={link}>
-                  <a href="#" className="text-sm text-white/35 hover:text-white/70 transition-colors">{link}</a>
+              {quickLinks.map((link) => (
+                <li key={link.label}>
+                  <Link to={link.to} className="text-sm text-white/35 hover:text-white/70 transition-colors">
+                    {link.label}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -49,11 +80,15 @@ const Footer = () => {
               </div>
               <div className="flex gap-3 items-center">
                 <Phone className="w-4 h-4 text-primary shrink-0" />
-                <p className="text-sm text-white/35">+234 98765 43210</p>
+                <a href="tel:+2349876543210" className="text-sm text-white/35 hover:text-white/70 transition-colors">
+                  +234 98765 43210
+                </a>
               </div>
               <div className="flex gap-3 items-center">
                 <Mail className="w-4 h-4 text-primary shrink-0" />
-                <p className="text-sm text-white/35">hello@dwello.com</p>
+                <a href="mailto:hello@dwello.com" className="text-sm text-white/35 hover:text-white/70 transition-colors">
+                  hello@dwello.com
+                </a>
               </div>
             </div>
           </div>
@@ -78,8 +113,10 @@ const Footer = () => {
         <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-white/[0.06]">
           <p className="text-xs text-white/25">&copy; 2026 Dwello. All rights reserved.</p>
           <div className="flex items-center gap-6 mt-4 sm:mt-0">
-            {["Privacy Policy", "Terms of Service", "Cookie Policy", "Sitemap"].map((link) => (
-              <a key={link} href="#" className="text-xs text-white/25 hover:text-white/50 transition-colors">{link}</a>
+            {legalLinks.map((link) => (
+              <Link key={link.label} to={link.to} className="text-xs text-white/25 hover:text-white/50 transition-colors">
+                {link.label}
+              </Link>
             ))}
           </div>
         </div>

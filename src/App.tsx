@@ -61,6 +61,7 @@ import LeadDetail from "./pages/provider/LeadDetail.tsx";
 import SendOffer from "./pages/provider/SendOffer.tsx";
 import DashboardSearch from "./pages/shared/DashboardSearch.tsx";
 import { ThemeProvider } from "@/components/theme-provider";
+import ScrollToTop from "@/components/router/ScrollToTop";
 const queryClient = new QueryClient();
 
 const MarketingThemeScope = () => (
@@ -82,6 +83,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
           <Route element={<MarketingThemeScope />}>
             <Route path="/" element={<Index />} />
