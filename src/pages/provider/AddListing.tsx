@@ -14,6 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
+import { DashboardHistoryRow } from "@/components/dashboard/DashboardHistoryRow";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 
 const previousListings = [
   { id: 1, title: "3 Bedroom Flat, Lekki Phase 1", price: "₦2.5M/yr", status: "Active", views: 45, date: "Mar 15, 2024", type: "Rent" },
@@ -93,12 +96,10 @@ export default function AddListing() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Add a Listing</h1>
-          <p className="text-sm text-muted-foreground mt-1">List your property — verified tenants will discover and send you offers.</p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Add a Listing"
+        description="List your property — verified tenants will discover and send you offers."
+      />
 
       <Tabs defaultValue="new" className="space-y-4">
         <TabsList className="bg-muted/50 p-1 h-auto">
@@ -536,30 +537,28 @@ export default function AddListing() {
               {previousListings.map((listing) => {
                 const s = statusStyles[listing.status] || statusStyles.Draft;
                 return (
-                  <div key={listing.id} className="py-4 first:pt-0 last:pb-0 space-y-2">
-                    <div className="flex items-start gap-3">
-                      <div className="h-9 w-9 rounded-xl bg-primary/5 flex items-center justify-center shrink-0">
-                        <Building2 className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-foreground truncate">{listing.title}</p>
-                        <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground flex-wrap">
+                  <div key={listing.id} className="py-4 first:pt-0 last:pb-0">
+                    <DashboardHistoryRow
+                      icon={Building2}
+                      title={listing.title}
+                      subtitle={
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                           <span>{listing.price}</span>
                           <span>·</span>
                           <span>{listing.date}</span>
                           <span>·</span>
                           <span>{listing.views} views</span>
                         </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 pl-12 flex-wrap">
-                      <Badge variant="outline" className="text-[10px] bg-muted text-muted-foreground border-border/60">
-                        {listing.type}
-                      </Badge>
-                      <Badge variant="outline" className={`text-xs ${s.bg} ${s.color}`}>
-                        {listing.status}
-                      </Badge>
-                    </div>
+                      }
+                      badges={
+                        <div className="flex flex-wrap items-center gap-2">
+                          <DashboardStatusBadge tone="neutral">{listing.type}</DashboardStatusBadge>
+                          <DashboardStatusBadge tone={listing.status === "Active" ? "success" : listing.status === "Pending" ? "warning" : "neutral"}>
+                            {listing.status}
+                          </DashboardStatusBadge>
+                        </div>
+                      }
+                    />
                   </div>
                 );
               })}

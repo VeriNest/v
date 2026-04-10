@@ -1,14 +1,24 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Building2, CalendarClock, DoorOpen, Home, Plus, Wallet, Wrench } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Building2, CalendarClock, Home, Plus, Wallet, Wrench } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Bar, BarChart } from "recharts";
 import { DashboardCustomizerToolbar, DashboardEditableWidget, DashboardHiddenWidgets, DashboardWidgetMenu, type DashboardWidgetMenuControls } from "@/components/dashboard/DashboardCustomizer";
+import {
+  DASHBOARD_OVERVIEW_CHART_HEIGHT_CLASS,
+  DASHBOARD_OVERVIEW_COMPACT_CONTENT_CLASS,
+  DASHBOARD_OVERVIEW_ROW_WIDGET_CLASS,
+} from "@/components/dashboard/overview";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { DashboardRecordItem } from "@/components/dashboard/DashboardRecordItem";
+import { DashboardSectionAction } from "@/components/dashboard/DashboardSectionAction";
+import { DashboardSectionCard } from "@/components/dashboard/DashboardSectionCard";
+import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
+import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { KycAlertBanner } from "@/components/KycAlertBanner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboardLayout, type DashboardWidgetSize } from "@/hooks/use-dashboard-layout";
+import { useDashboardLoadingSnapshot } from "@/hooks/use-dashboard-loading-snapshot";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { toSearchId } from "@/lib/search-id";
 
@@ -61,12 +71,7 @@ type WidgetDefinition = {
 export default function LandlordDashboard() {
   useSearchFocus();
   const [editing, setEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
+  const loading = useDashboardLoadingSnapshot();
 
   const widgetDefinitions = useMemo<WidgetDefinition[]>(() => [
     {
@@ -78,18 +83,15 @@ export default function LandlordDashboard() {
       render: () => (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => (
-            <Card key={stat.title} data-search-id={`landlord-stat-${toSearchId(stat.title)}`} className="border border-border/60 shadow-none">
-              <CardContent className="p-5">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/8">
-                    <stat.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-xs text-muted-foreground">{stat.change}</span>
-                </div>
-                <p className="text-2xl font-bold tracking-tight text-foreground">{stat.value}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{stat.subtitle}</p>
-              </CardContent>
-            </Card>
+            <div key={stat.title} data-search-id={`landlord-stat-${toSearchId(stat.title)}`}>
+              <DashboardStatCard
+                title={stat.title}
+                value={stat.value}
+                subtitle={stat.subtitle}
+                change={stat.change}
+                icon={stat.icon}
+              />
+            </div>
           ))}
         </div>
       ),
@@ -101,18 +103,13 @@ export default function LandlordDashboard() {
       defaultSize: "wide",
       availableSizes: ["wide", "full"],
       render: (controls) => (
-        <Card className="border border-border/60 shadow-none">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">Occupancy Trend</CardTitle>
-                <p className="mt-0.5 text-xs text-muted-foreground">Portfolio occupancy over the last 6 months</p>
-              </div>
-              <DashboardWidgetMenu controls={controls} />
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="h-[240px]">
+        <DashboardSectionCard
+          title="Occupancy Trend"
+          description="Portfolio occupancy over the last 6 months"
+          action={<DashboardWidgetMenu controls={controls} />}
+          className={DASHBOARD_OVERVIEW_ROW_WIDGET_CLASS}
+        >
+            <div className={DASHBOARD_OVERVIEW_CHART_HEIGHT_CLASS}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={occupancyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
@@ -129,8 +126,7 @@ export default function LandlordDashboard() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+        </DashboardSectionCard>
       ),
     },
     {
@@ -140,18 +136,13 @@ export default function LandlordDashboard() {
       defaultSize: "compact",
       availableSizes: ["compact", "wide"],
       render: (controls) => (
-        <Card className="border border-border/60 shadow-none">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-semibold">Collections</CardTitle>
-                <p className="mt-0.5 text-xs text-muted-foreground">Expected vs collected rent</p>
-              </div>
-              <DashboardWidgetMenu controls={controls} />
-            </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="h-[240px]">
+        <DashboardSectionCard
+          title="Collections"
+          description="Expected vs collected rent"
+          action={<DashboardWidgetMenu controls={controls} />}
+          className={DASHBOARD_OVERVIEW_ROW_WIDGET_CLASS}
+        >
+            <div className={DASHBOARD_OVERVIEW_CHART_HEIGHT_CLASS}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={collectionData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(30, 12%, 90%)" vertical={false} />
@@ -163,8 +154,7 @@ export default function LandlordDashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </CardContent>
-        </Card>
+        </DashboardSectionCard>
       ),
     },
     {
@@ -174,28 +164,23 @@ export default function LandlordDashboard() {
       defaultSize: "compact",
       availableSizes: ["compact", "wide"],
       render: () => (
-        <Card className="border border-border/60 shadow-none">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">Lease Expiries</CardTitle>
-              <Button variant="ghost" size="sm" className="h-8 text-xs text-primary">View all</Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-0">
+        <DashboardSectionCard
+          title="Lease Expiries"
+          action={<DashboardSectionAction>View all</DashboardSectionAction>}
+          className={DASHBOARD_OVERVIEW_ROW_WIDGET_CLASS}
+          contentClassName={DASHBOARD_OVERVIEW_COMPACT_CONTENT_CLASS}
+        >
             {leaseExpiries.map((lease) => (
-              <div key={lease.unit} data-search-id={`landlord-lease-${leaseExpiries.findIndex((item) => item.unit === lease.unit)}`} className="rounded-xl border border-border/60 p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{lease.unit}</p>
-                    <p className="text-xs text-muted-foreground">{lease.tenant}</p>
-                  </div>
-                  <Badge variant="outline" className="shrink-0 whitespace-nowrap text-[10px] border-amber-200 bg-amber-50 text-amber-700">{lease.due}</Badge>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">{lease.status}</p>
+              <div key={lease.unit} data-search-id={`landlord-lease-${leaseExpiries.findIndex((item) => item.unit === lease.unit)}`}>
+                <DashboardRecordItem
+                  title={lease.unit}
+                  subtitle={lease.tenant}
+                  trailing={<DashboardStatusBadge tone="warning">{lease.due}</DashboardStatusBadge>}
+                  meta={<p className="text-xs text-muted-foreground">{lease.status}</p>}
+                />
               </div>
             ))}
-          </CardContent>
-        </Card>
+        </DashboardSectionCard>
       ),
     },
     {
@@ -205,28 +190,28 @@ export default function LandlordDashboard() {
       defaultSize: "compact",
       availableSizes: ["compact", "wide"],
       render: () => (
-        <Card className="border border-border/60 shadow-none">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold">Maintenance Queue</CardTitle>
-              <Button variant="ghost" size="sm" className="h-8 text-xs text-primary" asChild><Link to="/landlord/maintenance">Manage</Link></Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-0">
+        <DashboardSectionCard
+          title="Maintenance Queue"
+          action={<DashboardSectionAction to="/landlord/maintenance">Manage</DashboardSectionAction>}
+          className={DASHBOARD_OVERVIEW_ROW_WIDGET_CLASS}
+          contentClassName={DASHBOARD_OVERVIEW_COMPACT_CONTENT_CLASS}
+        >
             {maintenanceItems.map((item) => (
-              <div key={item.issue} data-search-id={`landlord-maintenance-overview-${maintenanceItems.findIndex((entry) => entry.issue === item.issue)}`} className="rounded-xl border border-border/60 p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium text-foreground">{item.issue}</p>
-                  <Badge variant="outline" className={item.priority === "Urgent" ? "text-[10px] border-red-200 bg-red-50 text-red-600" : "text-[10px] border-border bg-muted text-muted-foreground"}>{item.priority}</Badge>
-                </div>
-                <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{item.unit}</span>
-                  <span>{item.age}</span>
-                </div>
+              <div key={item.issue} data-search-id={`landlord-maintenance-overview-${maintenanceItems.findIndex((entry) => entry.issue === item.issue)}`}>
+                <DashboardRecordItem
+                  title={item.issue}
+                  subtitle={item.unit}
+                  trailing={<DashboardStatusBadge tone={item.priority === "Urgent" ? "danger" : "neutral"}>{item.priority}</DashboardStatusBadge>}
+                  meta={
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>{item.unit}</span>
+                      <span>{item.age}</span>
+                    </div>
+                  }
+                />
               </div>
             ))}
-          </CardContent>
-        </Card>
+        </DashboardSectionCard>
         ),
       },
   ], []);
@@ -247,17 +232,17 @@ export default function LandlordDashboard() {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       <KycAlertBanner variant="landlord" />
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">Welcome back, Landlord</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">Monitor occupancy, collections, lease risk, and property operations.</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {!editing ? <DashboardCustomizerToolbar editing={editing} hiddenCount={hiddenWidgets.length} onApplyPreset={applyPreset} onEditChange={setEditing} onReset={reset} /> : null}
-          <Button variant="outline" size="sm" className="h-9 gap-2 text-sm"><CalendarClock className="h-4 w-4" /> This Month</Button>
-          <Button size="sm" className="h-9 gap-2 text-sm" asChild><Link to="/landlord/properties/new"><Plus className="h-4 w-4" /> Add Property</Link></Button>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Welcome back, Landlord"
+        description="Monitor occupancy, collections, lease risk, and property operations."
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {!editing ? <DashboardCustomizerToolbar editing={editing} hiddenCount={hiddenWidgets.length} onApplyPreset={applyPreset} onEditChange={setEditing} onReset={reset} /> : null}
+            <Button variant="outline" size="sm" className="h-9 gap-2 text-sm"><CalendarClock className="h-4 w-4" /> This Month</Button>
+            <Button size="sm" className="h-9 gap-2 text-sm" asChild><Link to="/landlord/properties/new"><Plus className="h-4 w-4" /> Add Property</Link></Button>
+          </div>
+        }
+      />
 
       {editing ? (
         <>

@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchFocus } from "@/hooks/use-search-focus";
+import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 
 export const rows = [
   { id: "COL-201", tenant: "Bode Akin", unit: "Palm Residence A1", property: "Palm Residence", amount: "N850,000", state: "Paid", due: "Apr 02", method: "Bank transfer" },
@@ -40,17 +42,15 @@ export default function LandlordCollections() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Collections</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Monitor rent expected, received, due-soon, and overdue items across your occupied units.</p>
-        </div>
-        <div className="flex items-center gap-2 self-start">
+      <DashboardPageHeader
+        title="Collections"
+        description="Monitor rent expected, received, due-soon, and overdue items across your occupied units."
+        actions={
           <Button variant="outline" size="sm" className="gap-1.5">
             <Download className="h-3.5 w-3.5" /> Export
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
@@ -80,12 +80,16 @@ export default function LandlordCollections() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
-          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
-          <TabsTrigger value="paid" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Paid ({paid.length})</TabsTrigger>
-          <TabsTrigger value="due" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Due Soon ({due.length})</TabsTrigger>
-          <TabsTrigger value="overdue" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Overdue ({overdue.length})</TabsTrigger>
-        </TabsList>
+        <DashboardControlRow
+          left={
+            <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
+              <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
+              <TabsTrigger value="paid" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Paid ({paid.length})</TabsTrigger>
+              <TabsTrigger value="due" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Due Soon ({due.length})</TabsTrigger>
+              <TabsTrigger value="overdue" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Overdue ({overdue.length})</TabsTrigger>
+            </TabsList>
+          }
+        />
 
         {[
           { key: "all", items: filtered },
@@ -96,21 +100,25 @@ export default function LandlordCollections() {
           <TabsContent key={group.key} value={group.key}>
             <Card className="border border-border/60 shadow-sm">
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <div>
-                    <CardTitle className="text-base">Rent Ledger</CardTitle>
-                    <CardDescription>Showing {group.items.length} collection rows</CardDescription>
-                  </div>
-                  <div className="flex w-full items-center gap-2 sm:w-auto">
-                    <div className="relative flex-1 sm:flex-none">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="Search ledger..." className="h-9 w-full pl-9 sm:w-[220px]" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <DashboardControlRow
+                  left={
+                    <div>
+                      <CardTitle className="text-base">Rent Ledger</CardTitle>
+                      <CardDescription>Showing {group.items.length} collection rows</CardDescription>
                     </div>
-                    <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
-                      <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
-                    </Button>
-                  </div>
-                </div>
+                  }
+                  right={
+                    <>
+                      <div className="relative flex-1 lg:flex-none">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="Search ledger..." className="h-9 w-full pl-9 lg:w-[220px]" value={search} onChange={(e) => setSearch(e.target.value)} />
+                      </div>
+                      <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
+                        <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
+                      </Button>
+                    </>
+                  }
+                />
               </CardHeader>
               <CardContent className="p-0">
                 <div className="space-y-3 p-4 sm:hidden">

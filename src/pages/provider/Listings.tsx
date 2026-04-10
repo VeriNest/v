@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchFocus } from "@/hooks/use-search-focus";
+import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 
 const images = [
   "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop",
@@ -58,15 +60,15 @@ export default function Listings() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-foreground sm:text-2xl">My Listings</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Manage your property listings and track performance.</p>
-        </div>
-        <Button className="gap-2 self-start" size="sm" onClick={() => navigate("/provider/listings/new")}>
-          <Plus className="h-4 w-4" /> Add Listing
-        </Button>
-      </div>
+      <DashboardPageHeader
+        title="My Listings"
+        description="Manage your property listings and track performance."
+        actions={
+          <Button className="gap-2" size="sm" onClick={() => navigate("/provider/listings/new")}>
+            <Plus className="h-4 w-4" /> Add Listing
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
@@ -88,24 +90,28 @@ export default function Listings() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
-            <TabsTrigger value="all" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
-            <TabsTrigger value="active" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Active ({active.length})</TabsTrigger>
-            <TabsTrigger value="other" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Pending/Draft</TabsTrigger>
-          </TabsList>
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            <div className="relative flex-1 sm:flex-none">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search listings..." className="h-9 w-full pl-9 sm:w-[200px]" value={search} onChange={(event) => setSearch(event.target.value)} />
-            </div>
-            <div className="flex items-center gap-1 rounded-lg bg-muted/50 p-1">
-              <Button variant={view === "grid" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("grid")}><Grid3x3 className="h-4 w-4" /></Button>
-              <Button variant={view === "table" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("table")}><List className="h-4 w-4" /></Button>
-            </div>
-            <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span></Button>
-          </div>
-        </div>
+        <DashboardControlRow
+          left={
+            <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
+              <TabsTrigger value="all" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
+              <TabsTrigger value="active" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Active ({active.length})</TabsTrigger>
+              <TabsTrigger value="other" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Pending/Draft</TabsTrigger>
+            </TabsList>
+          }
+          right={
+            <>
+              <div className="relative flex-1 lg:flex-none">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Search listings..." className="h-9 w-full pl-9 lg:w-[200px]" value={search} onChange={(event) => setSearch(event.target.value)} />
+              </div>
+              <div className="flex items-center gap-1 rounded-lg bg-muted/50 p-1">
+                <Button variant={view === "grid" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("grid")}><Grid3x3 className="h-4 w-4" /></Button>
+                <Button variant={view === "table" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("table")}><List className="h-4 w-4" /></Button>
+              </div>
+              <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span></Button>
+            </>
+          }
+        />
 
         {["all", "active", "other"].map((tab) => {
           const items = tab === "active" ? active : tab === "other" ? filtered.filter((listing) => listing.status !== "Active") : filtered;

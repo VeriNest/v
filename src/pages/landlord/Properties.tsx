@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Building2, DoorOpen, FileWarning, Filter, Plus, Search, Wallet, Wrench } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { useSearchFocus } from "@/hooks/use-search-focus";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 
 export const properties = [
   { id: "p1", name: "Palm Residence", location: "Lekki Phase 1", units: 6, occupied: 5, collections: "N4.8M", docs: "Complete", status: "Healthy", vacant: 1, openIssues: 1, yield: "92%" },
@@ -33,15 +35,15 @@ export default function LandlordProperties() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Properties</h1>
-          <p className="text-sm text-muted-foreground mt-1">Portfolio view across owned buildings, occupancy, collections, and document readiness.</p>
-        </div>
-        <Button size="sm" className="gap-2 self-start" asChild>
-          <Link to="/landlord/properties/new"><Plus className="h-4 w-4" /> Add Property</Link>
-        </Button>
-      </div>
+      <DashboardPageHeader
+        title="Properties"
+        description="Portfolio view across owned buildings, occupancy, collections, and document readiness."
+        actions={
+          <Button size="sm" className="gap-2" asChild>
+            <Link to="/landlord/properties/new"><Plus className="h-4 w-4" /> Add Property</Link>
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
@@ -63,22 +65,26 @@ export default function LandlordProperties() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
-            <TabsTrigger value="all" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
-            <TabsTrigger value="stable" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Fully Occupied ({occupied.length})</TabsTrigger>
-            <TabsTrigger value="attention" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Needs Attention ({attention.length})</TabsTrigger>
-          </TabsList>
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            <div className="relative flex-1 sm:flex-none">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search properties..." className="h-9 w-full pl-9 sm:w-[220px]" value={search} onChange={(event) => setSearch(event.target.value)} />
-            </div>
-            <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
-              <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
-            </Button>
-          </div>
-        </div>
+        <DashboardControlRow
+          left={
+            <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
+              <TabsTrigger value="all" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
+              <TabsTrigger value="stable" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Fully Occupied ({occupied.length})</TabsTrigger>
+              <TabsTrigger value="attention" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Needs Attention ({attention.length})</TabsTrigger>
+            </TabsList>
+          }
+          right={
+            <>
+              <div className="relative flex-1 lg:flex-none">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search properties..." className="h-9 w-full pl-9 lg:w-[220px]" value={search} onChange={(event) => setSearch(event.target.value)} />
+              </div>
+              <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
+                <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
+              </Button>
+            </>
+          }
+        />
 
         {[
           { key: "all", items: filtered },
@@ -96,9 +102,9 @@ export default function LandlordProperties() {
                         <p className="text-xs text-muted-foreground mt-1">{property.location}</p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <Badge variant="outline" className={`px-2 py-0.5 text-[10px] ${property.status === "Healthy" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : property.status === "Attention" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : "bg-destructive/10 text-destructive border-destructive/20"}`}>
+                        <DashboardStatusBadge tone={property.status === "Healthy" ? "success" : property.status === "Attention" ? "warning" : "danger"}>
                           {property.status}
-                        </Badge>
+                        </DashboardStatusBadge>
                       </div>
                     </div>
 

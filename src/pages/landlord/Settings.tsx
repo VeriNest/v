@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bell, Building2, Camera, CreditCard, FileText, Shield, User, Wrench, Activity, Clock, ReceiptText, KeyRound, Trash2 } from "lucide-react";
 import { useRef } from "react";
 import { useAvatar } from "@/contexts/AvatarContext";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { DashboardSettingsSection, DashboardSettingsRow } from "@/components/dashboard/DashboardSettingsSection";
+import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 
 const activityLog = [
   { action: "Recorded rent payment for Palm Residence A1", time: "1 hour ago", type: "Collection" },
@@ -38,10 +40,10 @@ export default function LandlordSettings() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 min-w-0">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage your landlord identity, portfolio operations, and collection preferences.</p>
-      </div>
+      <DashboardPageHeader
+        title="Settings"
+        description="Manage your landlord identity, portfolio operations, and collection preferences."
+      />
 
       <Card className="border border-border/60 shadow-sm">
         <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-6">
@@ -59,8 +61,8 @@ export default function LandlordSettings() {
             <p className="text-sm text-muted-foreground truncate">owner@dwello.ng</p>
           </div>
           <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
-            <Badge className="whitespace-nowrap bg-primary/10 text-primary border-primary/20" variant="outline">Landlord</Badge>
-            <Badge className="whitespace-nowrap bg-emerald-500/10 text-emerald-600 border-emerald-500/20" variant="outline">Verified</Badge>
+            <DashboardStatusBadge tone="info">Landlord</DashboardStatusBadge>
+            <DashboardStatusBadge tone="success">Verified</DashboardStatusBadge>
           </div>
         </CardContent>
       </Card>
@@ -77,12 +79,11 @@ export default function LandlordSettings() {
         </TabsList>
 
         <TabsContent value="general">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Profile Information</CardTitle></div>
-              <CardDescription>Update the core identity used across your owned properties.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <DashboardSettingsSection
+            title="Profile Information"
+            description="Update the core identity used across your owned properties."
+          >
+            <div className="space-y-4 px-6 pb-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Full Name</label><Input defaultValue="Landlord Account" /></div>
                 <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Email</label><Input defaultValue="owner@dwello.ng" /></div>
@@ -90,48 +91,49 @@ export default function LandlordSettings() {
                 <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Primary City</label><Input defaultValue="Lagos" /></div>
               </div>
               <div className="flex justify-end pt-2"><Button>Save Changes</Button></div>
-            </CardContent>
-          </Card>
+            </div>
+          </DashboardSettingsSection>
         </TabsContent>
 
         <TabsContent value="portfolio">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Building2 className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Portfolio Preferences</CardTitle></div>
-              <CardDescription>Define how you operate properties and occupancy.</CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/60">
-              <div className="flex items-center justify-between gap-3 py-4 first:pt-0">
-                <div><p className="font-medium text-sm text-foreground">Allow direct tenant inquiries</p><p className="text-xs text-muted-foreground">Let tenants contact you without routing through an agent.</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4">
-                <div><p className="font-medium text-sm text-foreground">Track unit-level occupancy</p><p className="text-xs text-muted-foreground">Show occupied, vacant, and notice-given units in the dashboard.</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4">
-                <div><p className="font-medium text-sm text-foreground">Maintenance approval required</p><p className="text-xs text-muted-foreground">Require landlord sign-off before vendors can start work.</p></div>
-                <Switch className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4">
-                <div><p className="font-medium text-sm text-foreground">Publish vacancies automatically</p><p className="text-xs text-muted-foreground">Push vacant-ready units to your marketing inventory without manual relisting.</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4 last:pb-0">
-                <div><p className="font-medium text-sm text-foreground">Allow agent collaboration</p><p className="text-xs text-muted-foreground">Let assigned agents manage inspections and tenant conversations on your behalf.</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection
+            title="Portfolio Preferences"
+            description="Define how you operate properties and occupancy."
+          >
+            <DashboardSettingsRow
+              label="Allow direct tenant inquiries"
+              description="Let tenants contact you without routing through an agent."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Track unit-level occupancy"
+              description="Show occupied, vacant, and notice-given units in the dashboard."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Maintenance approval required"
+              description="Require landlord sign-off before vendors can start work."
+              control={<Switch className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Publish vacancies automatically"
+              description="Push vacant-ready units to your marketing inventory without manual relisting."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Allow agent collaboration"
+              description="Let assigned agents manage inspections and tenant conversations on your behalf."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+          </DashboardSettingsSection>
         </TabsContent>
 
         <TabsContent value="collections">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Collection Preferences</CardTitle></div>
-              <CardDescription>Control how rent reminders and payment records are handled.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <DashboardSettingsSection
+            title="Collection Preferences"
+            description="Control how rent reminders and payment records are handled."
+          >
+            <div className="space-y-4 px-6 pb-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Bank Name</label><Input defaultValue="GTBank" /></div>
                 <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Account Number</label><Input defaultValue="0123456789" /></div>
@@ -150,107 +152,99 @@ export default function LandlordSettings() {
                 <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Default Rent Due Day</label><Input defaultValue="1st of every month" /></div>
               </div>
               <div className="flex justify-end pt-2"><Button>Update Collection Settings</Button></div>
-            </CardContent>
-          </Card>
+            </div>
+          </DashboardSettingsSection>
         </TabsContent>
 
         <TabsContent value="alerts">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Bell className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Alerts</CardTitle></div>
-              <CardDescription>Choose which landlord operations trigger notifications.</CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/60">
-              <div className="flex items-center justify-between gap-3 py-4 first:pt-0">
-                <div><p className="font-medium text-sm text-foreground">Lease expiry reminders</p><p className="text-xs text-muted-foreground">Notify 30, 14, and 7 days before lease end.</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4">
-                <div><p className="font-medium text-sm text-foreground">Overdue rent alerts</p><p className="text-xs text-muted-foreground">Flag missed or partial collections immediately.</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4 last:pb-0">
-                <div><p className="font-medium text-sm text-foreground">Maintenance escalation alerts</p><p className="text-xs text-muted-foreground">Notify when issues are marked urgent or unresolved.</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection
+            title="Alerts"
+            description="Choose which landlord operations trigger notifications."
+          >
+            <DashboardSettingsRow
+              label="Lease expiry reminders"
+              description="Notify 30, 14, and 7 days before lease end."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Overdue rent alerts"
+              description="Flag missed or partial collections immediately."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Maintenance escalation alerts"
+              description="Notify when issues are marked urgent or unresolved."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+          </DashboardSettingsSection>
         </TabsContent>
 
         <TabsContent value="documents">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><FileText className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Documents and Verification</CardTitle></div>
-              <CardDescription>Keep ownership and compliance records current.</CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/60">
-              <div className="flex items-center justify-between gap-3 py-4 first:pt-0">
-                <div><p className="font-medium text-sm text-foreground">Ownership verification</p><p className="text-xs text-muted-foreground">National ID and title deed currently on file.</p></div>
-                <Badge variant="outline" className="shrink-0 whitespace-nowrap text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Verified</Badge>
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4">
-                <div><p className="font-medium text-sm text-foreground">Property compliance documents</p><p className="text-xs text-muted-foreground">Track expiring C of O, tax receipts, and inspection records.</p></div>
-                <Button variant="outline" size="sm" className="shrink-0"><Shield className="h-3.5 w-3.5 mr-1.5" /> Review</Button>
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4">
-                <div><p className="font-medium text-sm text-foreground">Maintenance vendor files</p><p className="text-xs text-muted-foreground">Store invoices, receipts, and service reports per issue.</p></div>
-                <Button variant="outline" size="sm" className="shrink-0"><Wrench className="h-3.5 w-3.5 mr-1.5" /> Manage</Button>
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4 last:pb-0">
-                <div><p className="font-medium text-sm text-foreground">Expiry reminders</p><p className="text-xs text-muted-foreground">Get alerted before compliance certificates, tenancy files, or receipts lapse.</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection
+            title="Documents and Verification"
+            description="Keep ownership and compliance records current."
+          >
+            <DashboardSettingsRow
+              label="Ownership verification"
+              description="National ID and title deed currently on file."
+              control={<DashboardStatusBadge tone="success">Verified</DashboardStatusBadge>}
+            />
+            <DashboardSettingsRow
+              label="Property compliance documents"
+              description="Track expiring C of O, tax receipts, and inspection records."
+              control={<Button variant="outline" size="sm" className="shrink-0"><Shield className="h-3.5 w-3.5 mr-1.5" /> Review</Button>}
+            />
+            <DashboardSettingsRow
+              label="Maintenance vendor files"
+              description="Store invoices, receipts, and service reports per issue."
+              control={<Button variant="outline" size="sm" className="shrink-0"><Wrench className="h-3.5 w-3.5 mr-1.5" /> Manage</Button>}
+            />
+            <DashboardSettingsRow
+              label="Expiry reminders"
+              description="Get alerted before compliance certificates, tenancy files, or receipts lapse."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+          </DashboardSettingsSection>
         </TabsContent>
 
         <TabsContent value="security" className="space-y-4">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Security</CardTitle></div>
-              <CardDescription>Protect your landlord account, payment access, and portfolio controls.</CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/60">
-              <div className="flex items-center justify-between gap-2 py-4 first:pt-0">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0"><KeyRound className="h-4 w-4 text-primary" /></div>
-                  <div className="min-w-0"><p className="font-medium text-sm text-foreground">Change Password</p><p className="text-xs text-muted-foreground">Last updated 12 days ago.</p></div>
-                </div>
-                <Button variant="outline" size="sm" className="shrink-0">Update</Button>
-              </div>
-              <div className="flex items-center justify-between gap-2 py-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0"><Shield className="h-4 w-4 text-primary" /></div>
-                  <div className="min-w-0"><p className="font-medium text-sm text-foreground">Two-Factor Authentication</p><p className="text-xs text-muted-foreground">Require a second verification step for sign-in and rent disbursement changes.</p></div>
-                </div>
-                <Button variant="outline" size="sm" className="shrink-0">Enable</Button>
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4">
-                <div><p className="font-medium text-sm text-foreground">Login notifications</p><p className="text-xs text-muted-foreground">Alert when a new browser or device accesses your portfolio.</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4 last:pb-0">
-                <div><p className="font-medium text-sm text-foreground">Require approval for bank detail changes</p><p className="text-xs text-muted-foreground">Pause disbursement updates until you confirm them by email.</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection
+            title="Security"
+            description="Protect your landlord account, payment access, and portfolio controls."
+          >
+            <DashboardSettingsRow
+              label="Change Password"
+              description="Last updated 12 days ago."
+              control={<Button variant="outline" size="sm" className="shrink-0">Update</Button>}
+            />
+            <DashboardSettingsRow
+              label="Two-Factor Authentication"
+              description="Require a second verification step for sign-in and rent disbursement changes."
+              control={<Button variant="outline" size="sm" className="shrink-0">Enable</Button>}
+            />
+            <DashboardSettingsRow
+              label="Login notifications"
+              description="Alert when a new browser or device accesses your portfolio."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Require approval for bank detail changes"
+              description="Pause disbursement updates until you confirm them by email."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+          </DashboardSettingsSection>
 
-          <Card className="border border-destructive/30 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Trash2 className="h-4 w-4 text-destructive" /><CardTitle className="text-base text-destructive">Danger Zone</CardTitle></div>
-              <CardDescription>Take care with irreversible account actions.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-destructive/20 bg-destructive/5 p-4">
-                <div className="min-w-0">
-                  <p className="font-medium text-sm text-foreground">Delete Account</p>
-                  <p className="text-xs text-muted-foreground">Permanently remove your landlord account, portfolio history, and rent collection records.</p>
-                </div>
-                <Button variant="destructive" size="sm" className="shrink-0">Delete Account</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection
+            title="Danger Zone"
+            description="Take care with irreversible account actions."
+            className="border-destructive/30"
+          >
+            <DashboardSettingsRow
+              label="Delete Account"
+              description="Permanently remove your landlord account, portfolio history, and rent collection records."
+              control={<Button variant="destructive" size="sm" className="shrink-0">Delete Account</Button>}
+            />
+          </DashboardSettingsSection>
         </TabsContent>
 
         <TabsContent value="activity">

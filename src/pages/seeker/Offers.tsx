@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Star, ShieldCheck, Clock, ArrowUpRight, Zap, Search, Filter } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { useSearchFocus } from "@/hooks/use-search-focus";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 
 export const offers = [
   { id: 1, property: "3 Bed Flat, Lekki Phase 1", provider: "Adebayo Johnson", role: "Agent", price: "₦2,500,000/yr", trust: "Verified", rating: 4.8, responseTime: "12 min", match: 95, features: ["24hr Power", "Security", "Parking"], status: "New", initials: "AJ" },
@@ -15,14 +17,7 @@ export const offers = [
   { id: 4, property: "2 Bed Serviced, VI", provider: "ShortStay NG", role: "Short-let", price: "₦45,000/night", trust: "Verified", rating: 4.9, responseTime: "5 min", match: 92, features: ["24hr Power", "Furnished", "Pool"], status: "Saved", initials: "SN" },
 ];
 
-const roleStyles: Record<string, string> = {
-  Agent: "bg-primary/10 text-primary",
-  Landlord: "bg-blue-500/10 text-blue-600",
-  "Short-let": "bg-amber-500/10 text-amber-600",
-};
-
 const matchColor = (m: number) => m >= 90 ? "text-emerald-600" : m >= 80 ? "text-blue-600" : "text-amber-600";
-const matchBg = (m: number) => m >= 90 ? "bg-emerald-500" : m >= 80 ? "bg-blue-500" : "bg-amber-500";
 
 export default function Offers() {
   useSearchFocus();
@@ -36,12 +31,10 @@ export default function Offers() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">My Offers</h1>
-          <p className="text-sm text-muted-foreground mt-1">Offers matched to your posted needs, ranked by fit & trust.</p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="My Offers"
+        description="Offers matched to your posted needs, ranked by fit and trust."
+      />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
@@ -60,29 +53,32 @@ export default function Offers() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <TabsList className="h-auto flex-wrap bg-muted/50 p-1">
-            <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
-            <TabsTrigger value="new" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">New ({newCount})</TabsTrigger>
-            <TabsTrigger value="saved" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Saved</TabsTrigger>
-          </TabsList>
-
-          <div className="flex items-center gap-2 lg:w-auto">
-            <div className="relative flex-1 lg:flex-none">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search offers..."
-                className="h-9 w-full pl-9 lg:w-[220px]"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
-              <Filter className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Filter</span>
-            </Button>
-          </div>
-        </div>
+        <DashboardControlRow
+          left={
+            <TabsList className="h-auto flex-wrap bg-muted/50 p-1">
+              <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
+              <TabsTrigger value="new" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">New ({newCount})</TabsTrigger>
+              <TabsTrigger value="saved" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Saved</TabsTrigger>
+            </TabsList>
+          }
+          right={
+            <>
+              <div className="relative flex-1 lg:flex-none">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search offers..."
+                  className="h-9 w-full pl-9 lg:w-[220px]"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
+                <Filter className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Filter</span>
+              </Button>
+            </>
+          }
+        />
 
         <TabsContent value="all" className="space-y-3">
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -126,7 +122,9 @@ function OfferCard({ offer }: { offer: typeof offers[0] }) {
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                 <span className="font-medium">{offer.provider}</span>
-                <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium ${roleStyles[offer.role]}`}>{offer.role}</span>
+                <DashboardStatusBadge tone={offer.role === "Agent" ? "info" : offer.role === "Landlord" ? "neutral" : "warning"}>
+                  {offer.role}
+                </DashboardStatusBadge>
               </div>
             </div>
           </div>

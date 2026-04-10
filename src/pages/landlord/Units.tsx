@@ -21,6 +21,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 
 export const units = [
   { id: "UNT-101", name: "Palm Residence A1", property: "Palm Residence", tenant: "Bode Akin", rent: "N850,000", state: "Occupied", lease: "Ends Jun 2026", statusNote: "Paid through Apr", type: "2 Bed Flat" },
@@ -58,21 +60,17 @@ export default function LandlordUnits() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-xl font-bold text-foreground sm:text-2xl">Units</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Track occupancy, tenant assignment, lease state, and unit readiness across your portfolio.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 self-start">
+      <DashboardPageHeader
+        title="Units"
+        description="Track occupancy, tenant assignment, lease state, and unit readiness across your portfolio."
+        actions={
           <Button size="sm" className="gap-1.5" asChild>
             <Link to="/landlord/units/new">
               <Plus className="h-3.5 w-3.5" /> Add Unit
             </Link>
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
@@ -96,45 +94,48 @@ export default function LandlordUnits() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
-            <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              All ({filtered.length})
-            </TabsTrigger>
-            <TabsTrigger value="occupied" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              Occupied ({occupied.length})
-            </TabsTrigger>
-            <TabsTrigger value="vacant" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              Vacant ({vacant.length})
-            </TabsTrigger>
-            <TabsTrigger value="notice" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              Notice ({notice.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            <div className="relative flex-1 sm:flex-none">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search units..."
-                className="h-9 w-full pl-9 sm:w-[220px]"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </div>
-            <div className="hidden items-center gap-1 rounded-lg bg-muted/50 p-1 sm:flex">
-              <Button variant={view === "cards" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("cards")}>
-                <Grid3x3 className="h-4 w-4" />
+        <DashboardControlRow
+          left={
+            <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
+              <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                All ({filtered.length})
+              </TabsTrigger>
+              <TabsTrigger value="occupied" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Occupied ({occupied.length})
+              </TabsTrigger>
+              <TabsTrigger value="vacant" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Vacant ({vacant.length})
+              </TabsTrigger>
+              <TabsTrigger value="notice" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Notice ({notice.length})
+              </TabsTrigger>
+            </TabsList>
+          }
+          right={
+            <>
+              <div className="relative flex-1 lg:flex-none">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search units..."
+                  className="h-9 w-full pl-9 lg:w-[220px]"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </div>
+              <div className="hidden items-center gap-1 rounded-lg bg-muted/50 p-1 sm:flex">
+                <Button variant={view === "cards" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("cards")}>
+                  <Grid3x3 className="h-4 w-4" />
+                </Button>
+                <Button variant={view === "table" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("table")}>
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
+                <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
               </Button>
-              <Button variant={view === "table" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setView("table")}>
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
-            <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
-              <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
-            </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
 
         {[
           { key: "all", items: filtered },

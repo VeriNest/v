@@ -339,7 +339,7 @@ export function DashboardEditableWidget({
   };
 
   return (
-    <div className={cn(dashboardSizeClasses[effectiveSize], "min-w-0 self-start")}>
+    <div className={cn(dashboardSizeClasses[effectiveSize], "min-w-0 self-stretch")}>
       <div
         className={cn(
           "relative transition-all",

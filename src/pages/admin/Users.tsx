@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchFocus } from "@/hooks/use-search-focus";
+import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 
 export const users = [
   { id: "U-001", name: "Adebayo Johnson", email: "adebayo@mail.com", role: "Agent", verification: "Verified", joined: "Jan 10, 2024", activity: "Active now" },
@@ -45,13 +47,11 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Users & Providers</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage tenants, agents, and landlords on the platform.</p>
-        </div>
-        <Button size="sm" className="gap-2 self-start"><UserPlus className="h-4 w-4" /> Invite User</Button>
-      </div>
+      <DashboardPageHeader
+        title="Users & Providers"
+        description="Manage tenants, agents, and landlords on the platform."
+        actions={<Button size="sm" className="gap-2"><UserPlus className="h-4 w-4" /> Invite User</Button>}
+      />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
@@ -71,12 +71,16 @@ export default function UsersPage() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
-          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
-          <TabsTrigger value="agents" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Agents</TabsTrigger>
-          <TabsTrigger value="landlords" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Landlords</TabsTrigger>
-          <TabsTrigger value="tenants" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Tenants</TabsTrigger>
-        </TabsList>
+        <DashboardControlRow
+          left={
+            <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
+              <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
+              <TabsTrigger value="agents" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Agents</TabsTrigger>
+              <TabsTrigger value="landlords" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Landlords</TabsTrigger>
+              <TabsTrigger value="tenants" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Tenants</TabsTrigger>
+            </TabsList>
+          }
+        />
 
         {["all", "agents", "landlords", "tenants"].map((tab) => {
           const roleMap: Record<string, string> = { agents: "Agent", landlords: "Landlord", tenants: "Tenant" };
@@ -85,13 +89,15 @@ export default function UsersPage() {
             <TabsContent key={tab} value={tab}>
               <Card className="border border-border/60 shadow-sm">
                 <CardHeader className="pb-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div><CardTitle className="text-base">Users</CardTitle><CardDescription>Showing {items.length} users</CardDescription></div>
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <div className="relative flex-1 sm:flex-none"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search users..." className="pl-9 w-full sm:w-[220px] h-9" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
-                      <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span></Button>
-                    </div>
-                  </div>
+                  <DashboardControlRow
+                    left={<div><CardTitle className="text-base">Users</CardTitle><CardDescription>Showing {items.length} users</CardDescription></div>}
+                    right={
+                      <>
+                        <div className="relative flex-1 lg:flex-none"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search users..." className="pl-9 w-full h-9 lg:w-[220px]" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
+                        <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span></Button>
+                      </>
+                    }
+                  />
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
                   {/* Mobile card list */}

@@ -9,6 +9,8 @@ import {
   UserCheck, AlertTriangle, Search, Filter
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 
 const stats = [
   { label: "Pending Review", value: "18", icon: Clock, iconBg: "bg-amber-50", accent: "text-amber-600" },
@@ -46,21 +48,10 @@ const typeColors: Record<string, string> = {
 export default function AdminVerifications() {
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">KYC & Verifications</h1>
-          <p className="text-sm text-muted-foreground mt-1">Review and manage provider identity verification</p>
-        </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-none">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input placeholder="Search..." className="pl-9 h-9 w-full sm:w-[200px] text-sm" />
-          </div>
-          <Button variant="outline" size="sm" className="h-9 gap-1.5 text-sm shrink-0">
-            <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
-          </Button>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="KYC & Verifications"
+        description="Review and manage provider identity verification."
+      />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {stats.map((s) => (
@@ -79,15 +70,30 @@ export default function AdminVerifications() {
       </div>
 
       <Tabs defaultValue="pending" className="space-y-4">
-        <TabsList className="bg-muted/50 p-1 h-auto">
-          <TabsTrigger value="pending" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1.5 px-4">
-            <Clock className="h-3.5 w-3.5" /> Pending
-            <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-semibold">{pendingVerifications.length}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="verified" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1.5 px-4">
-            <CheckCircle2 className="h-3.5 w-3.5" /> Verified
-          </TabsTrigger>
-        </TabsList>
+        <DashboardControlRow
+          left={
+            <TabsList className="bg-muted/50 p-1 h-auto">
+              <TabsTrigger value="pending" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1.5 px-4">
+                <Clock className="h-3.5 w-3.5" /> Pending
+                <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-semibold">{pendingVerifications.length}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="verified" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1.5 px-4">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Verified
+              </TabsTrigger>
+            </TabsList>
+          }
+          right={
+            <>
+              <div className="relative flex-1 lg:flex-none">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input placeholder="Search..." className="pl-9 h-9 w-full text-sm lg:w-[200px]" />
+              </div>
+              <Button variant="outline" size="sm" className="h-9 gap-1.5 text-sm shrink-0">
+                <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
+              </Button>
+            </>
+          }
+        />
 
         <TabsContent value="pending" className="space-y-3">
           {pendingVerifications.map((v) => (

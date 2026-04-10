@@ -17,6 +17,9 @@ import {
   Users,
 } from "lucide-react";
 
+import { DashboardHistoryRow } from "@/components/dashboard/DashboardHistoryRow";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { announcements } from "./Announcements";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -96,19 +99,17 @@ export default function NewAnnouncement() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="icon" className="h-9 w-9" asChild>
-          <Link to="/admin/announcements">
-            <ChevronLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-xl font-bold text-foreground sm:text-2xl">New Announcement</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Compose a platform update with the same staged workflow used across dashboard create flows.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="New Announcement"
+        description="Compose a platform update with the same staged workflow used across dashboard create flows."
+        actions={
+          <Button variant="outline" size="sm" className="gap-1.5" asChild>
+            <Link to="/admin/announcements">
+              <ChevronLeft className="h-4 w-4" /> Back
+            </Link>
+          </Button>
+        }
+      />
 
       <Tabs defaultValue="new" className="space-y-4">
         <TabsList className="h-auto bg-muted/50 p-1">
@@ -129,9 +130,7 @@ export default function NewAnnouncement() {
               <Card className="border border-border/60 shadow-sm">
                 <CardContent className="p-4">
                   <div className="mb-3 flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground">
-                      Step {currentStep} of {steps.length}
-                    </p>
+                    <p className="text-sm font-medium text-foreground">Step {currentStep} of {steps.length}</p>
                     <p className="text-xs text-muted-foreground">{steps[currentStep - 1].label}</p>
                   </div>
                   <Progress value={progress} className="h-2" />
@@ -418,13 +417,13 @@ export default function NewAnnouncement() {
         <TabsContent value="history">
           <Card className="border border-border/60 shadow-sm">
             <CardHeader className="pb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div>
                   <CardTitle className="text-base">Recent Posts</CardTitle>
                   <CardDescription>Review previously published or drafted announcements.</CardDescription>
                 </div>
                 <Select defaultValue="all">
-                  <SelectTrigger className="w-full sm:w-[120px] h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-8 w-full text-xs sm:w-[120px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="published">Published</SelectItem>
@@ -435,30 +434,22 @@ export default function NewAnnouncement() {
             </CardHeader>
             <CardContent className="divide-y divide-border/60">
               {announcements.map((item) => (
-                <div key={item.id} className="py-4 first:pt-0 last:pb-0 space-y-2">
-                  <div className="flex items-start gap-3">
-                    <div className="h-9 w-9 rounded-xl bg-primary/5 flex items-center justify-center shrink-0">
-                      <Megaphone className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
-                      <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground flex-wrap">
-                        <span>{item.audience}</span>
-                        <span>·</span>
-                        <span>{item.date}</span>
-                        <span>·</span>
-                        <span>{item.views.toLocaleString()} views</span>
+                <div key={item.id} className="py-4 first:pt-0 last:pb-0">
+                  <DashboardHistoryRow
+                    icon={Megaphone}
+                    title={item.title}
+                    subtitle={`${item.audience} | ${item.date} | ${item.views.toLocaleString()} views`}
+                    badges={
+                      <div className="flex flex-wrap items-center gap-2">
+                        <DashboardStatusBadge tone="neutral">
+                          {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                        </DashboardStatusBadge>
+                        <DashboardStatusBadge tone={item.status === "Published" ? "success" : "warning"}>
+                          {item.status}
+                        </DashboardStatusBadge>
                       </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 pl-12 flex-wrap">
-                    <Badge variant="outline" className="text-[10px] bg-muted text-muted-foreground border-border/60">
-                      {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      {item.status}
-                    </Badge>
-                  </div>
+                    }
+                  />
                 </div>
               ))}
             </CardContent>

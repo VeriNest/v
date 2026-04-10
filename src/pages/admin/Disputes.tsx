@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 
 const disputes = [
   { id: "D-101", title: "Fake property listing reported", type: "Fraud", priority: "High", status: "Open", reporter: "Fatima Abdullahi", assigned: "Admin A", date: "Mar 15, 2024" },
@@ -39,10 +41,10 @@ export default function Disputes() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Disputes & Moderation</h1>
-        <p className="text-sm text-muted-foreground mt-1">Review disputes, fraud alerts, and content moderation.</p>
-      </div>
+      <DashboardPageHeader
+        title="Disputes & Moderation"
+        description="Review disputes, fraud alerts, and content moderation."
+      />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
@@ -64,12 +66,16 @@ export default function Disputes() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
-          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({disputes.length})</TabsTrigger>
-          <TabsTrigger value="open" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Open ({open.length})</TabsTrigger>
-          <TabsTrigger value="review" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Review ({inReview.length})</TabsTrigger>
-          <TabsTrigger value="resolved" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Resolved</TabsTrigger>
-        </TabsList>
+        <DashboardControlRow
+          left={
+            <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
+              <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({disputes.length})</TabsTrigger>
+              <TabsTrigger value="open" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Open ({open.length})</TabsTrigger>
+              <TabsTrigger value="review" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Review ({inReview.length})</TabsTrigger>
+              <TabsTrigger value="resolved" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Resolved</TabsTrigger>
+            </TabsList>
+          }
+        />
 
         {["all", "open", "review", "resolved"].map((tab) => {
           const items = tab === "open" ? open : tab === "review" ? inReview : tab === "resolved" ? disputes.filter(d => d.status === "Resolved") : disputes;
@@ -77,13 +83,15 @@ export default function Disputes() {
             <TabsContent key={tab} value={tab}>
               <Card className="border border-border/60 shadow-sm">
                 <CardHeader className="pb-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div><CardTitle className="text-base">Disputes</CardTitle><CardDescription>{items.length} disputes</CardDescription></div>
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <div className="relative flex-1 sm:flex-none"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search..." className="pl-9 w-full sm:w-[200px] h-9" /></div>
-                      <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span></Button>
-                    </div>
-                  </div>
+                  <DashboardControlRow
+                    left={<div><CardTitle className="text-base">Disputes</CardTitle><CardDescription>{items.length} disputes</CardDescription></div>}
+                    right={
+                      <>
+                        <div className="relative flex-1 lg:flex-none"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search..." className="pl-9 w-full h-9 lg:w-[200px]" /></div>
+                        <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span></Button>
+                      </>
+                    }
+                  />
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
                   {/* Mobile card list */}

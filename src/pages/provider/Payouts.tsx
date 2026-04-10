@@ -4,6 +4,8 @@ import { Wallet, Lock, Receipt, Download, Building2, ArrowUpRight, Filter, Searc
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 
 const payouts = [
   { id: "PO-301", property: "3 Bed Flat, Lekki Phase 1", amount: "₦2,375,000", platformFee: "₦125,000", type: "Rent", status: "Released", date: "Mar 15, 2024" },
@@ -23,13 +25,11 @@ const typeStyles: Record<string, string> = { Rent: "text-primary", "Short-let": 
 export default function Payouts() {
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Payouts</h1>
-          <p className="text-sm text-muted-foreground mt-1">Track your earnings, platform fees, and payout status.</p>
-        </div>
-        <Button variant="outline" size="sm" className="gap-2 self-start"><Download className="h-3.5 w-3.5" /> Export</Button>
-      </div>
+      <DashboardPageHeader
+        title="Payouts"
+        description="Track your earnings, platform fees, and payout status."
+        actions={<Button variant="outline" size="sm" className="gap-2"><Download className="h-3.5 w-3.5" /> Export</Button>}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
@@ -55,11 +55,15 @@ export default function Payouts() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="bg-muted/50 p-1 h-auto">
-          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({payouts.length})</TabsTrigger>
-          <TabsTrigger value="released" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Released</TabsTrigger>
-          <TabsTrigger value="pending" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Pending/Escrow</TabsTrigger>
-        </TabsList>
+        <DashboardControlRow
+          left={
+            <TabsList className="bg-muted/50 p-1 h-auto">
+              <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({payouts.length})</TabsTrigger>
+              <TabsTrigger value="released" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Released</TabsTrigger>
+              <TabsTrigger value="pending" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Pending/Escrow</TabsTrigger>
+            </TabsList>
+          }
+        />
 
         {["all", "released", "pending"].map((tab) => {
           const items = tab === "released" ? payouts.filter(p => p.status === "Released") : tab === "pending" ? payouts.filter(p => p.status !== "Released") : payouts;
@@ -67,13 +71,15 @@ export default function Payouts() {
             <TabsContent key={tab} value={tab}>
               <Card className="border border-border/60 shadow-sm">
                 <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between flex-wrap gap-3">
-                    <div><CardTitle className="text-base">Payout History</CardTitle><CardDescription>Your earnings and fee breakdown</CardDescription></div>
-                    <div className="flex items-center gap-3">
-                      <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search..." className="pl-9 w-[200px] h-9" /></div>
-                      <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span></Button>
-                    </div>
-                  </div>
+                  <DashboardControlRow
+                    left={<div><CardTitle className="text-base">Payout History</CardTitle><CardDescription>Your earnings and fee breakdown</CardDescription></div>}
+                    right={
+                      <>
+                        <div className="relative flex-1 lg:flex-none"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input placeholder="Search..." className="pl-9 w-full h-9 lg:w-[200px]" /></div>
+                        <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span></Button>
+                      </>
+                    }
+                  />
                 </CardHeader>
                 <CardContent className="p-0 overflow-x-auto">
                   <Table>

@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Bell, Shield, Trash2, KeyRound, Building2, Activity, CreditCard, Camera } from "lucide-react";
 import { useRef } from "react";
 import { useAvatar } from "@/contexts/AvatarContext";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { DashboardSettingsRow, DashboardSettingsSection } from "@/components/dashboard/DashboardSettingsSection";
+import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 
 const activityLog = [
   { action: "Sent offer for 3 Bed in Lekki", time: "1 hour ago", type: "Offer" },
@@ -39,10 +41,10 @@ export default function ProviderSettings() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 min-w-0">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage your provider profile, payouts, and preferences.</p>
-      </div>
+      <DashboardPageHeader
+        title="Settings"
+        description="Manage your provider profile, payouts, alerts, and security controls."
+      />
 
       <Card className="border border-border/60 shadow-sm">
         <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-6">
@@ -67,8 +69,8 @@ export default function ProviderSettings() {
             <p className="text-sm text-muted-foreground truncate">adebayo@dwello.ng</p>
           </div>
           <div className="flex gap-1.5 shrink-0">
-            <Badge className="bg-primary/10 text-primary border-primary/20" variant="outline">Agent</Badge>
-            <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20" variant="outline">Verified</Badge>
+            <DashboardStatusBadge tone="info">Agent</DashboardStatusBadge>
+            <DashboardStatusBadge tone="success">Verified</DashboardStatusBadge>
           </div>
         </CardContent>
       </Card>
@@ -84,11 +86,7 @@ export default function ProviderSettings() {
         </TabsList>
 
         <TabsContent value="general">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Profile Information</CardTitle></div>
-              <CardDescription>Update your provider details</CardDescription>
-            </CardHeader>
+          <DashboardSettingsSection title="Profile Information" description="Update your provider identity and business contact details.">
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Full Name</label><Input defaultValue="Adebayo Johnson" /></div>
@@ -98,38 +96,31 @@ export default function ProviderSettings() {
               </div>
               <div className="flex justify-end pt-2"><Button>Save Changes</Button></div>
             </CardContent>
-          </Card>
+          </DashboardSettingsSection>
         </TabsContent>
 
         <TabsContent value="business">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Building2 className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Business Settings</CardTitle></div>
-              <CardDescription>Configure how you operate on the platform</CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/60">
-              <div className="flex items-center justify-between gap-3 py-4 first:pt-0">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">Auto-respond to matching leads</p><p className="text-xs text-muted-foreground">Send template offers to leads matching your listings</p></div>
-                <Switch className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">Accept short-let bookings</p><p className="text-xs text-muted-foreground">Show your listings in short-let search results</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4 last:pb-0">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">Instant booking</p><p className="text-xs text-muted-foreground">Allow tenants to book without manual approval</p></div>
-                <Switch className="shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection title="Business Settings" description="Configure how leads, bookings, and listing exposure are handled.">
+            <DashboardSettingsRow
+              label="Auto-respond to matching leads"
+              description="Send template offers to leads matching your listings."
+              control={<Switch />}
+            />
+            <DashboardSettingsRow
+              label="Accept short-let bookings"
+              description="Show your listings in short-let search results."
+              control={<Switch defaultChecked />}
+            />
+            <DashboardSettingsRow
+              label="Instant booking"
+              description="Allow tenants to book without manual approval."
+              control={<Switch />}
+            />
+          </DashboardSettingsSection>
         </TabsContent>
 
         <TabsContent value="payouts">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Payout Settings</CardTitle></div>
-              <CardDescription>Manage how you receive payments</CardDescription>
-            </CardHeader>
+          <DashboardSettingsSection title="Payout Settings" description="Manage the bank details and payout schedule used for provider settlements.">
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Bank Name</label><Input defaultValue="GTBank" /></div>
@@ -146,67 +137,51 @@ export default function ProviderSettings() {
               </div>
               <div className="flex justify-end pt-2"><Button>Update Payout Details</Button></div>
             </CardContent>
-          </Card>
+          </DashboardSettingsSection>
         </TabsContent>
 
         <TabsContent value="notifications">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Bell className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Notification Preferences</CardTitle></div>
-              <CardDescription>Choose what alerts you receive</CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/60">
-              <div className="flex items-center justify-between gap-3 py-4 first:pt-0">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">New lead alerts</p><p className="text-xs text-muted-foreground">Get notified when new leads match your listings</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">Payout notifications</p><p className="text-xs text-muted-foreground">Notify when payouts are released from escrow</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4 last:pb-0">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">SLA warnings</p><p className="text-xs text-muted-foreground">Alert when response time SLA is close to expiring</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection title="Notification Preferences" description="Choose which provider alerts should interrupt your workflow.">
+            <DashboardSettingsRow
+              label="New lead alerts"
+              description="Get notified when new leads match your listings."
+              control={<Switch defaultChecked />}
+            />
+            <DashboardSettingsRow
+              label="Payout notifications"
+              description="Notify when payouts are released from escrow."
+              control={<Switch defaultChecked />}
+            />
+            <DashboardSettingsRow
+              label="SLA warnings"
+              description="Alert when response time SLA is close to expiring."
+              control={<Switch defaultChecked />}
+            />
+          </DashboardSettingsSection>
         </TabsContent>
 
         <TabsContent value="security" className="space-y-4">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Security</CardTitle></div>
-              <CardDescription>Manage your account security</CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/60">
-              <div className="flex items-center justify-between gap-2 py-4 first:pt-0">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0"><KeyRound className="h-4 w-4 text-primary" /></div>
-                  <div className="min-w-0"><p className="font-medium text-sm text-foreground">Change Password</p><p className="text-xs text-muted-foreground">Last changed 7 days ago</p></div>
-                </div>
-                <Button variant="outline" size="sm" className="shrink-0">Update</Button>
-              </div>
-              <div className="flex items-center justify-between gap-2 py-4 last:pb-0">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0"><Shield className="h-4 w-4 text-primary" /></div>
-                  <div className="min-w-0"><p className="font-medium text-sm text-foreground">Two-Factor Auth</p><p className="text-xs text-muted-foreground">Secure your account with 2FA</p></div>
-                </div>
-                <Button variant="outline" size="sm" className="shrink-0">Enable</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection title="Security" description="Manage the sign-in and protection controls for your provider account.">
+            <DashboardSettingsRow
+              label="Change Password"
+              description="Last changed 7 days ago."
+              control={<Button variant="outline" size="sm">Update</Button>}
+            />
+            <DashboardSettingsRow
+              label="Two-Factor Auth"
+              description="Secure your account with 2FA."
+              control={<Button variant="outline" size="sm">Enable</Button>}
+            />
+          </DashboardSettingsSection>
 
-          <Card className="border border-destructive/30 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Trash2 className="h-4 w-4 text-destructive" /><CardTitle className="text-base text-destructive">Danger Zone</CardTitle></div>
-            </CardHeader>
+          <DashboardSettingsSection title="Danger Zone" description="These actions are irreversible and affect your listings and account history." className="border-destructive/30">
             <CardContent>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5 gap-3">
                 <div className="min-w-0"><p className="font-medium text-sm text-foreground">Delete Account</p><p className="text-xs text-muted-foreground">Permanently delete your provider account and all listings.</p></div>
                 <Button variant="destructive" size="sm" className="shrink-0">Delete Account</Button>
               </div>
             </CardContent>
-          </Card>
+          </DashboardSettingsSection>
         </TabsContent>
 
         {/* Activity - Mobile cards */}

@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle, ArrowUpRight, Filter, Plus, Search, ShieldCheck, Wrench } from "lucide-react";
+import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 
 const issues = [
   { issue: "Water heater replacement", unit: "Lekki Court A2", priority: "Urgent", assigned: "Vendor pending", status: "Open", age: "2 hrs", note: "Tenant without hot water" },
@@ -34,19 +36,17 @@ export default function LandlordMaintenance() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Maintenance</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Operational queue for repairs, inspections, vendor follow-up, and resolution tracking.</p>
-        </div>
-        <div className="flex items-center gap-2 self-start">
+      <DashboardPageHeader
+        title="Maintenance"
+        description="Operational queue for repairs, inspections, vendor follow-up, and resolution tracking."
+        actions={
           <Button size="sm" className="gap-1.5" asChild>
             <Link to="/landlord/maintenance/new">
               <Plus className="h-3.5 w-3.5" /> Add Issue
             </Link>
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
@@ -76,23 +76,27 @@ export default function LandlordMaintenance() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-        <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
-          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
-          <TabsTrigger value="open" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Open ({open.length})</TabsTrigger>
-          <TabsTrigger value="progress" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">In Progress ({inProgress.length})</TabsTrigger>
-          <TabsTrigger value="resolved" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Resolved ({resolved.length})</TabsTrigger>
-        </TabsList>
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            <div className="relative flex-1 sm:flex-none">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search work orders..." className="h-9 w-full pl-9 sm:w-[220px]" value={search} onChange={(e) => setSearch(e.target.value)} />
-            </div>
-            <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
-              <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
-            </Button>
-          </div>
-        </div>
+        <DashboardControlRow
+          left={
+            <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
+              <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
+              <TabsTrigger value="open" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Open ({open.length})</TabsTrigger>
+              <TabsTrigger value="progress" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">In Progress ({inProgress.length})</TabsTrigger>
+              <TabsTrigger value="resolved" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Resolved ({resolved.length})</TabsTrigger>
+            </TabsList>
+          }
+          right={
+            <>
+              <div className="relative flex-1 lg:flex-none">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search work orders..." className="h-9 w-full pl-9 lg:w-[220px]" value={search} onChange={(e) => setSearch(e.target.value)} />
+              </div>
+              <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
+                <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
+              </Button>
+            </>
+          }
+        />
 
         {[
           { key: "all", items: filtered },

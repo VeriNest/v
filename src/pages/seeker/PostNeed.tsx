@@ -13,6 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
+import { DashboardHistoryRow } from "@/components/dashboard/DashboardHistoryRow";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 
 const previousNeeds = [
   { id: 1, title: "3 Bed in Lekki Phase 1", budget: "₦2.5M/yr", status: "Active", offers: 4, date: "Mar 15, 2024", urgency: "Soon" },
@@ -88,10 +91,10 @@ export default function PostNeed() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 min-w-0">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Post a Need</h1>
-        <p className="text-sm text-muted-foreground mt-1">Describe what you're looking for — providers will send you tailored offers.</p>
-      </div>
+      <DashboardPageHeader
+        title="Post a Need"
+        description="Describe what you're looking for — providers will send you tailored offers."
+      />
 
       <Tabs defaultValue="new" className="space-y-4">
         <TabsList className="bg-muted/50 p-1 h-auto">
@@ -513,32 +516,32 @@ export default function PostNeed() {
               {previousNeeds.map((need) => {
                 const urg = urgencyLevels.find(l => l.label === need.urgency);
                 return (
-                  <div key={need.id} className="py-4 first:pt-0 last:pb-0 space-y-2">
-                    <div className="flex items-start gap-3">
-                      <div className="h-9 w-9 rounded-xl bg-primary/5 flex items-center justify-center shrink-0">
-                        <FileText className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-foreground truncate">{need.title}</p>
-                        <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                  <div key={need.id} className="py-4 first:pt-0 last:pb-0">
+                    <DashboardHistoryRow
+                      icon={FileText}
+                      title={need.title}
+                      subtitle={
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                           <span>{need.budget}</span>
                           <span>·</span>
                           <span>{need.date}</span>
                           <span>·</span>
                           <span>{need.offers} offers</span>
                         </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 pl-12">
-                      {urg && (
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${urg.bg} ${urg.color}`}>
-                          <span className={`h-1.5 w-1.5 rounded-full ${urg.dot}`} />{urg.label}
-                        </span>
-                      )}
-                      <Badge variant="outline" className={`text-xs ${need.status === "Active" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-muted text-muted-foreground border-border"}`}>
-                        {need.status}
-                      </Badge>
-                    </div>
+                      }
+                      badges={
+                        <div className="flex flex-wrap items-center gap-2">
+                          {urg ? (
+                            <DashboardStatusBadge tone={urg.value === "urgent" ? "danger" : urg.value === "soon" ? "warning" : "info"} dot>
+                              {urg.label}
+                            </DashboardStatusBadge>
+                          ) : null}
+                          <DashboardStatusBadge tone={need.status === "Active" ? "success" : "neutral"}>
+                            {need.status}
+                          </DashboardStatusBadge>
+                        </div>
+                      }
+                    />
                   </div>
                 );
               })}

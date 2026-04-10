@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Bell, Shield, Trash2, KeyRound, MapPin, Activity, Camera } from "lucide-react";
 import { useRef } from "react";
 import { useAvatar } from "@/contexts/AvatarContext";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { DashboardSettingsRow, DashboardSettingsSection } from "@/components/dashboard/DashboardSettingsSection";
+import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 
 const activityLog = [
   { action: "Posted need: 3 Bed in Lekki", time: "2 hours ago", type: "Post" },
@@ -39,10 +41,10 @@ export default function SeekerSettings() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 min-w-0">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage your profile, preferences, and activity.</p>
-      </div>
+      <DashboardPageHeader
+        title="Settings"
+        description="Manage your profile, search preferences, notifications, and security."
+      />
 
       <Card className="border border-border/60 shadow-sm">
         <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-6">
@@ -66,7 +68,7 @@ export default function SeekerSettings() {
             <p className="font-semibold text-foreground truncate">Tenant User</p>
             <p className="text-sm text-muted-foreground truncate">tenant@dwello.ng</p>
           </div>
-          <Badge className="bg-primary/10 text-primary border-primary/20 shrink-0" variant="outline">Tenant</Badge>
+          <DashboardStatusBadge tone="info">Tenant</DashboardStatusBadge>
         </CardContent>
       </Card>
 
@@ -81,11 +83,7 @@ export default function SeekerSettings() {
 
         {/* General */}
         <TabsContent value="general">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Profile Information</CardTitle></div>
-              <CardDescription>Update your personal details</CardDescription>
-            </CardHeader>
+          <DashboardSettingsSection title="Profile Information" description="Update the personal details tied to your tenant account.">
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Full Name</label><Input defaultValue="Tenant User" /></div>
@@ -97,93 +95,74 @@ export default function SeekerSettings() {
                 <Button>Save Changes</Button>
               </div>
             </CardContent>
-          </Card>
+          </DashboardSettingsSection>
         </TabsContent>
 
         {/* Preferences */}
         <TabsContent value="preferences">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Search Preferences</CardTitle></div>
-              <CardDescription>Customize how you receive property matches</CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/60">
-              <div className="flex items-center justify-between gap-3 py-4 first:pt-0">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">Auto-match new listings</p><p className="text-xs text-muted-foreground">Receive offers from new listings matching your needs</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">Show short-let results</p><p className="text-xs text-muted-foreground">Include short-let properties in search results</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4 last:pb-0">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">Verified providers only</p><p className="text-xs text-muted-foreground">Only show offers from verified agents/landlords</p></div>
-                <Switch className="shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection title="Search Preferences" description="Customize how property matches and discovery behave.">
+            <DashboardSettingsRow
+              label="Auto-match new listings"
+              description="Receive offers from new listings matching your needs."
+              control={<Switch defaultChecked />}
+            />
+            <DashboardSettingsRow
+              label="Show short-let results"
+              description="Include short-let properties in search results."
+              control={<Switch defaultChecked />}
+            />
+            <DashboardSettingsRow
+              label="Verified providers only"
+              description="Only show offers from verified agents and landlords."
+              control={<Switch />}
+            />
+          </DashboardSettingsSection>
         </TabsContent>
 
         {/* Notifications */}
         <TabsContent value="notifications">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Bell className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Notification Preferences</CardTitle></div>
-              <CardDescription>Choose what alerts you receive</CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/60">
-              <div className="flex items-center justify-between gap-3 py-4 first:pt-0">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">New offer alerts</p><p className="text-xs text-muted-foreground">Notify when providers send you offers</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">Booking updates</p><p className="text-xs text-muted-foreground">Escrow status and booking confirmations</p></div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-3 py-4 last:pb-0">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">Weekly property digest</p><p className="text-xs text-muted-foreground">Curated listings based on your preferences</p></div>
-                <Switch className="shrink-0" />
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection title="Notification Preferences" description="Choose which alerts should reach you across offers, bookings, and discovery.">
+            <DashboardSettingsRow
+              label="New offer alerts"
+              description="Notify when providers send you offers."
+              control={<Switch defaultChecked />}
+            />
+            <DashboardSettingsRow
+              label="Booking updates"
+              description="Escrow status and booking confirmations."
+              control={<Switch defaultChecked />}
+            />
+            <DashboardSettingsRow
+              label="Weekly property digest"
+              description="Curated listings based on your preferences."
+              control={<Switch />}
+            />
+          </DashboardSettingsSection>
         </TabsContent>
 
         {/* Security */}
         <TabsContent value="security" className="space-y-4">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Security</CardTitle></div>
-              <CardDescription>Manage your account security</CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/60">
-              <div className="flex items-center justify-between gap-2 py-4 first:pt-0">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0"><KeyRound className="h-4 w-4 text-primary" /></div>
-                  <div className="min-w-0"><p className="font-medium text-sm text-foreground">Change Password</p><p className="text-xs text-muted-foreground">Last changed 14 days ago</p></div>
-                </div>
-                <Button variant="outline" size="sm" className="shrink-0">Update</Button>
-              </div>
-              <div className="flex items-center justify-between gap-2 py-4 last:pb-0">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0"><Shield className="h-4 w-4 text-primary" /></div>
-                  <div className="min-w-0"><p className="font-medium text-sm text-foreground">Two-Factor Auth</p><p className="text-xs text-muted-foreground">Secure your account with 2FA</p></div>
-                </div>
-                <Button variant="outline" size="sm" className="shrink-0">Enable</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection title="Security" description="Manage the controls that protect your account and sign-in activity.">
+            <DashboardSettingsRow
+              label="Change Password"
+              description="Last changed 14 days ago."
+              control={<Button variant="outline" size="sm">Update</Button>}
+            />
+            <DashboardSettingsRow
+              label="Two-Factor Auth"
+              description="Secure your account with 2FA."
+              control={<Button variant="outline" size="sm">Enable</Button>}
+            />
+          </DashboardSettingsSection>
 
-          <Card className="border border-destructive/30 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Trash2 className="h-4 w-4 text-destructive" /><CardTitle className="text-base text-destructive">Danger Zone</CardTitle></div>
-            </CardHeader>
+          <DashboardSettingsSection title="Danger Zone" description="These actions are permanent and remove your tenant history." className="border-destructive/30">
             <CardContent>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5 gap-3">
                 <div className="min-w-0"><p className="font-medium text-sm text-foreground">Delete Account</p><p className="text-xs text-muted-foreground">Permanently delete your account and all data.</p></div>
                 <Button variant="destructive" size="sm" className="shrink-0">Delete Account</Button>
               </div>
             </CardContent>
-          </Card>
+          </DashboardSettingsSection>
         </TabsContent>
 
         {/* Activity - Mobile-friendly cards */}

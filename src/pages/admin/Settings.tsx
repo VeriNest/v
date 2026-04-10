@@ -1,18 +1,29 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  User, Bell, Shield, Globe, Trash2, KeyRound, Mail, Activity, Camera,
-  CreditCard, Palette, Database, Zap, Users, Clock, FileText, Lock
-} from "lucide-react";
 import { useRef } from "react";
-import { useAvatar } from "@/contexts/AvatarContext";
+
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { DashboardSettingsSection, DashboardSettingsRow } from "@/components/dashboard/DashboardSettingsSection";
+import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { useAvatar } from "@/contexts/AvatarContext";
+import {
+  Activity,
+  Bell,
+  Camera,
+  CreditCard,
+  FileText,
+  Globe,
+  Shield,
+  Trash2,
+  User,
+  Users,
+} from "lucide-react";
 
 const activityLog = [
   { action: "Approved property listing P-003", time: "2 hours ago", type: "Property" },
@@ -24,12 +35,12 @@ const activityLog = [
   { action: "Updated escrow settlement rules", time: "4 days ago", type: "Settings" },
 ];
 
-const typeStyles: Record<string, string> = {
-  Property: "bg-primary/10 text-primary border-primary/20",
-  Moderation: "bg-destructive/10 text-destructive border-destructive/20",
-  Dispute: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  Settings: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  Report: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+const typeTone: Record<string, "info" | "danger" | "warning" | "success" | "neutral"> = {
+  Property: "info",
+  Moderation: "danger",
+  Dispute: "warning",
+  Settings: "neutral",
+  Report: "success",
 };
 
 const adminTeam = [
@@ -38,10 +49,10 @@ const adminTeam = [
   { name: "Chidi Eze", email: "chidi@dwello.ng", role: "Support", status: "Inactive", initials: "CE" },
 ];
 
-const roleColors: Record<string, string> = {
-  "Super Admin": "bg-primary/10 text-primary border-primary/20",
-  Moderator: "bg-blue-50 text-blue-600 border-blue-200",
-  Support: "bg-emerald-50 text-emerald-600 border-emerald-200",
+const roleTone: Record<string, "info" | "success" | "neutral"> = {
+  "Super Admin": "info",
+  Moderator: "success",
+  Support: "neutral",
 };
 
 export default function AdminSettings() {
@@ -57,80 +68,87 @@ export default function AdminSettings() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 min-w-0">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Admin Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage your account, platform configuration, and team access.</p>
-      </div>
+    <div className="mx-auto min-w-0 max-w-5xl space-y-6">
+      <DashboardPageHeader
+        title="Admin Settings"
+        description="Manage your account, platform configuration, payment rules, and team access."
+      />
 
-      {/* Profile Card */}
       <Card className="border border-border/60 shadow-sm">
-        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-6">
-          <div className="relative group shrink-0">
-            <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-primary/20">
+        <CardContent className="flex flex-col items-start gap-4 pt-6 sm:flex-row sm:items-center">
+          <div className="group relative shrink-0">
+            <Avatar className="h-14 w-14 border-2 border-primary/20 sm:h-16 sm:w-16">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
               ) : (
-                <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">AD</AvatarFallback>
+                <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">AD</AvatarFallback>
               )}
             </Avatar>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 cursor-pointer"
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50"
             >
               <Camera className="h-4 w-4 text-background" />
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground truncate">Admin User</p>
-            <p className="text-sm text-muted-foreground truncate">admin@dwello.ng</p>
+
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold text-foreground">Admin User</p>
+            <p className="truncate text-sm text-muted-foreground">admin@dwello.ng</p>
           </div>
-          <Badge className="bg-primary/10 text-primary border-primary/20 shrink-0" variant="outline">Super Admin</Badge>
+
+          <DashboardStatusBadge tone="info">Super Admin</DashboardStatusBadge>
         </CardContent>
       </Card>
 
       <Tabs defaultValue="general" className="space-y-4">
-        <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
-          <TabsTrigger value="general" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1">
-            <User className="h-3.5 w-3.5 hidden sm:inline" /> General
+        <TabsList className="h-auto flex-wrap bg-muted/50 p-1">
+          <TabsTrigger value="general" className="gap-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm sm:text-sm">
+            <User className="hidden h-3.5 w-3.5 sm:inline" /> General
           </TabsTrigger>
-          <TabsTrigger value="platform" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1">
-            <Globe className="h-3.5 w-3.5 hidden sm:inline" /> Platform
+          <TabsTrigger value="platform" className="gap-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm sm:text-sm">
+            <Globe className="hidden h-3.5 w-3.5 sm:inline" /> Platform
           </TabsTrigger>
-          <TabsTrigger value="payments" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1">
-            <CreditCard className="h-3.5 w-3.5 hidden sm:inline" /> Payments
+          <TabsTrigger value="payments" className="gap-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm sm:text-sm">
+            <CreditCard className="hidden h-3.5 w-3.5 sm:inline" /> Payments
           </TabsTrigger>
-          <TabsTrigger value="team" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1">
-            <Users className="h-3.5 w-3.5 hidden sm:inline" /> Team
+          <TabsTrigger value="team" className="gap-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm sm:text-sm">
+            <Users className="hidden h-3.5 w-3.5 sm:inline" /> Team
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1">
-            <Bell className="h-3.5 w-3.5 hidden sm:inline" /> Alerts
+          <TabsTrigger value="notifications" className="gap-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm sm:text-sm">
+            <Bell className="hidden h-3.5 w-3.5 sm:inline" /> Alerts
           </TabsTrigger>
-          <TabsTrigger value="security" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1">
-            <Shield className="h-3.5 w-3.5 hidden sm:inline" /> Security
+          <TabsTrigger value="security" className="gap-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm sm:text-sm">
+            <Shield className="hidden h-3.5 w-3.5 sm:inline" /> Security
           </TabsTrigger>
-          <TabsTrigger value="activity" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1">
-            <Activity className="h-3.5 w-3.5 hidden sm:inline" /> Activity
+          <TabsTrigger value="activity" className="gap-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm sm:text-sm">
+            <Activity className="hidden h-3.5 w-3.5 sm:inline" /> Activity
           </TabsTrigger>
         </TabsList>
 
-        {/* General */}
         <TabsContent value="general">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Profile Information</CardTitle></div>
-              <CardDescription>Your admin account details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Full Name</label><Input defaultValue="Admin User" /></div>
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Email</label><Input defaultValue="admin@dwello.ng" /></div>
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Phone</label><Input defaultValue="+234 801 234 5678" /></div>
+          <DashboardSettingsSection title="Profile Information" description="Update your admin identity and regional preferences.">
+            <div className="space-y-4 px-6 pb-6">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground">Full Name</label>
+                  <Input defaultValue="Admin User" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground">Email</label>
+                  <Input defaultValue="admin@dwello.ng" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground">Phone</label>
+                  <Input defaultValue="+234 801 234 5678" />
+                </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">Timezone</label>
                   <Select defaultValue="wat">
-                    <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-10 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="wat">WAT (UTC+1)</SelectItem>
                       <SelectItem value="gmt">GMT (UTC+0)</SelectItem>
@@ -139,137 +157,191 @@ export default function AdminSettings() {
                   </Select>
                 </div>
               </div>
-              <div className="flex justify-end pt-2"><Button>Save Changes</Button></div>
-            </CardContent>
-          </Card>
+              <div className="flex justify-end pt-2">
+                <Button>Save Changes</Button>
+              </div>
+            </div>
+          </DashboardSettingsSection>
         </TabsContent>
 
-        {/* Platform */}
         <TabsContent value="platform" className="space-y-4">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Globe className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Platform Configuration</CardTitle></div>
-              <CardDescription>Configure platform-wide rules and policies</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="divide-y divide-border/60">
-                {[
-                  { title: "Auto-approve verified agents", desc: "Automatically approve listings from verified agents", checked: false },
-                  { title: "Escrow enforcement", desc: "Require all transactions to go through escrow", checked: true },
-                  { title: "KYC verification required", desc: "Require KYC before providers can receive payouts", checked: true },
-                  { title: "Maintenance mode", desc: "Temporarily disable the platform for maintenance", checked: false },
-                  { title: "Allow guest browsing", desc: "Let unregistered users browse property listings", checked: true },
-                  { title: "Review before publish", desc: "Manually review all new listings before they go live", checked: true },
-                ].map((item) => (
-                  <div key={item.title} className="flex items-center justify-between gap-3 py-4 first:pt-0 last:pb-0">
-                    <div className="min-w-0"><p className="font-medium text-sm text-foreground">{item.title}</p><p className="text-xs text-muted-foreground">{item.desc}</p></div>
-                    <Switch defaultChecked={item.checked} className="shrink-0" />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection
+            title="Platform Configuration"
+            description="Control publishing rules, compliance requirements, and global marketplace behavior."
+          >
+            <DashboardSettingsRow
+              label="Auto-approve verified agents"
+              description="Automatically approve listings from verified agents."
+              control={<Switch className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Escrow enforcement"
+              description="Require all transactions to go through escrow."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="KYC verification required"
+              description="Require KYC before providers can receive payouts."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Maintenance mode"
+              description="Temporarily disable the platform for maintenance."
+              control={<Switch className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Allow guest browsing"
+              description="Let unregistered users browse property listings."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Review before publish"
+              description="Manually review all new listings before they go live."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+          </DashboardSettingsSection>
 
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Zap className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Operational Limits</CardTitle></div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                <div className="space-y-1.5"><label className="text-xs sm:text-sm font-medium text-foreground">Commission (%)</label><Input type="number" defaultValue="5" /></div>
-                <div className="space-y-1.5"><label className="text-xs sm:text-sm font-medium text-foreground">SLA (min)</label><Input type="number" defaultValue="60" /></div>
-                <div className="space-y-1.5"><label className="text-xs sm:text-sm font-medium text-foreground">Max Listings</label><Input type="number" defaultValue="50" /></div>
-                <div className="space-y-1.5"><label className="text-xs sm:text-sm font-medium text-foreground">Min Booking (₦)</label><Input type="number" defaultValue="10000" /></div>
-                <div className="space-y-1.5"><label className="text-xs sm:text-sm font-medium text-foreground">Escrow (days)</label><Input type="number" defaultValue="3" /></div>
-                <div className="space-y-1.5"><label className="text-xs sm:text-sm font-medium text-foreground">Dispute (days)</label><Input type="number" defaultValue="7" /></div>
+          <DashboardSettingsSection
+            title="Operational Limits"
+            description="Control commission, booking thresholds, escrow timing, and dispute windows."
+          >
+            <div className="px-6 pb-6">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-foreground sm:text-sm">Commission (%)</label>
+                  <Input type="number" defaultValue="5" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-foreground sm:text-sm">SLA (min)</label>
+                  <Input type="number" defaultValue="60" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-foreground sm:text-sm">Max Listings</label>
+                  <Input type="number" defaultValue="50" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-foreground sm:text-sm">Min Booking (NGN)</label>
+                  <Input type="number" defaultValue="10000" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-foreground sm:text-sm">Escrow (days)</label>
+                  <Input type="number" defaultValue="3" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-foreground sm:text-sm">Dispute (days)</label>
+                  <Input type="number" defaultValue="7" />
+                </div>
               </div>
-              <div className="flex justify-end pt-4"><Button>Save Configuration</Button></div>
-            </CardContent>
-          </Card>
+              <div className="flex justify-end pt-4">
+                <Button>Save Configuration</Button>
+              </div>
+            </div>
+          </DashboardSettingsSection>
         </TabsContent>
 
-        {/* Payments */}
         <TabsContent value="payments">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Payment Settings</CardTitle></div>
-              <CardDescription>Configure payment gateways and payout rules</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="divide-y divide-border/60">
-                {[
-                  { title: "Paystack Integration", desc: "Process payments via Paystack", checked: true },
-                  { title: "Flutterwave Fallback", desc: "Use Flutterwave as secondary processor", checked: false },
-                  { title: "Auto Payout", desc: "Auto send payouts after completion", checked: true },
-                  { title: "Instant Settlement", desc: "Instant payout for premium providers", checked: false },
-                ].map((item) => (
-                  <div key={item.title} className="flex items-center justify-between gap-3 py-4 first:pt-0 last:pb-0">
-                    <div className="min-w-0"><p className="font-medium text-sm text-foreground">{item.title}</p><p className="text-xs text-muted-foreground">{item.desc}</p></div>
-                    <Switch defaultChecked={item.checked} className="shrink-0" />
-                  </div>
-                ))}
+          <DashboardSettingsSection
+            title="Payment Settings"
+            description="Configure payment processors, settlement timing, and payout rules."
+          >
+            <DashboardSettingsRow
+              label="Paystack Integration"
+              description="Process payments via Paystack."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Flutterwave Fallback"
+              description="Use Flutterwave as a secondary processor."
+              control={<Switch className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Auto Payout"
+              description="Automatically send payouts after completion."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Instant Settlement"
+              description="Enable instant payout for premium providers."
+              control={<Switch className="shrink-0" />}
+            />
+            <div className="grid grid-cols-1 gap-4 px-6 pb-6 pt-2 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">Paystack Public Key</label>
+                <Input defaultValue="pk_live_hidden" type="password" />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Paystack Public Key</label><Input defaultValue="pk_live_••••••••••••" type="password" /></div>
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Paystack Secret Key</label><Input defaultValue="sk_live_••••••••••••" type="password" /></div>
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Payout Schedule</label>
-                  <Select defaultValue="daily">
-                    <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="instant">Instant</SelectItem>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="biweekly">Bi-weekly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Settlement Currency</label>
-                  <Select defaultValue="ngn">
-                    <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ngn">NGN (₦)</SelectItem>
-                      <SelectItem value="usd">USD ($)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">Paystack Secret Key</label>
+                <Input defaultValue="sk_live_hidden" type="password" />
               </div>
-              <div className="flex justify-end"><Button>Save Payment Settings</Button></div>
-            </CardContent>
-          </Card>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">Payout Schedule</label>
+                <Select defaultValue="daily">
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="instant">Instant</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">Settlement Currency</label>
+                <Select defaultValue="ngn">
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ngn">NGN</SelectItem>
+                    <SelectItem value="usd">USD</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex justify-end px-6 pb-6">
+              <Button>Save Payment Settings</Button>
+            </div>
+          </DashboardSettingsSection>
         </TabsContent>
 
-        {/* Team - Mobile cards, Desktop table */}
         <TabsContent value="team">
           <Card className="border border-border/60 shadow-sm">
             <CardHeader className="pb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div>
-                  <div className="flex items-center gap-2"><Users className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Admin Team</CardTitle></div>
-                  <CardDescription>Manage team members and their access levels</CardDescription>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-base">Admin Team</CardTitle>
+                  </div>
+                  <CardDescription>Manage team members and their access levels.</CardDescription>
                 </div>
-                <Button size="sm" className="gap-1.5 text-sm w-full sm:w-auto"><Users className="h-3.5 w-3.5" /> Invite Member</Button>
+                <Button size="sm" className="w-full gap-1.5 text-sm sm:w-auto">
+                  <Users className="h-3.5 w-3.5" /> Invite Member
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
-              {/* Mobile cards */}
-              <div className="sm:hidden space-y-3">
-                {adminTeam.map((m) => (
-                  <div key={m.email} className="p-3 rounded-lg border border-border/60 bg-secondary/30 space-y-3">
+              <div className="space-y-3 sm:hidden">
+                {adminTeam.map((member) => (
+                  <div key={member.email} className="space-y-3 rounded-lg border border-border/60 bg-secondary/30 p-3">
                     <div className="flex items-center gap-2.5">
-                      <Avatar className="h-8 w-8 border border-border/60 shrink-0">
-                        <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-medium">{m.initials}</AvatarFallback>
+                      <Avatar className="h-8 w-8 shrink-0 border border-border/60">
+                        <AvatarFallback className="bg-primary/10 text-[10px] font-medium text-primary">
+                          {member.initials}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-foreground truncate">{m.name}</p>
-                        <p className="text-[11px] text-muted-foreground truncate">{m.email}</p>
+                        <p className="truncate text-sm font-medium text-foreground">{member.name}</p>
+                        <p className="truncate text-[11px] text-muted-foreground">{member.email}</p>
                       </div>
-                      <span className={`inline-flex items-center gap-1 text-xs font-medium shrink-0 ${m.status === "Active" ? "text-emerald-600" : "text-muted-foreground"}`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${m.status === "Active" ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
-                        {m.status}
-                      </span>
+                      <DashboardStatusBadge tone={member.status === "Active" ? "success" : "neutral"}>
+                        {member.status}
+                      </DashboardStatusBadge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${roleColors[m.role]}`}>{m.role}</span>
+                      <DashboardStatusBadge tone={roleTone[member.role]}>{member.role}</DashboardStatusBadge>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="sm" className="h-7 text-xs">Edit</Button>
                         <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive">Remove</Button>
@@ -278,39 +350,40 @@ export default function AdminSettings() {
                   </div>
                 ))}
               </div>
-              {/* Desktop table */}
-              <div className="hidden sm:block -mx-6 px-6 overflow-x-auto">
+
+              <div className="hidden overflow-x-auto px-6 sm:-mx-6 sm:block">
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Member</TableHead>
                       <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Role</TableHead>
                       <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Status</TableHead>
-                      <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70 text-right">Actions</TableHead>
+                      <TableHead className="text-right text-xs uppercase tracking-wider text-muted-foreground/70">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {adminTeam.map((m) => (
-                      <TableRow key={m.email}>
+                    {adminTeam.map((member) => (
+                      <TableRow key={member.email}>
                         <TableCell>
                           <div className="flex items-center gap-2.5">
                             <Avatar className="h-8 w-8 border border-border/60">
-                              <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-medium">{m.initials}</AvatarFallback>
+                              <AvatarFallback className="bg-primary/10 text-[10px] font-medium text-primary">
+                                {member.initials}
+                              </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="text-sm font-medium text-foreground">{m.name}</p>
-                              <p className="text-[11px] text-muted-foreground">{m.email}</p>
+                              <p className="text-sm font-medium text-foreground">{member.name}</p>
+                              <p className="text-[11px] text-muted-foreground">{member.email}</p>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${roleColors[m.role]}`}>{m.role}</span>
+                          <DashboardStatusBadge tone={roleTone[member.role]}>{member.role}</DashboardStatusBadge>
                         </TableCell>
                         <TableCell>
-                          <span className={`inline-flex items-center gap-1 text-xs font-medium ${m.status === "Active" ? "text-emerald-600" : "text-muted-foreground"}`}>
-                            <span className={`h-1.5 w-1.5 rounded-full ${m.status === "Active" ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
-                            {m.status}
-                          </span>
+                          <DashboardStatusBadge tone={member.status === "Active" ? "success" : "neutral"}>
+                            {member.status}
+                          </DashboardStatusBadge>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="sm" className="h-7 text-xs">Edit</Button>
@@ -325,67 +398,66 @@ export default function AdminSettings() {
           </Card>
         </TabsContent>
 
-        {/* Notifications */}
         <TabsContent value="notifications">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Bell className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Notification Preferences</CardTitle></div>
-              <CardDescription>Choose what alerts you receive</CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/60">
-              {[
-                { title: "New dispute alerts", desc: "Get notified when new disputes are opened", checked: true },
-                { title: "Failed transaction alerts", desc: "Notify when transactions fail or get flagged", checked: true },
-                { title: "KYC submissions", desc: "Get notified when new KYC documents are submitted", checked: true },
-                { title: "Property reports", desc: "Alert when users report a listing", checked: true },
-                { title: "Weekly summary email", desc: "Receive a weekly platform performance digest", checked: false },
-                { title: "Monthly analytics report", desc: "Detailed monthly report sent to your email", checked: true },
-              ].map((item) => (
-                <div key={item.title} className="flex items-center justify-between gap-3 py-4 first:pt-0 last:pb-0">
-                  <div className="min-w-0"><p className="font-medium text-sm text-foreground">{item.title}</p><p className="text-xs text-muted-foreground">{item.desc}</p></div>
-                  <Switch defaultChecked={item.checked} className="shrink-0" />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection title="Notification Preferences" description="Choose the operational alerts that should reach the admin workspace.">
+            <DashboardSettingsRow
+              label="New dispute alerts"
+              description="Get notified when new disputes are opened."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Failed transaction alerts"
+              description="Notify when transactions fail or get flagged."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="KYC submissions"
+              description="Get notified when new KYC documents are submitted."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Property reports"
+              description="Alert when users report a listing."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Weekly summary email"
+              description="Receive a weekly platform performance digest."
+              control={<Switch className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Monthly analytics report"
+              description="Receive the detailed monthly operational report."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+          </DashboardSettingsSection>
         </TabsContent>
 
-        {/* Security */}
         <TabsContent value="security" className="space-y-4">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Shield className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Security</CardTitle></div>
-              <CardDescription>Manage your account security</CardDescription>
-            </CardHeader>
-            <CardContent className="divide-y divide-border/60">
-              <div className="flex items-center justify-between gap-2 py-4 first:pt-0">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0"><KeyRound className="h-4 w-4 text-primary" /></div>
-                  <div className="min-w-0"><p className="font-medium text-sm text-foreground">Change Password</p><p className="text-xs text-muted-foreground">Last changed 30 days ago</p></div>
-                </div>
-                <Button variant="outline" size="sm" className="shrink-0">Update</Button>
-              </div>
-              <div className="flex items-center justify-between gap-2 py-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0"><Shield className="h-4 w-4 text-primary" /></div>
-                  <div className="min-w-0"><p className="font-medium text-sm text-foreground">Two-Factor Auth</p><p className="text-xs text-muted-foreground">Add an extra layer of security</p></div>
-                </div>
-                <Button variant="outline" size="sm" className="shrink-0">Enable</Button>
-              </div>
-              <div className="flex items-center justify-between gap-2 py-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0"><Mail className="h-4 w-4 text-primary" /></div>
-                  <div className="min-w-0"><p className="font-medium text-sm text-foreground">Login Notifications</p><p className="text-xs text-muted-foreground">Get notified of new login sessions</p></div>
-                </div>
-                <Switch defaultChecked className="shrink-0" />
-              </div>
-              <div className="flex items-center justify-between gap-2 py-4 last:pb-0">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0"><Lock className="h-4 w-4 text-primary" /></div>
-                  <div className="min-w-0"><p className="font-medium text-sm text-foreground">Session Timeout</p><p className="text-xs text-muted-foreground">Auto-logout after inactivity</p></div>
-                </div>
+          <DashboardSettingsSection title="Security" description="Protect admin access, sessions, and high-impact platform controls.">
+            <DashboardSettingsRow
+              label="Change Password"
+              description="Last changed 30 days ago."
+              control={<Button variant="outline" size="sm" className="shrink-0">Update</Button>}
+            />
+            <DashboardSettingsRow
+              label="Two-Factor Authentication"
+              description="Add an extra verification step for sign-in."
+              control={<Button variant="outline" size="sm" className="shrink-0">Enable</Button>}
+            />
+            <DashboardSettingsRow
+              label="Login Notifications"
+              description="Get notified when a new device accesses the admin account."
+              control={<Switch defaultChecked className="shrink-0" />}
+            />
+            <DashboardSettingsRow
+              label="Session Timeout"
+              description="Auto-logout after inactivity."
+              control={
                 <Select defaultValue="30">
-                  <SelectTrigger className="w-[100px] sm:w-[120px] h-8 text-sm shrink-0"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-8 w-[100px] shrink-0 text-sm sm:w-[120px]">
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="15">15 minutes</SelectItem>
                     <SelectItem value="30">30 minutes</SelectItem>
@@ -393,49 +465,52 @@ export default function AdminSettings() {
                     <SelectItem value="never">Never</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            </CardContent>
-          </Card>
+              }
+            />
+          </DashboardSettingsSection>
 
-          <Card className="border border-destructive/30 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Trash2 className="h-4 w-4 text-destructive" /><CardTitle className="text-base text-destructive">Danger Zone</CardTitle></div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5 gap-3">
-                <div className="min-w-0"><p className="font-medium text-sm text-foreground">Delete Account</p><p className="text-xs text-muted-foreground">Permanently delete your admin account. This action cannot be undone.</p></div>
-                <Button variant="destructive" size="sm" className="shrink-0">Delete Account</Button>
-              </div>
-            </CardContent>
-          </Card>
+          <DashboardSettingsSection
+            title="Danger Zone"
+            description="Take care with irreversible account actions."
+            className="border-destructive/30"
+          >
+            <DashboardSettingsRow
+              label="Delete Account"
+              description="Permanently delete your admin account. This action cannot be undone."
+              control={<Button variant="destructive" size="sm" className="shrink-0">Delete Account</Button>}
+            />
+          </DashboardSettingsSection>
         </TabsContent>
 
-        {/* Activity - Mobile cards, Desktop table */}
         <TabsContent value="activity">
           <Card className="border border-border/60 shadow-sm">
             <CardHeader className="pb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                 <div>
-                  <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Recent Activity</CardTitle></div>
-                  <CardDescription>Your recent actions on the platform</CardDescription>
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-base">Recent Activity</CardTitle>
+                  </div>
+                  <CardDescription>Your recent actions on the platform.</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" className="gap-1 text-xs w-full sm:w-auto"><FileText className="h-3 w-3" /> Export Log</Button>
+                <Button variant="outline" size="sm" className="w-full gap-1 text-xs sm:w-auto">
+                  <FileText className="h-3 w-3" /> Export Log
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
-              {/* Mobile cards */}
-              <div className="sm:hidden space-y-3">
-                {activityLog.map((item, i) => (
-                  <div key={i} className="p-3 rounded-lg border border-border/60 bg-secondary/30 space-y-2">
+              <div className="space-y-3 sm:hidden">
+                {activityLog.map((item) => (
+                  <div key={`${item.action}-${item.time}`} className="space-y-2 rounded-lg border border-border/60 bg-secondary/30 p-3">
                     <p className="text-sm font-medium text-foreground">{item.action}</p>
-                    <div className="flex items-center justify-between">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${typeStyles[item.type]}`}>{item.type}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <DashboardStatusBadge tone={typeTone[item.type]}>{item.type}</DashboardStatusBadge>
                       <span className="text-xs text-muted-foreground">{item.time}</span>
                     </div>
                   </div>
                 ))}
               </div>
-              {/* Desktop table */}
+
               <div className="hidden sm:block">
                 <Table>
                   <TableHeader>
@@ -446,10 +521,12 @@ export default function AdminSettings() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {activityLog.map((item, i) => (
-                      <TableRow key={i}>
+                    {activityLog.map((item) => (
+                      <TableRow key={`${item.action}-${item.time}`}>
                         <TableCell className="text-sm font-medium text-foreground">{item.action}</TableCell>
-                        <TableCell><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${typeStyles[item.type]}`}>{item.type}</span></TableCell>
+                        <TableCell>
+                          <DashboardStatusBadge tone={typeTone[item.type]}>{item.type}</DashboardStatusBadge>
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">{item.time}</TableCell>
                       </TableRow>
                     ))}

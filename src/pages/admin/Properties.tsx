@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchFocus } from "@/hooks/use-search-focus";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 
 export const properties = [
   { id: "P-001", title: "3 Bedroom Flat, Lekki Phase 1", agent: "Adebayo Johnson", price: "₦2,500,000/yr", location: "Lagos", status: "Active", date: "Mar 15, 2024" },
@@ -41,13 +43,11 @@ export default function Properties() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Properties</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage all property listings across the platform.</p>
-        </div>
-        <Button size="sm" className="gap-2 self-start"><Plus className="h-4 w-4" /> Add Property</Button>
-      </div>
+      <DashboardPageHeader
+        title="Properties"
+        description="Manage all property listings across the platform."
+        actions={<Button size="sm" className="gap-2"><Plus className="h-4 w-4" /> Add Property</Button>}
+      />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
@@ -67,11 +67,15 @@ export default function Properties() {
       </div>
 
       <Tabs defaultValue="all" className="space-y-4">
-        <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
-          <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
-          <TabsTrigger value="active" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Active ({active.length})</TabsTrigger>
-          <TabsTrigger value="pending" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Pending ({pending.length})</TabsTrigger>
-        </TabsList>
+        <DashboardControlRow
+          left={
+            <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
+              <TabsTrigger value="all" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">All ({filtered.length})</TabsTrigger>
+              <TabsTrigger value="active" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Active ({active.length})</TabsTrigger>
+              <TabsTrigger value="pending" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Pending ({pending.length})</TabsTrigger>
+            </TabsList>
+          }
+        />
 
         {["all", "active", "pending"].map((tab) => {
           const items = tab === "active" ? active : tab === "pending" ? pending : filtered;
@@ -79,19 +83,23 @@ export default function Properties() {
             <TabsContent key={tab} value={tab}>
               <Card className="border border-border/60 shadow-sm">
                 <CardHeader className="pb-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                      <CardTitle className="text-base">Properties</CardTitle>
-                      <CardDescription>Showing {items.length} of 2,847</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <div className="relative flex-1 sm:flex-none">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="Search..." className="pl-9 w-full sm:w-[220px] h-9" value={search} onChange={(event) => setSearch(event.target.value)} />
+                  <DashboardControlRow
+                    left={
+                      <div>
+                        <CardTitle className="text-base">Properties</CardTitle>
+                        <CardDescription>Showing {items.length} of 2,847</CardDescription>
                       </div>
-                      <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span></Button>
-                    </div>
-                  </div>
+                    }
+                    right={
+                      <>
+                        <div className="relative flex-1 lg:flex-none">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input placeholder="Search..." className="pl-9 w-full h-9 lg:w-[220px]" value={search} onChange={(event) => setSearch(event.target.value)} />
+                        </div>
+                        <Button variant="outline" size="sm" className="gap-1.5 shrink-0"><Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span></Button>
+                      </>
+                    }
+                  />
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
                   <div className="sm:hidden space-y-3">
