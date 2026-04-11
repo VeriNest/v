@@ -218,18 +218,18 @@ export default function LeadInbox() {
           }
           right={
             <>
-              <div className="relative flex-1 lg:flex-none">
+              <div className="relative min-w-0 flex-1 lg:w-auto lg:flex-none">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search lead, tenant or area..."
-                  className="h-9 w-full pl-9 lg:w-[220px]"
+                  className="h-9 w-full min-w-0 pl-9 lg:w-[220px]"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="h-9 w-full shrink-0 sm:w-[132px]">
-                  <SlidersHorizontal className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                <SelectTrigger className="h-9 w-[110px] shrink-0 px-2.5 sm:w-[132px]">
+                  <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5 text-muted-foreground" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -238,8 +238,8 @@ export default function LeadInbox() {
                   <SelectItem value="Short-let">Short-let</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
-                <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
+              <Button variant="outline" size="sm" className="h-9 shrink-0 px-3 sm:px-3.5">
+                <Filter className="h-3.5 w-3.5" /> <span className="sr-only sm:not-sr-only sm:ml-1.5">Filter</span>
               </Button>
             </>
           }
@@ -417,7 +417,6 @@ export default function LeadInbox() {
                       key={lead.id}
                       title={lead.need}
                       description={`${lead.tenant} | ${lead.location}`}
-                      action={<DashboardStatusBadge tone={getStatusTone(lead.status)}>{lead.status}</DashboardStatusBadge>}
                       contentClassName="space-y-4"
                       className="border-border/60"
                     >
@@ -431,9 +430,25 @@ export default function LeadInbox() {
                           <p className="mt-1 text-sm font-medium text-foreground">{lead.moveIn}</p>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
-                        <DashboardStatusBadge tone={getTypeTone(lead.type)}>{lead.type}</DashboardStatusBadge>
-                        <DashboardStatusBadge tone={getUrgencyTone(lead.urgency)}>{lead.urgency}</DashboardStatusBadge>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <DashboardStatusBadge
+                          tone={getStatusTone(lead.status)}
+                          className="px-2.5 py-1 text-[11px]"
+                        >
+                          {lead.status}
+                        </DashboardStatusBadge>
+                        <DashboardStatusBadge
+                          tone={getTypeTone(lead.type)}
+                          className="px-2.5 py-1 text-[11px]"
+                        >
+                          {lead.type}
+                        </DashboardStatusBadge>
+                        <DashboardStatusBadge
+                          tone={getUrgencyTone(lead.urgency)}
+                          className="px-2.5 py-1 text-[11px]"
+                        >
+                          {lead.urgency}
+                        </DashboardStatusBadge>
                         <span className="text-xs text-muted-foreground">{lead.posted}</span>
                       </div>
                       <p className="text-sm leading-6 text-muted-foreground">{lead.description}</p>

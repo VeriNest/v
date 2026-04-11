@@ -55,6 +55,14 @@ const stats = [
 
 export default function LandlordCalendar() {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const scheduledDates = [
+    new Date(2026, 3, 8),
+    new Date(2026, 3, 15),
+    new Date(2026, 3, 18),
+  ].filter((item) => item >= today);
+  const pendingDates = [new Date(2026, 3, 12)].filter((item) => item >= today);
 
   return (
     <div className="space-y-6">
@@ -187,7 +195,17 @@ export default function LandlordCalendar() {
             <div className="space-y-4">
               <Card className="border border-border/60 shadow-sm">
                 <CardContent className="p-3">
-                  <Calendar mode="single" selected={date} onSelect={setDate} className="w-full" />
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    modifiers={{ scheduled: scheduledDates, pending: pendingDates }}
+                    modifiersClassNames={{
+                      scheduled: "font-semibold text-primary",
+                      pending: "font-semibold text-primary",
+                    }}
+                    className="w-full"
+                  />
                 </CardContent>
               </Card>
 

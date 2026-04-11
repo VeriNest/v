@@ -109,12 +109,12 @@ export default function LandlordCollections() {
                   }
                   right={
                     <>
-                      <div className="relative flex-1 lg:flex-none">
+                      <div className="relative min-w-0 flex-1 lg:w-auto lg:flex-none">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="Search ledger..." className="h-9 w-full pl-9 lg:w-[220px]" value={search} onChange={(e) => setSearch(e.target.value)} />
+                        <Input placeholder="Search ledger..." className="h-9 w-full min-w-0 pl-9 lg:w-[220px]" value={search} onChange={(e) => setSearch(e.target.value)} />
                       </div>
-                      <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
-                        <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
+                      <Button variant="outline" size="sm" className="h-9 shrink-0 px-3 sm:px-3.5">
+                        <Filter className="h-3.5 w-3.5" /> <span className="sr-only sm:not-sr-only sm:ml-1.5">Filter</span>
                       </Button>
                     </>
                   }

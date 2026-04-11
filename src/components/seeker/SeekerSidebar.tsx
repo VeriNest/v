@@ -1,4 +1,4 @@
-import { Home, FileText, Inbox, CalendarCheck, Bookmark, Settings, ChevronLeft, LogOut, LayoutDashboard } from "lucide-react";
+import { Home, FileText, Inbox, CalendarCheck, Bookmark, Settings, ChevronLeft, LogOut, LayoutDashboard, Wallet } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -16,7 +16,8 @@ const mainItems = [
   { title: "Overview", url: "/seeker", icon: LayoutDashboard },
   { title: "Post a Need", url: "/seeker/post", icon: FileText },
   { title: "My Offers", url: "/seeker/offers", icon: Inbox },
-  { title: "Bookings", url: "/seeker/bookings", icon: CalendarCheck },
+  { title: "Bookings", url: "/seeker/bookings", icon: Wallet },
+  { title: "Viewing Schedule", url: "/seeker/viewings", icon: CalendarCheck },
   { title: "Saved", url: "/seeker/saved", icon: Bookmark },
 ];
 

@@ -43,6 +43,16 @@ const stats = [
 ];
 export default function ProviderCalendar() {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const scheduledDates = [
+    new Date(2026, 2, 22),
+    new Date(2026, 3, 2),
+  ].filter((item) => item >= today);
+  const pendingDates = [
+    new Date(2026, 2, 25),
+    new Date(2026, 2, 30),
+  ].filter((item) => item >= today);
 
   return (
     <div className="space-y-6">
@@ -175,6 +185,11 @@ export default function ProviderCalendar() {
                     mode="single"
                     selected={date}
                     onSelect={setDate}
+                    modifiers={{ scheduled: scheduledDates, pending: pendingDates }}
+                    modifiersClassNames={{
+                      scheduled: "font-semibold text-primary",
+                      pending: "font-semibold text-primary",
+                    }}
                     className="w-full"
                   />
                 </CardContent>

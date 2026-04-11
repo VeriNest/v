@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Inbox, CalendarCheck, MoreHorizontal, Bookmark, Settings, ChevronLeft, LogOut } from "lucide-react";
+import { LayoutDashboard, FileText, Inbox, CalendarCheck, MoreHorizontal, Bookmark, Settings, ChevronLeft, LogOut, Wallet } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -7,10 +7,11 @@ const primaryTabs = [
   { icon: LayoutDashboard, label: "Home", to: "/seeker", end: true },
   { icon: FileText, label: "Post Need", to: "/seeker/post" },
   { icon: Inbox, label: "Offers", to: "/seeker/offers" },
-  { icon: CalendarCheck, label: "Bookings", to: "/seeker/bookings" },
+  { icon: Wallet, label: "Bookings", to: "/seeker/bookings" },
 ];
 
 const moreTabs = [
+  { icon: CalendarCheck, label: "Viewings", to: "/seeker/viewings" },
   { icon: Bookmark, label: "Saved", to: "/seeker/saved" },
   { icon: Settings, label: "Settings", to: "/seeker/settings" },
   { icon: ChevronLeft, label: "Back to Site", to: "/" },

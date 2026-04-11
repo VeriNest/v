@@ -50,7 +50,7 @@ const matchData = [
 export const stats = [
   { title: "Active Posts", value: "3", change: "2 getting offers", icon: FileText, subtitle: "Needs published" },
   { title: "Offers Received", value: "12", change: "+5 today", icon: Inbox, subtitle: "Across all posts" },
-  { title: "Upcoming Viewings", value: "2", change: "This week", icon: CalendarCheck, subtitle: "Next: Tomorrow 2PM", href: "/seeker/bookings?section=viewings" },
+  { title: "Upcoming Viewings", value: "2", change: "This week", icon: CalendarCheck, subtitle: "Next: Tomorrow 2PM", href: "/seeker/viewings" },
   { title: "Match Rate", value: "87%", change: "Above avg", icon: TrendingUp, subtitle: "Offer relevance score" },
 ];
 

@@ -45,6 +45,7 @@ import SeekerDashboard from "./pages/seeker/Dashboard.tsx";
 import PostNeed from "./pages/seeker/PostNeed.tsx";
 import Offers from "./pages/seeker/Offers.tsx";
 import Bookings from "./pages/seeker/Bookings.tsx";
+import Viewings from "./pages/seeker/Viewings.tsx";
 import Saved from "./pages/seeker/Saved.tsx";
 import SeekerSettings from "./pages/seeker/Settings.tsx";
 
@@ -82,7 +83,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <ScrollToTop />
           <Routes>
           <Route element={<MarketingThemeScope />}>
@@ -120,6 +121,7 @@ const App = () => (
               <Route path="post" element={<PostNeed />} />
               <Route path="offers" element={<Offers />} />
               <Route path="bookings" element={<Bookings />} />
+              <Route path="viewings" element={<Viewings />} />
               <Route path="saved" element={<Saved />} />
               <Route path="settings" element={<SeekerSettings />} />
             </Route>

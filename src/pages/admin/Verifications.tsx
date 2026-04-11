@@ -84,12 +84,12 @@ export default function AdminVerifications() {
           }
           right={
             <>
-              <div className="relative flex-1 lg:flex-none">
+              <div className="relative min-w-0 flex-1 lg:w-auto lg:flex-none">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                <Input placeholder="Search..." className="pl-9 h-9 w-full text-sm lg:w-[200px]" />
+                <Input placeholder="Search..." className="pl-9 h-9 w-full min-w-0 text-sm lg:w-[200px]" />
               </div>
-              <Button variant="outline" size="sm" className="h-9 gap-1.5 text-sm shrink-0">
-                <Filter className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Filter</span>
+              <Button variant="outline" size="sm" className="h-9 shrink-0 px-3 text-sm sm:px-3.5">
+                <Filter className="h-3.5 w-3.5" /> <span className="sr-only sm:not-sr-only sm:ml-1.5">Filter</span>
               </Button>
             </>
           }
