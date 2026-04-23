@@ -1,7 +1,8 @@
-import { Home, Facebook, Instagram, Twitter, Linkedin, Youtube, MapPin, Phone, Mail } from "lucide-react";
+import { Facebook, Instagram, Twitter, Linkedin, Youtube, MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import MarketingShell from "@/components/layout/MarketingShell";
+import MarketingLogo from "@/components/MarketingLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -35,14 +36,13 @@ const Footer = () => {
       <MarketingShell>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           <div>
-            <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Home className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="text-lg font-bold text-white tracking-tight">Dwello</span>
-            </Link>
+            <MarketingLogo
+              className="mb-4"
+              textTone="light"
+              textClassName="text-lg"
+            />
             <p className="text-sm text-white/35 leading-relaxed mb-5">
-              Dwello helps seekers, agents, and landlords connect through verified listings, clearer pricing, and faster rental matching.
+              Verinest helps seekers, agents, and landlords connect through verified listings, clearer pricing, and faster rental matching.
             </p>
             <div className="flex items-center gap-3">
               {socialLinks.map(({ label, href, icon: Icon }) => (
@@ -86,8 +86,8 @@ const Footer = () => {
               </div>
               <div className="flex gap-3 items-center">
                 <Mail className="w-4 h-4 text-primary shrink-0" />
-                <a href="mailto:hello@dwello.com" className="text-sm text-white/35 hover:text-white/70 transition-colors">
-                  hello@dwello.com
+                <a href="mailto:hello@verinest.com" className="text-sm text-white/35 hover:text-white/70 transition-colors">
+                  hello@verinest.com
                 </a>
               </div>
             </div>
@@ -111,7 +111,7 @@ const Footer = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-white/[0.06]">
-          <p className="text-xs text-white/25">&copy; 2026 Dwello. All rights reserved.</p>
+          <p className="text-xs text-white/25">&copy; 2026 Verinest. All rights reserved.</p>
           <div className="flex items-center gap-6 mt-4 sm:mt-0">
             {legalLinks.map((link) => (
               <Link key={link.label} to={link.to} className="text-xs text-white/25 hover:text-white/50 transition-colors">

@@ -1,5 +1,7 @@
-import { Home, Inbox, Building2, CreditCard, Calendar, Settings, ChevronLeft, LogOut, LayoutDashboard } from "lucide-react";
+import { Home, Inbox, BarChart3, Wallet, Calendar, Settings, ChevronLeft, LogOut, LayoutDashboard, Building2, CreditCard } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
   Sidebar,
   SidebarContent,
@@ -11,18 +13,34 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { authApi, getStoredSession } from "@/lib/api";
 
 const mainItems = [
   { title: "Overview", url: "/provider", icon: LayoutDashboard },
   { title: "Lead Inbox", url: "/provider/inbox", icon: Inbox },
   { title: "My Listings", url: "/provider/listings", icon: Building2 },
   { title: "Payouts", url: "/provider/payouts", icon: CreditCard },
-  { title: "Calendar", url: "/provider/calendar", icon: Calendar },
+  { title: "Bookings", url: "/provider/calendar", icon: Calendar },
 ];
 
 export function ProviderSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      const session = getStoredSession();
+      if (session?.refresh_token) {
+        await authApi.logout(session.refresh_token);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Logout failed";
+      toast.error(message);
+    } finally {
+      navigate("/login");
+    }
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -31,7 +49,7 @@ export function ProviderSidebar() {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
             <Home className="w-4 h-4 text-primary-foreground" />
           </div>
-          {!collapsed && <span className="text-lg font-semibold text-foreground tracking-tight">Dwello</span>}
+          {!collapsed && <span className="text-lg font-semibold text-foreground tracking-tight">Verinest</span>}
         </div>
 
         <SidebarGroup className="pt-4 flex-1">
@@ -87,14 +105,9 @@ export function ProviderSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Sign Out">
-                <NavLink
-                  to="/login"
-                  className={`text-destructive/70 rounded-lg ${collapsed ? "justify-center px-0 mx-auto w-10 h-10" : "h-9 px-3"}`}
-                >
-                  <LogOut className={`h-4 w-4 shrink-0 ${collapsed ? "mr-0" : "mr-2.5"}`} />
-                  {!collapsed && <span className="text-sm">Sign Out</span>}
-                </NavLink>
+              <SidebarMenuButton tooltip="Sign Out" onClick={handleLogout}>
+                <LogOut className={`h-4 w-4 shrink-0 ${collapsed ? "mr-0" : "mr-2.5"}`} />
+                {!collapsed && <span className="text-sm text-destructive/70">Sign Out</span>}
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

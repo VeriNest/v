@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Search, MoreHorizontal, ShieldCheck, Clock, ShieldX, UserPlus, Filter } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,15 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { adminApi, titleCase } from "@/lib/api";
 
-export const users = [
-  { id: "U-001", name: "Adebayo Johnson", email: "adebayo@mail.com", role: "Agent", verification: "Verified", joined: "Jan 10, 2024", activity: "Active now" },
-  { id: "U-002", name: "Chioma Okafor", email: "chioma@mail.com", role: "Landlord", verification: "Pending", joined: "Feb 15, 2024", activity: "2h ago" },
-  { id: "U-003", name: "Emeka Nwankwo", email: "emeka@mail.com", role: "Tenant", verification: "Verified", joined: "Jan 22, 2024", activity: "1d ago" },
-  { id: "U-004", name: "Fatima Abdullahi", email: "fatima@mail.com", role: "Tenant", verification: "Unverified", joined: "Mar 01, 2024", activity: "5m ago" },
-  { id: "U-005", name: "Oluwaseun Bakare", email: "seun@mail.com", role: "Agent", verification: "Verified", joined: "Nov 05, 2023", activity: "3h ago" },
-  { id: "U-006", name: "Ibrahim Yusuf", email: "ibrahim@mail.com", role: "Landlord", verification: "Pending", joined: "Feb 28, 2024", activity: "Active now" },
-];
+export const users = [] as any[];
 
 const verificationStyles: Record<string, { icon: typeof ShieldCheck; color: string; bg: string }> = {
   Verified: { icon: ShieldCheck, color: "text-emerald-600 dark:text-emerald-300", bg: "bg-emerald-500/10 border border-emerald-500/20 dark:bg-emerald-500/15 dark:border-emerald-500/30" },
@@ -36,9 +31,56 @@ const avatarColors: Record<string, string> = {
   Tenant: "bg-muted text-muted-foreground",
 };
 
+function normalizeRole(value?: string | null) {
+  const role = titleCase(value ?? "seeker");
+  if (role === "Seeker" || role === "Unassigned") return "Tenant";
+  if (role === "Admin") return "Admin";
+  return role;
+}
+
+function normalizeVerification(value?: string | null, emailVerified?: boolean) {
+  const status = String(value ?? "").toLowerCase();
+  if (["verified", "approved"].includes(status)) return "Verified";
+  if (["submitted", "pending", "in_review"].includes(status)) return "Pending";
+  if (emailVerified) return "Verified";
+  return "Unverified";
+}
+
+function verificationStyleFor(value: string) {
+  return verificationStyles[value] ?? verificationStyles.Unverified;
+}
+
+function roleStyleFor(value: string) {
+  return roleStyles[value] ?? "bg-muted text-muted-foreground border-border";
+}
+
+function avatarColorFor(value: string) {
+  return avatarColors[value] ?? "bg-muted text-muted-foreground";
+}
+
 export default function UsersPage() {
   useSearchFocus();
   const [search, setSearch] = useState("");
+  const { data = [] } = useQuery({ queryKey: ["/admin/users"], queryFn: () => adminApi.users() });
+  const users = useMemo(() => data.map((u: any) => {
+    const role = normalizeRole(u.role);
+    return {
+      id: u.id,
+      name: u.full_name ?? "User",
+      email: u.email ?? "",
+      avatarUrl: u.avatar_url ?? u.avatarUrl ?? null,
+      role,
+      verification: normalizeVerification(u.verification_status, u.email_verified),
+      joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : "",
+      activity: u.is_banned ? "Suspended" : "Active now",
+    };
+  }), [data]);
+  const stats = useMemo(() => ({
+    total: users.length,
+    verified: users.filter((item) => item.verification === "Verified").length,
+    pending: users.filter((item) => item.verification === "Pending").length,
+    suspended: users.filter((item) => item.activity === "Suspended").length,
+  }), [users]);
   const filtered = users.filter(u =>
     u.name.toLowerCase().includes(search.toLowerCase()) ||
     u.email.toLowerCase().includes(search.toLowerCase()) ||
@@ -55,10 +97,10 @@ export default function UsersPage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Total Users", value: "18,392", sub: "+312 this month", accent: "text-foreground" },
-          { label: "Verified", value: "14,208", sub: "77.2%", accent: "text-emerald-600" },
-          { label: "Pending KYC", value: "2,847", sub: "6 urgent", accent: "text-amber-600" },
-          { label: "Suspended", value: "142", sub: "3 new this week", accent: "text-destructive" },
+          { label: "Total Users", value: String(stats.total), sub: "Live total", accent: "text-foreground" },
+          { label: "Verified", value: String(stats.verified), sub: `${stats.total ? Math.round((stats.verified / stats.total) * 100) : 0}%`, accent: "text-emerald-600" },
+          { label: "Pending KYC", value: String(stats.pending), sub: "Needs review", accent: "text-amber-600" },
+          { label: "Suspended", value: String(stats.suspended), sub: "Banned accounts", accent: "text-destructive" },
         ].map((s) => (
           <Card key={s.label} className="border border-border/60 shadow-sm">
             <CardContent className="p-3 sm:p-4">
@@ -103,15 +145,17 @@ export default function UsersPage() {
                   {/* Mobile card list */}
                   <div className="sm:hidden space-y-3">
                     {items.map((u) => {
-                      const vStyle = verificationStyles[u.verification];
+                      const vStyle = verificationStyleFor(u.verification);
                       const VIcon = vStyle.icon;
                       return (
                         <div key={u.id} data-search-id={`admin-user-${u.id}`} className="flex items-start gap-3 p-3 rounded-lg border border-border/40 bg-background">
                           <div className="relative shrink-0">
                             <Avatar className="h-9 w-9 border border-border/60">
-                              <AvatarFallback className={`text-xs font-medium ${avatarColors[u.role]}`}>
-                                {u.name.split(" ").map(n => n[0]).join("")}
-                              </AvatarFallback>
+                              {u.avatarUrl ? <img src={u.avatarUrl} alt={u.name} className="h-full w-full rounded-full object-cover" /> : (
+                                <AvatarFallback className={`text-xs font-medium ${avatarColorFor(u.role)}`}>
+                                  {u.name.split(" ").map(n => n[0]).join("")}
+                                </AvatarFallback>
+                              )}
                             </Avatar>
                             {u.activity === "Active now" && (
                               <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background" />
@@ -121,7 +165,7 @@ export default function UsersPage() {
                             <p className="font-medium text-sm text-foreground truncate">{u.name}</p>
                             <p className="text-xs text-muted-foreground truncate">{u.email}</p>
                             <div className="flex items-center gap-2 mt-2 flex-wrap">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${roleStyles[u.role]}`}>{u.role}</span>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${roleStyleFor(u.role)}`}>{u.role}</span>
                               <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${vStyle.bg} ${vStyle.color}`}>
                                 <VIcon className="h-3 w-3" />{u.verification}
                               </div>
@@ -149,7 +193,7 @@ export default function UsersPage() {
                       </thead>
                       <tbody>
                         {items.map((u) => {
-                          const vStyle = verificationStyles[u.verification];
+                          const vStyle = verificationStyleFor(u.verification);
                           const VIcon = vStyle.icon;
                           return (
                             <tr key={u.id} data-search-id={`admin-user-${u.id}`} className="border-b border-border/40">
@@ -157,9 +201,11 @@ export default function UsersPage() {
                                 <div className="flex items-center gap-3">
                                   <div className="relative">
                                     <Avatar className="h-9 w-9 border border-border/60">
-                                      <AvatarFallback className={`text-xs font-medium ${avatarColors[u.role]}`}>
-                                        {u.name.split(" ").map(n => n[0]).join("")}
-                                      </AvatarFallback>
+                                      {u.avatarUrl ? <img src={u.avatarUrl} alt={u.name} className="h-full w-full rounded-full object-cover" /> : (
+                                        <AvatarFallback className={`text-xs font-medium ${avatarColorFor(u.role)}`}>
+                                          {u.name.split(" ").map(n => n[0]).join("")}
+                                        </AvatarFallback>
+                                      )}
                                     </Avatar>
                                     {u.activity === "Active now" && (
                                       <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background" />
@@ -172,7 +218,7 @@ export default function UsersPage() {
                                 </div>
                               </td>
                               <td className="py-3 px-4">
-                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${roleStyles[u.role]}`}>{u.role}</span>
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${roleStyleFor(u.role)}`}>{u.role}</span>
                               </td>
                               <td className="py-3 px-4">
                                 <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${vStyle.bg} ${vStyle.color}`}>

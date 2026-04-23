@@ -5,11 +5,14 @@ import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bell, Building2, Camera, CreditCard, FileText, Shield, User, Wrench, Activity, Clock, ReceiptText, KeyRound, Trash2 } from "lucide-react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardSettingsSection, DashboardSettingsRow } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { authApi, clearStoredSession } from "@/lib/api";
 
 const activityLog = [
   { action: "Recorded rent payment for Palm Residence A1", time: "1 hour ago", type: "Collection" },
@@ -27,14 +30,35 @@ const activityStyles: Record<string, string> = {
 };
 
 export default function LandlordSettings() {
+  const navigate = useNavigate();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
       setAvatarUrl(url);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("Are you sure you want to permanently delete your account? This action cannot be undone.")) {
+      return;
+    }
+
+    setDeletingAccount(true);
+    try {
+      await authApi.deleteAccount();
+      toast.success("Account deleted successfully");
+      clearStoredSession();
+      navigate("/");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to delete account";
+      toast.error(message);
+    } finally {
+      setDeletingAccount(false);
     }
   };
 
@@ -58,7 +82,7 @@ export default function LandlordSettings() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-foreground truncate">Landlord Account</p>
-            <p className="text-sm text-muted-foreground truncate">owner@dwello.ng</p>
+            <p className="text-sm text-muted-foreground truncate">owner@verinest.ng</p>
           </div>
           <div className="flex shrink-0 flex-wrap justify-center gap-1.5 sm:justify-end">
             <DashboardStatusBadge tone="info">Landlord</DashboardStatusBadge>
@@ -86,7 +110,7 @@ export default function LandlordSettings() {
             <div className="space-y-4 px-6 pb-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Full Name</label><Input defaultValue="Landlord Account" /></div>
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Email</label><Input defaultValue="owner@dwello.ng" /></div>
+                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Email</label><Input defaultValue="owner@verinest.ng" /></div>
                 <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Phone</label><Input defaultValue="+234 803 456 7890" /></div>
                 <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Primary City</label><Input defaultValue="Lagos" /></div>
               </div>
@@ -242,7 +266,7 @@ export default function LandlordSettings() {
             <DashboardSettingsRow
               label="Delete Account"
               description="Permanently remove your landlord account, portfolio history, and rent collection records."
-              control={<Button variant="destructive" size="sm" className="shrink-0">Delete Account</Button>}
+              control={<Button variant="destructive" size="sm" className="shrink-0" onClick={handleDeleteAccount} disabled={deletingAccount}>{deletingAccount ? "Deleting..." : "Delete Account"}</Button>}
             />
           </DashboardSettingsSection>
         </TabsContent>

@@ -148,7 +148,7 @@ const Rent = () => {
                 <span className="italic text-primary">less wasted time</span>
               </h1>
               <p className="mb-8 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-                Dwello helps seekers move from search to shortlist faster with
+                Verinest helps seekers move from search to shortlist faster with
                 verified listings, clearer pricing, and responses from the
                 right agents and landlords.
               </p>
@@ -377,7 +377,7 @@ const Rent = () => {
         <MarketingShell>
           <div className="mb-14 text-center">
             <p className="mb-4 font-mono text-xs font-medium uppercase tracking-[0.2em] text-primary">
-              Why Dwello
+              Why Verinest
             </p>
             <h2 className="mb-4 font-serif text-3xl text-foreground lg:text-4xl">
               A rental workflow built for the real market

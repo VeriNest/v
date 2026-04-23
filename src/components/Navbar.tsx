@@ -1,9 +1,13 @@
-import { Home, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import MarketingShell from "@/components/layout/MarketingShell";
+import { dashboardPathForRole, getStoredSession } from "@/lib/api";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAvatar } from "@/contexts/AvatarContext";
+import MarketingLogo from "@/components/MarketingLogo";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -16,6 +20,9 @@ const navLinks = [
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const session = getStoredSession();
+  const { avatarUrl } = useAvatar();
+  const dashboardPath = dashboardPathForRole(session?.user.role);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -33,12 +40,7 @@ const Navbar = () => {
       <MarketingShell className="px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-primary rounded-lg flex items-center justify-center">
-              <Home className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg sm:text-xl font-bold text-foreground tracking-tight">Dwello</span>
-          </Link>
+          <MarketingLogo textClassName="text-lg sm:text-[20px]" iconBoxClassName="sm:h-9 sm:w-9" iconClassName="sm:h-5 sm:w-5" />
 
           {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-8">
@@ -60,12 +62,23 @@ const Navbar = () => {
 
           {/* Desktop auth buttons */}
           <div className="hidden md:flex items-center gap-5">
-            <Link to="/login" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-              Sign In
-            </Link>
-            <Button asChild className="rounded-lg px-6 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium">
-              <Link to="/signup">Sign Up</Link>
-            </Button>
+            {session ? (
+              <Link to={dashboardPath} className="flex items-center gap-2">
+                <Avatar className="h-9 w-9 border border-border/60">
+                  {avatarUrl ? <img src={avatarUrl} alt="Profile" className="h-full w-full rounded-full object-cover" /> : <AvatarFallback className="bg-primary/10 text-primary">D</AvatarFallback>}
+                </Avatar>
+                <span className="text-sm font-medium text-foreground hover:text-primary transition-colors">Dashboard</span>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+                  Sign In
+                </Link>
+                <Button asChild className="rounded-lg px-6 py-2.5 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium">
+                  <Link to="/signup">Sign Up</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile hamburger button */}
@@ -98,15 +111,26 @@ const Navbar = () => {
               </Link>
             ))}
             <div className="border-t border-border/60 my-3" />
-            <Link
-              to="/login"
-              className="text-base py-3 px-4 rounded-lg text-foreground hover:bg-accent transition-colors"
-            >
-              Sign In
-            </Link>
-            <Button asChild className="mt-1 rounded-lg py-3 h-auto bg-primary text-primary-foreground hover:bg-primary/90 text-base font-medium">
-              <Link to="/signup">Sign Up</Link>
-            </Button>
+            {session ? (
+              <Link
+                to={dashboardPath}
+                className="text-base py-3 px-4 rounded-lg text-foreground hover:bg-accent transition-colors"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-base py-3 px-4 rounded-lg text-foreground hover:bg-accent transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Button asChild className="mt-1 rounded-lg py-3 h-auto bg-primary text-primary-foreground hover:bg-primary/90 text-base font-medium">
+                  <Link to="/signup">Sign Up</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}

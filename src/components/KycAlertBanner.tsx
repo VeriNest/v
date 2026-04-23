@@ -10,12 +10,12 @@ interface KycAlertBannerProps {
 export function KycAlertBanner({ variant }: KycAlertBannerProps) {
   const [dismissed, setDismissed] = useState(() => {
     if (variant === "seeker") {
-      return localStorage.getItem("dwello_kyc_banner_dismissed") === "true";
+      return localStorage.getItem("verinest_kyc_banner_dismissed") === "true";
     }
     return false;
   });
 
-  const kycStatus = localStorage.getItem("dwello_kyc_status");
+  const kycStatus = localStorage.getItem("verinest_kyc_status");
 
   if (kycStatus === "submitted" || dismissed) return null;
 
@@ -40,7 +40,7 @@ export function KycAlertBanner({ variant }: KycAlertBannerProps) {
 
   const handleDismiss = () => {
     if (variant === "seeker") {
-      localStorage.setItem("dwello_kyc_banner_dismissed", "true");
+      localStorage.setItem("verinest_kyc_banner_dismissed", "true");
     }
     setDismissed(true);
   };

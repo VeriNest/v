@@ -64,7 +64,7 @@ const missionPoints = [
   {
     icon: Headphones,
     title: "Operational Support",
-    desc: "Dwello is built to support viewings, responses, disputes, and day-to-day rental coordination, not just passive listing discovery.",
+    desc: "Verinest is built to support viewings, responses, disputes, and day-to-day rental coordination, not just passive listing discovery.",
   },
   {
     icon: Eye,
@@ -83,14 +83,14 @@ const About = () => {
           <div className="flex flex-col items-center gap-16 lg:flex-row">
             <div className="max-w-xl flex-1">
               <p className="mb-4 font-mono text-xs font-medium uppercase tracking-[0.2em] text-primary">
-                About Dwello
+                About Verinest
               </p>
               <h1 className="mb-5 font-serif text-4xl leading-[1.15] text-foreground lg:text-5xl">
                 Building a{" "}
                 <span className="italic text-primary">clearer rental marketplace</span>
               </h1>
               <p className="mb-8 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-                Dwello is designed to reduce friction between seekers, agents,
+                Verinest is designed to reduce friction between seekers, agents,
                 and landlords by making supply more visible, responses more
                 structured, and decisions easier to trust.
               </p>

@@ -11,7 +11,7 @@ const primaryTabs = [
 ];
 
 const moreTabs = [
-  { icon: Calendar, label: "Calendar", to: "/provider/calendar" },
+  { icon: Calendar, label: "Bookings", to: "/provider/calendar" },
   { icon: Settings, label: "Settings", to: "/provider/settings" },
   { icon: ChevronLeft, label: "Back to Site", to: "/" },
   { icon: LogOut, label: "Sign Out", to: "/login" },

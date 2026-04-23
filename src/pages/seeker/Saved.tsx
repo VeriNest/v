@@ -1,20 +1,38 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import { Heart, MapPin, Star, Bed, Bath, ExternalLink, Grid3x3, List, Search, Calendar } from "lucide-react";
 import { useSearchFocus } from "@/hooks/use-search-focus";
+import { formatCompactCurrency, getPendingPropertyRating, getPropertyImage, seekerApi } from "@/lib/api";
 
-export const saved = [
-  { id: 1, property: "3 Bed Flat, Lekki Phase 1", provider: "Adebayo Johnson", price: "N2,500,000/yr", location: "Lekki, Lagos", rating: 4.8, match: 95, beds: 3, baths: 2, image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop", savedDate: "Mar 15, 2025", views: 128 },
-  { id: 2, property: "2 Bed Serviced, Victoria Island", provider: "ShortStay NG", price: "N45,000/night", location: "VI, Lagos", rating: 4.9, match: 92, beds: 2, baths: 2, image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop", savedDate: "Mar 12, 2025", views: 87 },
-  { id: 3, property: "Modern Studio, Garki Area 11", provider: "Abuja Rentals", price: "N850,000/yr", location: "Garki, Abuja", rating: 4.6, match: 84, beds: 1, baths: 1, image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop", savedDate: "Mar 10, 2025", views: 54 },
-  { id: 4, property: "Penthouse, Banana Island", provider: "Premium Estates", price: "N12,000,000/yr", location: "Banana Island, Lagos", rating: 5.0, match: 78, beds: 5, baths: 4, image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=600&h=400&fit=crop", savedDate: "Mar 8, 2025", views: 203 },
-];
+export const saved = [] as any[];
 
 export default function Saved() {
   useSearchFocus();
+  const navigate = useNavigate();
   const [view, setView] = useState<"grid" | "list">("grid");
   const [search, setSearch] = useState("");
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["/seeker/saved-properties"],
+    queryFn: () => seekerApi.listSaved(),
+  });
+  const saved = useMemo(() => data.map((item: any, index: number) => ({
+    id: item.property_id ?? item.propertyId ?? item.id ?? index + 1,
+    property: item.title ?? "Saved property",
+    provider: item.ownerName ?? item.agentName ?? "Provider",
+    price: `${formatCompactCurrency(Number(item.price ?? 0))}/yr`,
+    location: item.location ?? "Unknown location",
+    rating: getPendingPropertyRating(item),
+    match: 80 + (index % 20),
+    beds: Number((item.title ?? "").match(/(\d+)/)?.[1] ?? 2),
+    baths: Number((item.title ?? "").match(/(\d+)/)?.[1] ?? 2),
+    image: getPropertyImage(item.images, index),
+    savedDate: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "Saved",
+    views: Number(item.viewCount ?? item.view_count ?? 0),
+  })), [data]);
   const filtered = saved.filter(
     (item) =>
       item.property.toLowerCase().includes(search.toLowerCase()) ||
@@ -41,10 +59,25 @@ export default function Saved() {
         </div>
       </div>
 
-      {view === "grid" ? (
+      {isLoading ? (
+        <BackendLoadingIndicator label="Loading saved properties..." className="min-h-[24rem]" />
+      ) : view === "grid" ? (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((item) => (
-            <div key={item.id} data-search-id={`seeker-saved-${item.id}`} className="relative overflow-hidden rounded-2xl border border-border/60 shadow-sm">
+            <div
+              key={item.id}
+              data-search-id={`seeker-saved-${item.id}`}
+              className="relative overflow-hidden rounded-2xl border border-border/60 shadow-sm text-left"
+              onClick={() => navigate(`/properties/${item.id}`)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  navigate(`/properties/${item.id}`);
+                }
+              }}
+              tabIndex={0}
+              role="button"
+            >
               <img src={item.image} alt={item.property} className="h-[320px] w-full object-cover" />
 
               <button className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-background/90 shadow-sm backdrop-blur-sm">
@@ -118,7 +151,7 @@ export default function Saved() {
                 <div className="flex shrink-0 items-center gap-2 sm:flex-col sm:items-end">
                   <p className="text-sm font-bold text-foreground">{item.price}</p>
                   <p className="text-[11px] text-muted-foreground">{item.savedDate}</p>
-                  <Button size="sm" variant="outline" className="h-7 gap-1 text-xs"><ExternalLink className="h-3 w-3" /> View</Button>
+                  <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" onClick={() => navigate(`/properties/${item.id}`)}><ExternalLink className="h-3 w-3" /> View</Button>
                 </div>
               </div>
             </div>

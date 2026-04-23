@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Activity,
   AlertTriangle,
@@ -12,6 +13,9 @@ import {
 import { Link } from "react-router-dom";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
+export const stats = [] as any[];
+export const recentActivity = [] as any[];
+
 import {
   DashboardCustomizerToolbar,
   DashboardEditableWidget,
@@ -19,6 +23,7 @@ import {
   DashboardWidgetMenu,
   type DashboardWidgetMenuControls,
 } from "@/components/dashboard/DashboardCustomizer";
+import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import {
   DASHBOARD_OVERVIEW_CHART_HEIGHT_CLASS,
   DASHBOARD_OVERVIEW_COMPACT_CONTENT_CLASS,
@@ -30,48 +35,13 @@ import { DashboardSectionAction } from "@/components/dashboard/DashboardSectionA
 import { DashboardSectionCard } from "@/components/dashboard/DashboardSectionCard";
 import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
-import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useDashboardLayout, type DashboardWidgetSize } from "@/hooks/use-dashboard-layout";
 import { useDashboardLoadingSnapshot } from "@/hooks/use-dashboard-loading-snapshot";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { toSearchId } from "@/lib/search-id";
-
-const revenueData = [
-  { month: "Jan", revenue: 18, users: 12 },
-  { month: "Feb", revenue: 22, users: 15 },
-  { month: "Mar", revenue: 28, users: 18 },
-  { month: "Apr", revenue: 32, users: 22 },
-  { month: "May", revenue: 38, users: 28 },
-  { month: "Jun", revenue: 45, users: 32 },
-  { month: "Jul", revenue: 42, users: 35 },
-];
-
-const propertyData = [
-  { day: "Mon", listed: 12, sold: 8 },
-  { day: "Tue", listed: 18, sold: 12 },
-  { day: "Wed", listed: 15, sold: 10 },
-  { day: "Thu", listed: 22, sold: 16 },
-  { day: "Fri", listed: 28, sold: 20 },
-  { day: "Sat", listed: 20, sold: 14 },
-  { day: "Sun", listed: 10, sold: 6 },
-];
-
-export const stats = [
-  { title: "Total Properties", value: "2,847", change: "142 new this month", icon: Building2, subtitle: "Across all listings" },
-  { title: "Active Users", value: "18,392", change: "1,247 online now", icon: Users, subtitle: "Registered accounts" },
-  { title: "Monthly Revenue", value: "₦45.2M", change: "+23.1% vs last month", icon: CreditCard, subtitle: "Platform earnings" },
-  { title: "Open Disputes", value: "24", change: "6 resolved today", icon: AlertTriangle, subtitle: "Pending resolution" },
-];
-
-export const recentActivity = [
-  { id: 1, action: "New property listed", user: "Adebayo Johnson", time: "2m", avatar: "AJ", type: "property" },
-  { id: 2, action: "KYC verification submitted", user: "Chioma Okafor", time: "15m", avatar: "CO", type: "user" },
-  { id: 3, action: "Payment of ₦2.5M completed", user: "Emeka Nwankwo", time: "32m", avatar: "EN", type: "payment" },
-  { id: 4, action: "Dispute opened - rent issue", user: "Fatima Abdullahi", time: "1h", avatar: "FA", type: "dispute" },
-  { id: 5, action: "Property approved and published", user: "Admin", time: "2h", avatar: "AD", type: "property" },
-];
+import { adminApi, formatCompactCurrency } from "@/lib/api";
 
 const typeStyles: Record<string, string> = {
   property: "bg-primary/10 text-primary",
@@ -100,7 +70,16 @@ export default function Dashboard() {
   useSearchFocus();
   const [editing, setEditing] = useState(false);
   const loading = useDashboardLoadingSnapshot();
-
+  const { data, isLoading } = useQuery({ queryKey: ["/admin/metrics/overview"], queryFn: () => adminApi.overview() });
+  const revenueData = [];
+  const propertyData = [];
+  const stats = [
+    { title: "Total Properties", value: String(data?.totalProperties ?? 0), change: "Live", icon: Building2, subtitle: "Across all listings" },
+    { title: "Active Users", value: String(data?.activeUsers ?? 0), change: "Live", icon: Users, subtitle: "Registered accounts" },
+    { title: "Monthly Revenue", value: formatCompactCurrency(Number(data?.monthlyRevenue ?? 0)), change: "Current snapshot", icon: CreditCard, subtitle: "Platform earnings" },
+    { title: "Open Disputes", value: String(data?.openDisputes ?? 0), change: "Live", icon: AlertTriangle, subtitle: "Pending resolution" },
+  ];
+  const recentActivity = ((data?.activity as any[]) ?? []).slice(0, 5).map((item, index) => ({ id: index + 1, action: item.action ?? "Activity", user: item.email ?? item.user ?? "System", time: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "now", avatar: "AD", type: "property" }));
   const widgetDefinitions = useMemo<WidgetDefinition[]>(
     () => [
       {
@@ -283,7 +262,7 @@ export default function Dashboard() {
   );
 
   const { applyPreset, layout, move, moveTo, reset, resetItem, setSize, showWidget, toggleVisibility } = useDashboardLayout(
-    "dwello_dashboard_layout_admin",
+    "verinest_dashboard_layout_admin",
     widgetDefinitions.map((widget) => ({
       id: widget.id,
       size: widget.defaultSize,
@@ -312,7 +291,9 @@ export default function Dashboard() {
       : [];
   });
 
-  if (loading) return <DashboardSkeleton variant="admin" />;
+  if (loading || isLoading) {
+    return <BackendLoadingIndicator label="Loading dashboard..." className="min-h-[70vh]" />;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Building2,
   CalendarDays,
@@ -12,6 +13,10 @@ import {
 import { Link } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
+export const stats = [] as any[];
+export const recentLeads = [] as any[];
+export const topListings = [] as any[];
+
 import {
   DashboardCustomizerToolbar,
   DashboardEditableWidget,
@@ -19,6 +24,7 @@ import {
   DashboardWidgetMenu,
   type DashboardWidgetMenuControls,
 } from "@/components/dashboard/DashboardCustomizer";
+import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import {
   DASHBOARD_OVERVIEW_CHART_HEIGHT_CLASS,
@@ -30,7 +36,6 @@ import { DashboardSectionAction } from "@/components/dashboard/DashboardSectionA
 import { DashboardSectionCard } from "@/components/dashboard/DashboardSectionCard";
 import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
-import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { KycAlertBanner } from "@/components/KycAlertBanner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -38,36 +43,7 @@ import { useDashboardLayout, type DashboardWidgetSize } from "@/hooks/use-dashbo
 import { useDashboardLoadingSnapshot } from "@/hooks/use-dashboard-loading-snapshot";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { toSearchId } from "@/lib/search-id";
-
-const earningsData = [
-  { month: "Jan", earnings: 1.8 },
-  { month: "Feb", earnings: 2.2 },
-  { month: "Mar", earnings: 2.9 },
-  { month: "Apr", earnings: 3.4 },
-  { month: "May", earnings: 3.9 },
-  { month: "Jun", earnings: 4.2 },
-  { month: "Jul", earnings: 3.8 },
-];
-
-export const stats = [
-  { title: "New Leads", value: "8", change: "+3 today", icon: Inbox, subtitle: "Unresponded this week" },
-  { title: "Active Listings", value: "12", change: "2 pending", icon: Building2, subtitle: "Published properties" },
-  { title: "Pending Payouts", value: "NGN 4.2M", change: "3 in escrow", icon: CreditCard, subtitle: "Awaiting release" },
-  { title: "Response Rate", value: "94%", change: "Top 5%", icon: TrendingUp, subtitle: "Avg 8 min response" },
-];
-
-export const recentLeads = [
-  { id: 1, need: "3 Bed in Lekki, budget NGN 2.5M/yr", seeker: "Anonymous Tenant", posted: "15 min ago", urgent: true, initials: "AT" },
-  { id: 2, need: "Studio in Wuse 2, budget NGN 1.2M/yr", seeker: "Anonymous Tenant", posted: "1 hr ago", urgent: false, initials: "AT" },
-  { id: 3, need: "Short-let VI, 3 nights, NGN 50k/night", seeker: "Corporate Client", posted: "2 hrs ago", urgent: false, initials: "CC" },
-  { id: 4, need: "2 Bed serviced apt, Ikoyi NGN 3.5M/yr", seeker: "Anonymous Tenant", posted: "3 hrs ago", urgent: false, initials: "AT" },
-];
-
-export const topListings = [
-  { name: "3 Bed Flat, Lekki Phase 1", views: 234, inquiries: 18, rating: 4.8 },
-  { name: "Studio Apartment, Wuse 2", views: 189, inquiries: 12, rating: 4.6 },
-  { name: "4 Bed Duplex, Banana Island", views: 156, inquiries: 9, rating: 4.9 },
-];
+import { agentApi, formatCompactCurrency, getPendingPropertyRating, getPropertyImage } from "@/lib/api";
 
 type WidgetDefinition = {
   id: string;
@@ -82,6 +58,33 @@ export default function ProviderDashboard() {
   useSearchFocus();
   const [editing, setEditing] = useState(false);
   const loading = useDashboardLoadingSnapshot();
+  const { data, isLoading } = useQuery({
+    queryKey: ["/agent/dashboard/overview"],
+    queryFn: () => agentApi.dashboard(),
+  });
+  const earningsData = data?.earningsSeries?.length ? data.earningsSeries as Array<{ month: string; earnings: number }> : [{ month: "Now", earnings: Number(data?.stats.payoutTotal ?? 0) / 1000000 }];
+  const stats = [
+    { title: "New Leads", value: String(data?.stats.leadCount ?? 0), change: "Live queue", icon: Inbox, subtitle: "Unresponded this week" },
+    { title: "Active Listings", value: String(data?.stats.listingCount ?? 0), change: "Published properties", icon: Building2, subtitle: "Owned or managed" },
+    { title: "Pending Payouts", value: formatCompactCurrency(Number(data?.stats.payoutTotal ?? 0)), change: "Awaiting release", icon: CreditCard, subtitle: "Settlement pipeline" },
+    { title: "Response Rate", value: `${data?.recentLeads?.length ? 100 : 0}%`, change: "Lead coverage", icon: TrendingUp, subtitle: "Based on live leads" },
+  ];
+  const recentLeads = (data?.recentLeads ?? []).slice(0, 4).map((lead: any, index: number) => ({
+    id: lead.id ?? index + 1,
+    need: lead.requestTitle ?? "New need",
+    seeker: lead.location ?? "Seeker request",
+    posted: lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : "now",
+    urgent: false,
+    initials: "LD",
+  }));
+  const topListings = (data?.topListings ?? []).slice(0, 3).map((listing: any, index: number) => ({
+    id: String(listing.id ?? index),
+    name: listing.title ?? "Listing",
+    views: Number(listing.viewCount ?? listing.view_count ?? 0),
+    inquiries: Number(listing.offerCount ?? listing.offer_count ?? 0),
+    rating: getPendingPropertyRating(listing),
+    image: getPropertyImage(listing.images, index),
+  }));
 
   const widgetDefinitions = useMemo<WidgetDefinition[]>(
     () => [
@@ -158,7 +161,7 @@ export default function ProviderDashboard() {
             contentClassName={DASHBOARD_OVERVIEW_COMPACT_CONTENT_CLASS}
           >
             {topListings.map((listing) => (
-              <div key={listing.name} data-search-id={`provider-top-${toSearchId(listing.name)}`}>
+              <Link key={listing.id} to={`/provider/listings/${listing.id}`} data-search-id={`provider-top-${toSearchId(listing.name)}`}>
                 <DashboardRecordItem
                   title={listing.name}
                   meta={
@@ -175,7 +178,7 @@ export default function ProviderDashboard() {
                     </div>
                   }
                 />
-              </div>
+              </Link>
             ))}
           </DashboardSectionCard>
         ),
@@ -226,11 +229,11 @@ export default function ProviderDashboard() {
         ),
       },
     ],
-    [],
+    [earningsData, recentLeads, stats, topListings],
   );
 
   const { applyPreset, layout, move, moveTo, reset, resetItem, setSize, showWidget, toggleVisibility } = useDashboardLayout(
-    "dwello_dashboard_layout_provider",
+    "verinest_dashboard_layout_provider",
     widgetDefinitions.map((widget) => ({
       id: widget.id,
       size: widget.defaultSize,
@@ -259,7 +262,9 @@ export default function ProviderDashboard() {
       : [];
   });
 
-  if (loading) return <DashboardSkeleton variant="provider" />;
+  if (loading || isLoading) {
+    return <BackendLoadingIndicator label="Loading dashboard..." className="min-h-[70vh]" />;
+  }
 
   return (
     <div className="animate-in space-y-6 fade-in duration-300">

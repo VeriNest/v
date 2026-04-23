@@ -7,9 +7,16 @@ import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardHeaderSearch } from "@/components/search/DashboardHeaderSearch";
 import { DashboardNotifications } from "@/components/dashboard/DashboardNotifications";
 import { DashboardThemeToggle } from "@/components/dashboard/DashboardThemeToggle";
+import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
+import { useAuthAccess } from "@/hooks/use-auth-access";
 
 export default function AdminLayout() {
   const { avatarUrl } = useAvatar();
+  const { isChecking } = useAuthAccess("admin");
+
+  if (isChecking) {
+    return <BackendLoadingIndicator label="Checking access..." className="min-h-screen" />;
+  }
 
   return (
     <SidebarProvider>

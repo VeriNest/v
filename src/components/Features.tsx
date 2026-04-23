@@ -46,12 +46,12 @@ const Features = () => {
       <section className="px-6 lg:px-16 xl:px-20 py-20">
         <MarketingShell>
           <div className="text-center mb-14">
-            <p className="text-xs font-medium text-primary uppercase tracking-[0.2em] font-mono mb-4">Why Dwello</p>
+            <p className="text-xs font-medium text-primary uppercase tracking-[0.2em] font-mono mb-4">Why Verinest</p>
             <h2 className="font-serif text-3xl lg:text-4xl text-foreground mb-4">
               Rental Matching, Without the Noise
             </h2>
             <p className="text-muted-foreground text-[15px] max-w-lg mx-auto leading-relaxed">
-              Dwello helps seekers move faster with verified supply, clearer pricing, and providers who can respond with intent.
+              Verinest helps seekers move faster with verified supply, clearer pricing, and providers who can respond with intent.
             </p>
           </div>
 

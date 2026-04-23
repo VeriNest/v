@@ -4,6 +4,7 @@ import { Wallet, Lock, Receipt, Download, Building2, ArrowUpRight, Filter, Searc
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 
@@ -23,8 +24,10 @@ const statusStyles: Record<string, { color: string; bg: string; dot: string }> =
 const typeStyles: Record<string, string> = { Rent: "text-primary", "Short-let": "text-amber-600" };
 
 export default function Payouts() {
+  const [showOverlay, setShowOverlay] = useState(true);
+
   return (
-    <div className="space-y-6">
+    <div className="relative space-y-6">
       <DashboardPageHeader
         title="Payouts"
         description="Track your earnings, platform fees, and payout status."
@@ -126,6 +129,19 @@ export default function Payouts() {
           );
         })}
       </Tabs>
+
+      {showOverlay ? (
+        <div className="absolute inset-0 z-20 flex items-center justify-center rounded-3xl bg-background/35 p-6 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-white/12 p-6 text-center shadow-[0_24px_80px_-36px_rgba(15,23,42,0.75)] backdrop-blur-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Provider payouts</p>
+            <h2 className="mt-3 text-2xl font-semibold text-foreground">Coming Soon</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Payout tracking is on the roadmap. This workspace stays visible so agents know the release is pending.
+            </p>
+            <Button className="mt-5" onClick={() => setShowOverlay(false)}>Dismiss</Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

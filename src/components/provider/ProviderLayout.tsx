@@ -8,10 +8,19 @@ import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardHeaderSearch } from "@/components/search/DashboardHeaderSearch";
 import { DashboardNotifications } from "@/components/dashboard/DashboardNotifications";
 import { DashboardThemeToggle } from "@/components/dashboard/DashboardThemeToggle";
+import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
+import { useAuthAccess } from "@/hooks/use-auth-access";
+import { useBookingReminders } from "@/hooks/use-booking-reminders";
 
 export default function ProviderLayout() {
   const { avatarUrl } = useAvatar();
-  const kycStatus = localStorage.getItem("dwello_kyc_status");
+  const kycStatus = localStorage.getItem("verinest_kyc_status");
+  const { isChecking } = useAuthAccess("agent");
+  useBookingReminders("provider");
+
+  if (isChecking) {
+    return <BackendLoadingIndicator label="Checking access..." className="min-h-screen" />;
+  }
 
   return (
     <SidebarProvider>

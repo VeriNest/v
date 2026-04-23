@@ -13,8 +13,8 @@ const contactInfo = [
   {
     icon: Mail,
     label: "Email",
-    value: "hello@dwello.com",
-    href: "mailto:hello@dwello.com",
+    value: "hello@verinest.com",
+    href: "mailto:hello@verinest.com",
   },
   {
     icon: Phone,
@@ -44,7 +44,7 @@ const faqs = [
     a: "Yes. Seekers can browse listings, save options, or post a housing need so verified providers respond with matching homes.",
   },
   {
-    q: "What makes a listing verified on Dwello?",
+    q: "What makes a listing verified on Verinest?",
     a: "Verification is tied to provider identity, listing review, and the platform's trust workflow so seekers can evaluate options with stronger context.",
   },
   {
@@ -79,7 +79,7 @@ const Contact = () => {
             </p>
             <h1 className="mb-5 font-serif text-4xl leading-[1.15] text-foreground lg:text-5xl">
               Support for{" "}
-              <span className="italic text-primary">every role on Dwello</span>
+              <span className="italic text-primary">every role on Verinest</span>
             </h1>
             <p className="mx-auto max-w-md text-[15px] leading-relaxed text-muted-foreground">
               Whether you are a seeker, agent, landlord, or admin, reach out if
@@ -279,7 +279,7 @@ const Contact = () => {
               className="gap-2 rounded-lg bg-primary px-8 py-6 text-sm font-medium text-primary-foreground hover:bg-primary/90"
               asChild
             >
-              <a href="mailto:hello@dwello.com">
+              <a href="mailto:hello@verinest.com">
                 Email Support <ArrowRight className="h-4 w-4" />
               </a>
             </Button>

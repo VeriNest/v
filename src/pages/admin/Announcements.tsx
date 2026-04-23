@@ -1,55 +1,15 @@
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Megaphone, Plus, Send, Clock, Users,
-  AlertTriangle, Info, Trash2, Edit, Eye
+  AlertTriangle, Info, Eye
 } from "lucide-react";
-
-export const announcements = [
-  {
-    id: 1,
-    title: "Platform Maintenance - March 30th",
-    message: "We'll be performing scheduled maintenance on March 30th from 2:00 AM to 6:00 AM WAT. The platform may experience brief downtime.",
-    audience: "All Users",
-    type: "warning",
-    status: "Published",
-    date: "Mar 20, 2024",
-    views: 1284,
-  },
-  {
-    id: 2,
-    title: "New Escrow Feature Launched",
-    message: "We're excited to announce our enhanced escrow system with faster settlement times and better security.",
-    audience: "Providers",
-    type: "info",
-    status: "Published",
-    date: "Mar 18, 2024",
-    views: 842,
-  },
-  {
-    id: 3,
-    title: "Updated Commission Structure",
-    message: "Starting April 1st, platform commission will be reduced to 4.5% for verified agents with 10+ completed bookings.",
-    audience: "Agents",
-    type: "info",
-    status: "Draft",
-    date: "Mar 22, 2024",
-    views: 0,
-  },
-  {
-    id: 4,
-    title: "Fraud Alert - Fake Listings Detected",
-    message: "We've identified several fraudulent listings in the Lekki area. All affected listings have been removed and accounts suspended.",
-    audience: "All Users",
-    type: "critical",
-    status: "Published",
-    date: "Mar 15, 2024",
-    views: 2103,
-  },
-];
+import { adminApi } from "@/lib/api";
 
 const typeConfig: Record<string, { icon: typeof Info; color: string; bg: string }> = {
   info: { icon: Info, color: "text-blue-600 dark:text-blue-300", bg: "bg-blue-500/10 border-blue-500/20 dark:bg-blue-500/15 dark:border-blue-500/30" },
@@ -58,24 +18,45 @@ const typeConfig: Record<string, { icon: typeof Info; color: string; bg: string 
 };
 
 const statusConfig: Record<string, string> = {
-  Published: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
-  Draft: "bg-muted text-muted-foreground border-border/60",
+  published: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
+  draft: "bg-muted text-muted-foreground border-border/60",
 };
 
-const stats = [
-  { label: "Total Sent", value: "47", icon: Send, iconBg: "bg-primary/10", accent: "text-primary" },
-  { label: "Active", value: "3", icon: Megaphone, iconBg: "bg-emerald-500/10 dark:bg-emerald-500/15", accent: "text-emerald-600 dark:text-emerald-300" },
-  { label: "Drafts", value: "2", icon: Clock, iconBg: "bg-amber-500/10 dark:bg-amber-500/15", accent: "text-amber-600 dark:text-amber-300" },
-  { label: "Total Views", value: "12.4K", icon: Eye, iconBg: "bg-blue-500/10 dark:bg-blue-500/15", accent: "text-blue-600 dark:text-blue-300" },
-];
+function audienceLabel(value?: string | null) {
+  if (!value) return "All Users";
+  return String(value).replace(/[_-]+/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+// Export for dashboard-search.ts
+export const announcements = [] as any[];
 
 export default function AdminAnnouncements() {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { data = [] } = useQuery({ queryKey: ["/admin/announcements"], queryFn: () => adminApi.announcements() });
+
+  const announcements = useMemo(() => data.map((item: any) => ({
+    id: String(item.id),
+    title: item.title ?? "Announcement",
+    message: item.body ?? "",
+    audience: audienceLabel(item.audience),
+    type: String(item.type ?? "info").toLowerCase(),
+    status: String(item.status ?? "published").toLowerCase(),
+    date: item.created_at || item.createdAt ? new Date(String(item.created_at ?? item.createdAt)).toLocaleDateString() : "",
+  })), [data]);
+
+  const stats = [
+    { label: "Total Sent", value: String(announcements.length), icon: Send, iconBg: "bg-primary/10", accent: "text-primary" },
+    { label: "Active", value: String(announcements.filter((item) => item.status === "published").length), icon: Megaphone, iconBg: "bg-emerald-500/10 dark:bg-emerald-500/15", accent: "text-emerald-600 dark:text-emerald-300" },
+    { label: "Drafts", value: String(announcements.filter((item) => item.status === "draft").length), icon: Clock, iconBg: "bg-amber-500/10 dark:bg-amber-500/15", accent: "text-amber-600 dark:text-amber-300" },
+    { label: "Notifications", value: String(announcements.filter((item) => item.status === "published").length), icon: Eye, iconBg: "bg-blue-500/10 dark:bg-blue-500/15", accent: "text-blue-600 dark:text-blue-300" },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Announcements</h1>
-          <p className="text-sm text-muted-foreground mt-1">Broadcast messages and alerts to platform users</p>
+          <p className="text-sm text-muted-foreground mt-1">Send in-app notifications to the selected audience.</p>
         </div>
         <Button size="sm" className="h-9 gap-1.5 text-sm" asChild>
           <Link to="/admin/announcements/new">
@@ -110,10 +91,12 @@ export default function AdminAnnouncements() {
         {["all", "published", "drafts"].map((tab) => (
           <TabsContent key={tab} value={tab} className="space-y-3">
             {announcements
-              .filter((a) => tab === "all" || (tab === "published" && a.status === "Published") || (tab === "drafts" && a.status === "Draft"))
+              .filter((a) => tab === "all" || (tab === "published" && a.status === "published") || (tab === "drafts" && a.status === "draft"))
               .map((a) => {
-                const t = typeConfig[a.type];
+                const t = typeConfig[a.type] ?? typeConfig.info;
                 const TypeIcon = t.icon;
+                const expanded = expandedId === a.id;
+                const shouldClamp = a.message.length > 160;
                 return (
                   <Card key={a.id} className="border border-border/60 shadow-sm">
                     <CardContent className="p-5">
@@ -125,20 +108,25 @@ export default function AdminAnnouncements() {
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-semibold text-sm text-foreground">{a.title}</p>
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusConfig[a.status]}`}>{a.status}</span>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${statusConfig[a.status] ?? statusConfig.draft}`}>{audienceLabel(a.status)}</span>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{a.message}</p>
+                            <p className={`text-xs text-muted-foreground mt-1 ${expanded ? "" : "line-clamp-2"}`}>{a.message}</p>
+                            {shouldClamp ? (
+                              <button
+                                type="button"
+                                className="mt-2 text-xs font-medium text-primary"
+                                onClick={() => setExpandedId(expanded ? null : a.id)}
+                              >
+                                {expanded ? "Collapse" : "Expand"}
+                              </button>
+                            ) : null}
                             <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">
                               <span className="flex items-center gap-1"><Users className="h-3 w-3" />{a.audience}</span>
                               <span>{a.date}</span>
-                              {a.views > 0 && <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{a.views.toLocaleString()} views</span>}
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <Button variant="ghost" size="icon" className="h-7 w-7"><Edit className="h-3 w-3" /></Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive"><Trash2 className="h-3 w-3" /></Button>
-                        </div>
+                        <Badge variant="outline">{a.type}</Badge>
                       </div>
                     </CardContent>
                   </Card>

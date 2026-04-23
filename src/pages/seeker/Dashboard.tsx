@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   CalendarCheck,
   FileText,
@@ -12,6 +13,10 @@ import {
 import { Link } from "react-router-dom";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
+export const stats = [] as any[];
+export const recentOffers = [] as any[];
+export const savedProperties = [] as any[];
+
 import {
   DashboardCustomizerToolbar,
   DashboardEditableWidget,
@@ -19,6 +24,7 @@ import {
   DashboardWidgetMenu,
   type DashboardWidgetMenuControls,
 } from "@/components/dashboard/DashboardCustomizer";
+import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import {
   DASHBOARD_OVERVIEW_CHART_HEIGHT_CLASS,
   DASHBOARD_OVERVIEW_ROW_WIDGET_CLASS,
@@ -28,7 +34,6 @@ import { DashboardSectionAction } from "@/components/dashboard/DashboardSectionA
 import { DashboardSectionCard } from "@/components/dashboard/DashboardSectionCard";
 import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
-import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { KycAlertBanner } from "@/components/KycAlertBanner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -36,36 +41,7 @@ import { useDashboardLayout, type DashboardWidgetSize } from "@/hooks/use-dashbo
 import { useDashboardLoadingSnapshot } from "@/hooks/use-dashboard-loading-snapshot";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { toSearchId } from "@/lib/search-id";
-
-const matchData = [
-  { week: "W1", matches: 4 },
-  { week: "W2", matches: 7 },
-  { week: "W3", matches: 12 },
-  { week: "W4", matches: 9 },
-  { week: "W5", matches: 15 },
-  { week: "W6", matches: 18 },
-  { week: "W7", matches: 14 },
-];
-
-export const stats = [
-  { title: "Active Posts", value: "3", change: "2 getting offers", icon: FileText, subtitle: "Needs published" },
-  { title: "Offers Received", value: "12", change: "+5 today", icon: Inbox, subtitle: "Across all posts" },
-  { title: "Upcoming Viewings", value: "2", change: "This week", icon: CalendarCheck, subtitle: "Next: Tomorrow 2PM", href: "/seeker/viewings" },
-  { title: "Match Rate", value: "87%", change: "Above avg", icon: TrendingUp, subtitle: "Offer relevance score" },
-];
-
-export const recentOffers = [
-  { id: 1, property: "3 Bed Flat, Lekki Phase 1", provider: "Adebayo Johnson", price: "N2,500,000/yr", badge: "Agent", time: "2h", match: 95, initials: "AJ" },
-  { id: 2, property: "Studio, Wuse 2 Abuja", provider: "Chioma Okafor", price: "N1,200,000/yr", badge: "Landlord", time: "5h", match: 88, initials: "CO" },
-  { id: 3, property: "2 Bed Serviced, Victoria Island", provider: "ShortStay NG", price: "N45,000/night", badge: "Short-let", time: "1d", match: 76, initials: "SN" },
-  { id: 4, property: "4 Bed Duplex, Maitama", provider: "Premium Estates", price: "N5,200,000/yr", badge: "Agent", time: "2d", match: 92, initials: "PE" },
-];
-
-export const savedProperties = [
-  { name: "Modern 2 Bed, Ikoyi", location: "Ikoyi, Lagos", price: "N3.8M/yr", img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=200&h=140&fit=crop" },
-  { name: "Penthouse, Banana Island", location: "Banana Island, Lagos", price: "N12M/yr", img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=200&h=140&fit=crop" },
-  { name: "Studio, Garki Area 11", location: "Garki, Abuja", price: "N850K/yr", img: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=200&h=140&fit=crop" },
-];
+import { formatCompactCurrency, getPropertyImage, seekerApi } from "@/lib/api";
 
 type WidgetDefinition = {
   id: string;
@@ -80,6 +56,34 @@ export default function SeekerDashboard() {
   useSearchFocus();
   const [editing, setEditing] = useState(false);
   const loading = useDashboardLoadingSnapshot();
+  const { data, isLoading } = useQuery({
+    queryKey: ["/seeker/dashboard/overview"],
+    queryFn: () => seekerApi.dashboard(),
+  });
+
+  const matchData = (data?.matchTrends?.length ? data.matchTrends : [{ week: "W1", matches: data?.recentOffers.length ?? 0 }]) as Array<{ week: string; matches: number }>;
+  const stats = [
+    { title: "Active Posts", value: String(data?.stats.needCount ?? 0), change: `${data?.recentOffers.length ?? 0} getting offers`, icon: FileText, subtitle: "Needs published" },
+    { title: "Offers Received", value: String(data?.recentOffers.length ?? 0), change: "Live matches", icon: Inbox, subtitle: "Across all posts" },
+    { title: "Upcoming Viewings", value: String(data?.stats.bookingCount ?? 0), change: "Scheduled visits", icon: CalendarCheck, subtitle: "Track from dashboard", href: "/seeker/viewings" },
+    { title: "Match Rate", value: `${data?.recentOffers.length ? Math.round(data.recentOffers.reduce((sum: number, item: any) => sum + Number(item.matchScore ?? 80), 0) / data.recentOffers.length) : 0}%`, change: "Based on recent offers", icon: TrendingUp, subtitle: "Offer relevance score" },
+  ];
+  const recentOffers = (data?.recentOffers ?? []).slice(0, 4).map((offer: any, index: number) => ({
+    id: index + 1,
+    property: offer.propertyTitle ?? "Property offer",
+    provider: offer.providerName ?? offer.providerRole ?? "Provider",
+    price: `${offer.offerPriceCurrency ?? "NGN"} ${Number(offer.offerPriceAmount ?? 0).toLocaleString("en-NG")}/${offer.offerPricePeriod ?? "year"}` ,
+    badge: offer.providerRole ? String(offer.providerRole).charAt(0).toUpperCase() + String(offer.providerRole).slice(1) : "Agent",
+    time: offer.createdAt ? new Date(offer.createdAt).toLocaleDateString() : "now",
+    match: Number(offer.matchScore ?? 80),
+    initials: String(offer.providerName ?? offer.providerRole ?? "PR").split(" ").map((part: string) => part[0]).join("").slice(0, 2) || "PR",
+  }));
+  const savedProperties = (data?.savedProperties ?? []).slice(0, 3).map((item: any, index: number) => ({
+    name: item.title ?? "Saved property",
+    location: item.location ?? "Unknown location",
+    price: `${formatCompactCurrency(Number(item.price ?? 0))}/yr`,
+    img: getPropertyImage(item.images, index),
+  }));
 
   const widgetDefinitions = useMemo<WidgetDefinition[]>(
     () => [
@@ -228,11 +232,11 @@ export default function SeekerDashboard() {
         ),
       },
     ],
-    [],
+    [matchData, recentOffers, savedProperties, stats],
   );
 
   const { applyPreset, layout, move, moveTo, reset, resetItem, setSize, showWidget, toggleVisibility } = useDashboardLayout(
-    "dwello_dashboard_layout_seeker",
+    "verinest_dashboard_layout_seeker",
     widgetDefinitions.map((widget) => ({
       id: widget.id,
       size: widget.defaultSize,
@@ -261,7 +265,9 @@ export default function SeekerDashboard() {
       : [];
   });
 
-  if (loading) return <DashboardSkeleton variant="seeker" />;
+  if (loading || isLoading) {
+    return <BackendLoadingIndicator label="Loading dashboard..." className="min-h-[70vh]" />;
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">

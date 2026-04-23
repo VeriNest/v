@@ -1,4 +1,6 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -12,6 +14,7 @@ import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader"
 import { DashboardSettingsSection, DashboardSettingsRow } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { useAvatar } from "@/contexts/AvatarContext";
+import { authApi, clearStoredSession } from "@/lib/api";
 import {
   Activity,
   Bell,
@@ -44,9 +47,9 @@ const typeTone: Record<string, "info" | "danger" | "warning" | "success" | "neut
 };
 
 const adminTeam = [
-  { name: "Admin User", email: "admin@dwello.ng", role: "Super Admin", status: "Active", initials: "AD" },
-  { name: "Bola Tinubu", email: "bola@dwello.ng", role: "Moderator", status: "Active", initials: "BT" },
-  { name: "Chidi Eze", email: "chidi@dwello.ng", role: "Support", status: "Inactive", initials: "CE" },
+  { name: "Admin User", email: "admin@verinest.ng", role: "Super Admin", status: "Active", initials: "AD" },
+  { name: "Bola Tinubu", email: "bola@verinest.ng", role: "Moderator", status: "Active", initials: "BT" },
+  { name: "Chidi Eze", email: "chidi@verinest.ng", role: "Support", status: "Inactive", initials: "CE" },
 ];
 
 const roleTone: Record<string, "info" | "success" | "neutral"> = {
@@ -56,14 +59,35 @@ const roleTone: Record<string, "info" | "success" | "neutral"> = {
 };
 
 export default function AdminSettings() {
+  const navigate = useNavigate();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
       setAvatarUrl(url);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("Are you sure you want to permanently delete your admin account? This action cannot be undone.")) {
+      return;
+    }
+
+    setDeletingAccount(true);
+    try {
+      await authApi.deleteAccount();
+      toast.success("Account deleted successfully");
+      clearStoredSession();
+      navigate("/");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to delete account";
+      toast.error(message);
+    } finally {
+      setDeletingAccount(false);
     }
   };
 
@@ -95,7 +119,7 @@ export default function AdminSettings() {
 
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold text-foreground">Admin User</p>
-            <p className="truncate text-sm text-muted-foreground">admin@dwello.ng</p>
+            <p className="truncate text-sm text-muted-foreground">admin@verinest.ng</p>
           </div>
 
           <div className="flex shrink-0 justify-center sm:justify-end">
@@ -139,7 +163,7 @@ export default function AdminSettings() {
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">Email</label>
-                  <Input defaultValue="admin@dwello.ng" />
+                  <Input defaultValue="admin@verinest.ng" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">Phone</label>
@@ -479,7 +503,7 @@ export default function AdminSettings() {
             <DashboardSettingsRow
               label="Delete Account"
               description="Permanently delete your admin account. This action cannot be undone."
-              control={<Button variant="destructive" size="sm" className="shrink-0">Delete Account</Button>}
+              control={<Button variant="destructive" size="sm" className="shrink-0" onClick={handleDeleteAccount} disabled={deletingAccount}>{deletingAccount ? "Deleting..." : "Delete Account"}</Button>}
             />
           </DashboardSettingsSection>
         </TabsContent>

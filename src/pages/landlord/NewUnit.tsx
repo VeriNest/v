@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, BedDouble, Building2, CheckCircle2, DoorOpen, FileText, Plus, Wallet } from "lucide-react";
 
 import { DashboardHistoryRow } from "@/components/dashboard/DashboardHistoryRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { landlordApi, formatCompactCurrency } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,14 +16,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
-import { properties } from "./Properties";
-import { units } from "./Units";
 
 const unitTypes = ["Mini Flat", "Self Contain", "1 Bed Flat", "2 Bed Flat", "3 Bed Penthouse"];
 
 export default function LandlordNewUnit() {
   const navigate = useNavigate();
-  const [property, setProperty] = useState(properties[0]?.name ?? "");
+  const { data: propertyRows = [] } = useQuery({ queryKey: ["/landlord/properties"], queryFn: () => landlordApi.listProperties() });
+  const { data: unitRows = [] } = useQuery({ queryKey: ["/landlord/units"], queryFn: () => landlordApi.listUnits() });
+  const properties = useMemo(() => propertyRows.map((item: any) => ({ id: item.id, name: item.title ?? "Property" })), [propertyRows]);
+  const units = useMemo(() => unitRows.map((item: any) => ({ id: item.id, name: item.name ?? item.unit_code ?? "Unit", property: item.property_id ?? "Property", tenant: item.tenant_user_id ?? "Vacant", rent: formatCompactCurrency(Number(item.rent_amount ?? 0)), state: item.occupancy_status ?? "vacant", type: item.unit_type ?? item.bedrooms_label ?? "Unit" })), [unitRows]);
+  const [property, setProperty] = useState("");
   const [unitName, setUnitName] = useState("");
   const [unitType, setUnitType] = useState("2 Bed Flat");
   const [rent, setRent] = useState("");
@@ -28,7 +33,7 @@ export default function LandlordNewUnit() {
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const propertyUnits = useMemo(() => units.filter((item) => item.property === property), [property]);
+  const propertyUnits = useMemo(() => units.filter((item) => item.property === property), [property, units]);
 
   if (submitted) {
     return (
@@ -153,7 +158,7 @@ export default function LandlordNewUnit() {
                   <Button variant="outline" asChild>
                     <Link to="/landlord/units">Cancel</Link>
                   </Button>
-                  <Button onClick={() => setSubmitted(true)} disabled={!unitName.trim() || !rent.trim()} className="gap-1.5">
+                  <Button onClick={async () => { try { await landlordApi.createUnit({ propertyId: property, unitCode: unitName.toUpperCase().replace(/s+/g, "-"), name: unitName, unitType, rentAmount: Number(String(rent).replace(/[^0-9]/g, "")) || 0, occupancyStatus: status.toLowerCase().replace(/s+/g, "_"), listingStatus: "unlisted" }); setSubmitted(true); } catch (error) { const message = error instanceof Error ? error.message : "Unable to create unit"; toast.error(message); } }} disabled={!unitName.trim() || !rent.trim() || !property} className="gap-1.5">
                     <Plus className="h-4 w-4" /> Save Unit
                   </Button>
                 </div>

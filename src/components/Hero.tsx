@@ -31,7 +31,7 @@ const Hero = () => {
             </h1>
 
             <p className="text-muted-foreground text-[15px] leading-relaxed mb-8 max-w-md">
-              Tell Dwello your location, budget, and move-in plan. Agents and landlords respond with verified options you can compare in one place.
+              Tell Verinest your location, budget, and move-in plan. Agents and landlords respond with verified options you can compare in one place.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 mb-8">

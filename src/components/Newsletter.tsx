@@ -63,7 +63,7 @@ const Newsletter = () => {
               Ready to Start Your Search the Smarter Way?
             </h2>
             <p className="text-white/40 mb-10 text-[15px] leading-relaxed">
-              Post your need, browse verified homes, or join Dwello as an agent or landlord.
+              Post your need, browse verified homes, or join Verinest as an agent or landlord.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button variant="outline" className="rounded-lg px-8 py-6 text-sm font-medium border-white/20 text-white hover:bg-white/5 gap-2">

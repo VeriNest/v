@@ -1,10 +1,13 @@
 import { useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowRight, Home, Mail, RefreshCw } from "lucide-react";
+import { ArrowRight, Mail, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import MarketingLogo from "@/components/MarketingLogo";
+import { authApi, getStoredSession, resolveAuthenticatedPath, setStoredSession } from "@/lib/api";
 
 export default function ConfirmEmail() {
   const navigate = useNavigate();
@@ -12,11 +15,12 @@ export default function ConfirmEmail() {
   const [searchParams] = useSearchParams();
   const [resent, setResent] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", ""]);
+  const [submitting, setSubmitting] = useState(false);
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const email = useMemo(() => {
     const stateEmail = (location.state as { email?: string } | null)?.email;
-    return stateEmail ?? searchParams.get("email") ?? "your email";
+    return stateEmail ?? searchParams.get("email") ?? getStoredSession()?.user.email ?? "your email";
   }, [location.state, searchParams]);
 
   const otpValue = otp.join("");
@@ -64,16 +68,42 @@ export default function ConfirmEmail() {
     }
   };
 
+  const handleVerify = async () => {
+    try {
+      setSubmitting(true);
+      const user = await authApi.verifyEmailCode({ email, code: otpValue });
+      const session = getStoredSession();
+      if (session) {
+        setStoredSession({ ...session, user: { ...session.user, email_verified: true, role: user.role } });
+      }
+      const me = await authApi.me();
+      navigate(resolveAuthenticatedPath(me));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to verify code";
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      await authApi.sendEmailCode({ email, purpose: "signup" });
+      setResent(true);
+      toast.success("A fresh code has been sent.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to resend code";
+      toast.error(message);
+    }
+  };
+
   return (
     <div className="min-h-screen flex bg-secondary/30">
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center bg-primary/5 p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary)/0.08),transparent_60%)]" />
         <div className="relative z-10 max-w-md">
           <Link to="/" className="flex items-center gap-2.5 mb-8">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-              <Home className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="text-2xl font-bold text-foreground">Dwello</span>
+            <MarketingLogo textClassName="text-2xl" iconBoxClassName="h-10 w-10 rounded-xl" iconClassName="h-5 w-5" />
           </Link>
           <h2 className="text-3xl font-bold text-foreground leading-tight">
             Confirm your email<br />
@@ -89,10 +119,7 @@ export default function ConfirmEmail() {
         <Card className="w-full max-w-md border-border/50 shadow-lg">
           <CardHeader className="text-center space-y-2">
             <div className="lg:hidden flex items-center justify-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                <Home className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="text-2xl font-bold text-foreground">Dwello</span>
+              <MarketingLogo textClassName="text-2xl" iconBoxClassName="h-10 w-10 rounded-xl" iconClassName="h-5 w-5" />
             </div>
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
               <Mail className="h-6 w-6 text-primary" />
@@ -128,21 +155,11 @@ export default function ConfirmEmail() {
             </div>
 
             <div className="space-y-2">
-              <Button
-                type="button"
-                className="w-full h-11 rounded-lg font-medium gap-2"
-                onClick={() => navigate("/onboarding")}
-                disabled={otpValue.length !== 5}
-              >
-                Verify email <ArrowRight className="h-4 w-4" />
+              <Button type="button" className="w-full h-11 rounded-lg font-medium gap-2" onClick={handleVerify} disabled={otpValue.length !== 5 || submitting}>
+                {submitting ? "Verifying..." : <>Verify email <ArrowRight className="h-4 w-4" /></>}
               </Button>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-11 rounded-lg font-medium gap-2"
-                onClick={() => setResent(true)}
-              >
+              <Button type="button" variant="outline" className="w-full h-11 rounded-lg font-medium gap-2" onClick={handleResend}>
                 <RefreshCw className="h-4 w-4" /> Resend verification email
               </Button>
             </div>

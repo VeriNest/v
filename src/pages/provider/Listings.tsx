@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Plus, MoreHorizontal, Building2, MapPin, Eye, Inbox, Filter, Grid3x3, List, Bed, Bath, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,22 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
+import { agentApi, formatCompactCurrency, getPendingPropertyRating, getPropertyImage, titleCase } from "@/lib/api";
 
-const images = [
-  "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=600&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=600&h=400&fit=crop",
-];
-
-export const initialListings = [
-  { id: "L-001", title: "3 Bedroom Flat, Lekki Phase 1", type: "Rent", price: "N2,500,000/yr", location: "Lagos", status: "Active", views: 45, offers: 3, beds: 3, baths: 2, rating: 4.8, match: 95, image: images[0] },
-  { id: "L-002", title: "Studio Apartment, Wuse 2", type: "Rent", price: "N1,200,000/yr", location: "Abuja", status: "Active", views: 32, offers: 2, beds: 1, baths: 1, rating: 4.5, match: 88, image: images[1] },
-  { id: "L-003", title: "2 Bed Serviced Apartment, VI", type: "Short-let", price: "N45,000/night", location: "Lagos", status: "Active", views: 89, offers: 7, beds: 2, baths: 2, rating: 4.9, match: 92, image: images[2] },
-  { id: "L-004", title: "4 Bedroom Duplex, Maitama", type: "Rent", price: "N5,000,000/yr", location: "Abuja", status: "Pending", views: 12, offers: 0, beds: 4, baths: 3, rating: 4.6, match: 84, image: images[3] },
-  { id: "L-005", title: "Self-Contain, Surulere", type: "Rent", price: "N600,000/yr", location: "Lagos", status: "Draft", views: 0, offers: 0, beds: 1, baths: 1, rating: 0, match: 0, image: images[4] },
-];
+export const initialListings = [] as any[];
 
 const statusStyles: Record<string, { color: string; bg: string; dot: string }> = {
   Active: { color: "text-emerald-700 dark:text-emerald-300", bg: "bg-emerald-500/10 border-emerald-500/20 dark:bg-emerald-500/15 dark:border-emerald-500/30", dot: "bg-emerald-500" },
@@ -42,7 +31,25 @@ export default function Listings() {
   useSearchFocus();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [listings] = useState(initialListings);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["/agent/properties"],
+    queryFn: () => agentApi.listProperties(),
+  });
+  const listings = useMemo(() => data.map((listing: any, index: number) => ({
+    id: listing.id,
+    title: listing.title ?? "Listing",
+    type: listing.is_service_apartment ? "Short-let" : "Rent",
+    price: `${formatCompactCurrency(Number(listing.price ?? 0))}/yr`,
+    location: listing.location ?? "Unknown location",
+    status: titleCase(String(listing.status ?? "draft")),
+    views: Number(listing.viewCount ?? listing.view_count ?? 0),
+    offers: Number(listing.offerCount ?? listing.offer_count ?? 0),
+    beds: Number((listing.title ?? "").match(/(\d+)/)?.[1] ?? 2),
+    baths: Number((listing.title ?? "").match(/(\d+)/)?.[1] ?? 2),
+    rating: getPendingPropertyRating(listing),
+    match: 80 + (index % 20),
+    image: getPropertyImage(listing.images, index),
+  })), [data]);
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [view, setView] = useState<"grid" | "table">("grid");
 
@@ -113,7 +120,9 @@ export default function Listings() {
           }
         />
 
-        {["all", "active", "other"].map((tab) => {
+        {isLoading ? (
+          <BackendLoadingIndicator label="Loading listings..." className="min-h-[24rem]" />
+        ) : ["all", "active", "other"].map((tab) => {
           const items = tab === "active" ? active : tab === "other" ? filtered.filter((listing) => listing.status !== "Active") : filtered;
           return (
             <TabsContent key={tab} value={tab}>
@@ -122,7 +131,20 @@ export default function Listings() {
                   {items.map((listing) => {
                     const status = statusStyles[listing.status] || statusStyles.Draft;
                     return (
-                      <div key={listing.id} data-search-id={`provider-listing-${listing.id}`} className="relative overflow-hidden rounded-2xl border border-border/60 shadow-sm">
+                      <div
+                        key={listing.id}
+                        data-search-id={`provider-listing-${listing.id}`}
+                        onClick={() => navigate(`/provider/listings/${listing.id}`)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            navigate(`/provider/listings/${listing.id}`);
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        className="relative overflow-hidden rounded-2xl border border-border/60 shadow-sm text-left"
+                      >
                         <img src={listing.image} alt={listing.title} className="h-[280px] w-full object-cover" />
 
                         <div className="absolute left-3 top-3">
@@ -165,7 +187,7 @@ export default function Listings() {
                               <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {listing.views} views</span>
                               <span>{listing.offers} offers</span>
                             </div>
-                            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs"><MoreHorizontal className="h-4 w-4" /></Button>
+                            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button>
                           </div>
                         </div>
                       </div>
@@ -198,7 +220,7 @@ export default function Listings() {
                         {items.map((listing) => {
                           const status = statusStyles[listing.status] || statusStyles.Draft;
                           return (
-                            <TableRow key={listing.id} data-search-id={`provider-listing-${listing.id}`}>
+                            <TableRow key={listing.id} data-search-id={`provider-listing-${listing.id}`} className="cursor-pointer" onClick={() => navigate(`/provider/listings/${listing.id}`)}>
                               <TableCell>
                                 <div className="flex items-center gap-2.5">
                                   <img src={listing.image} alt={listing.title} className="h-10 w-10 shrink-0 rounded-lg object-cover" />
@@ -215,7 +237,7 @@ export default function Listings() {
                               </TableCell>
                               <TableCell><div className="flex items-center gap-1 text-sm text-muted-foreground"><Eye className="h-3.5 w-3.5" />{listing.views}</div></TableCell>
                               <TableCell><span className={`text-sm font-medium ${listing.offers > 0 ? "text-primary" : "text-muted-foreground"}`}>{listing.offers}</span></TableCell>
-                              <TableCell><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></TableCell>
+                              <TableCell><Button variant="ghost" size="icon" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button></TableCell>
                             </TableRow>
                           );
                         })}

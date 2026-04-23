@@ -8,10 +8,17 @@ import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardHeaderSearch } from "@/components/search/DashboardHeaderSearch";
 import { DashboardNotifications } from "@/components/dashboard/DashboardNotifications";
 import { DashboardThemeToggle } from "@/components/dashboard/DashboardThemeToggle";
+import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
+import { useAuthAccess } from "@/hooks/use-auth-access";
 
 export default function LandlordLayout() {
   const { avatarUrl } = useAvatar();
-  const kycStatus = localStorage.getItem("dwello_kyc_status");
+  const kycStatus = localStorage.getItem("verinest_kyc_status");
+  const { isChecking } = useAuthAccess("landlord");
+
+  if (isChecking) {
+    return <BackendLoadingIndicator label="Checking access..." className="min-h-screen" />;
+  }
 
   return (
     <SidebarProvider>

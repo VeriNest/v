@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
   Building2,
@@ -13,6 +14,8 @@ import {
   Wallet,
 } from "lucide-react";
 
+export const units = [] as any[];
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { Badge } from "@/components/ui/badge";
@@ -23,13 +26,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
-
-export const units = [
-  { id: "UNT-101", name: "Palm Residence A1", property: "Palm Residence", tenant: "Bode Akin", rent: "N850,000", state: "Occupied", lease: "Ends Jun 2026", statusNote: "Paid through Apr", type: "2 Bed Flat" },
-  { id: "UNT-102", name: "Palm Residence B3", property: "Palm Residence", tenant: "Vacant", rent: "N920,000", state: "Vacant", lease: "Available now", statusNote: "Ready to list", type: "2 Bed Flat" },
-  { id: "UNT-211", name: "Admiralty Suites 4C", property: "Admiralty Suites", tenant: "Nova Labs", rent: "N1,450,000", state: "Occupied", lease: "Ends Sep 2026", statusNote: "Corporate tenant", type: "3 Bed Penthouse" },
-  { id: "UNT-304", name: "Lekki Court B2", property: "Lekki Court", tenant: "Ruth Samuel", rent: "N620,000", state: "Notice given", lease: "Notice ends Apr 2026", statusNote: "Renewal pending", type: "Mini Flat" },
-];
+import { formatCompactCurrency, landlordApi, titleCase } from "@/lib/api";
 
 const stateStyles: Record<string, string> = {
   Occupied: "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:bg-emerald-500/15 dark:border-emerald-500/30 dark:text-emerald-300",
@@ -41,6 +38,18 @@ export default function LandlordUnits() {
   useSearchFocus();
   const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
+  const { data = [] } = useQuery({ queryKey: ["/landlord/units"], queryFn: () => landlordApi.listUnits() });
+  const units = useMemo(() => data.map((unit: any) => ({
+    id: unit.id,
+    name: unit.name ?? unit.unit_code ?? "Unit",
+    property: unit.property_id ?? "Property",
+    tenant: unit.tenant_user_id ?? "Vacant",
+    rent: formatCompactCurrency(Number(unit.rent_amount ?? 0)),
+    state: titleCase(unit.occupancy_status ?? "vacant"),
+    lease: unit.lease_id ?? "Available now",
+    statusNote: titleCase(unit.listing_status ?? "unlisted"),
+    type: unit.unit_type ?? unit.bedrooms_label ?? "Unit",
+  })), [data]);
   const [view, setView] = useState<"cards" | "table">("cards");
   const resolvedView = isMobile ? "cards" : view;
 

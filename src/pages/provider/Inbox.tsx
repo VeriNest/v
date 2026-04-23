@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   CalendarDays,
@@ -16,6 +17,8 @@ import {
   Zap,
 } from "lucide-react";
 
+export const initialLeads = [] as any[];
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,100 +30,9 @@ import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader"
 import { DashboardSectionCard } from "@/components/dashboard/DashboardSectionCard";
 import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import { useSearchFocus } from "@/hooks/use-search-focus";
-
-export const initialLeads = [
-  {
-    id: 1,
-    need: "3 Bed Flat in Lekki Phase 1",
-    budget: "N2,500,000/yr",
-    location: "Lekki, Lagos",
-    type: "Rent",
-    moveIn: "April 2024",
-    posted: "15 min ago",
-    sla: 12,
-    features: ["24hr Power", "Security", "Parking"],
-    status: "New",
-    initials: "AT",
-    tenant: "Adaeze T.",
-    verified: false,
-    description:
-      "Looking for a spacious 3-bedroom flat in a quiet, secure estate in Lekki Phase 1. Must have 24hr power supply and parking. Prefer ground floor or first floor. Budget is flexible for the right property.",
-    urgency: "High",
-  },
-  {
-    id: 2,
-    need: "Studio Apartment in Wuse 2",
-    budget: "N1,200,000/yr",
-    location: "Wuse 2, Abuja",
-    type: "Rent",
-    moveIn: "May 2024",
-    posted: "1 hr ago",
-    sla: 45,
-    features: ["Furnished", "Security"],
-    status: "New",
-    initials: "AM",
-    tenant: "Amina T.",
-    verified: true,
-    description:
-      "Need a furnished studio apartment in Wuse 2 for a single professional. Proximity to the business district is important. Must have reliable security.",
-    urgency: "Medium",
-  },
-  {
-    id: 3,
-    need: "Short-let in Victoria Island, 3 nights",
-    budget: "N50,000/night",
-    location: "VI, Lagos",
-    type: "Short-let",
-    moveIn: "Mar 22-25",
-    posted: "2 hrs ago",
-    sla: 0,
-    features: ["Furnished", "Pool", "Gym"],
-    status: "Responded",
-    initials: "CC",
-    tenant: "Chike C.",
-    verified: true,
-    description:
-      "Looking for a premium short-let apartment in VI for a business trip. Must have pool and gym access. Self-contained with modern amenities.",
-    urgency: "High",
-  },
-  {
-    id: 4,
-    need: "2 Bed in Ikeja GRA",
-    budget: "N1,800,000/yr",
-    location: "Ikeja, Lagos",
-    type: "Rent",
-    moveIn: "April 2024",
-    posted: "3 hrs ago",
-    sla: 0,
-    features: ["Gated Estate", "Water"],
-    status: "Responded",
-    initials: "OB",
-    tenant: "Olumide B.",
-    verified: false,
-    description:
-      "Family of 3 looking for a 2-bedroom flat in Ikeja GRA. Must be within a gated estate with constant water supply. Close to schools is a plus.",
-    urgency: "Low",
-  },
-  {
-    id: 5,
-    need: "4 Bed Duplex in Maitama",
-    budget: "N5,000,000/yr",
-    location: "Maitama, Abuja",
-    type: "Rent",
-    moveIn: "June 2024",
-    posted: "5 hrs ago",
-    sla: 30,
-    features: ["Security", "Garden", "BQ"],
-    status: "New",
-    initials: "FA",
-    tenant: "Fatima A.",
-    verified: true,
-    description:
-      "Relocating diplomat family needs a 4-bedroom duplex with BQ in Maitama. Must have a garden and 24hr security. Flexible on budget for the right property.",
-    urgency: "High",
-  },
-];
+import { agentApi, titleCase } from "@/lib/api";
 
 const getUrgencyTone = (urgency: string) => {
   if (urgency === "High") return "danger";
@@ -136,10 +48,31 @@ export default function LeadInbox() {
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [leads] = useState(initialLeads);
+  const { data = [], isLoading } = useQuery({
+    queryKey: ["/agent/leads"],
+    queryFn: () => agentApi.listLeads(),
+  });
+  const leads = useMemo(() => data.map((lead: any, index: number) => ({
+    id: String(lead.id),
+    need: lead.requestTitle ?? "Need",
+    budget: "Budget on request",
+    location: lead.location ?? "Unknown location",
+    type: titleCase(lead.propertyType ?? "rent"),
+    moveIn: "Flexible",
+    posted: lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : "now",
+    sla: 0,
+    features: [],
+    status: String(lead.status ?? "new").toLowerCase() === "responded" ? "Responded" : "New",
+    initials: "LD",
+    tenant: "Seeker",
+    verified: true,
+    description: lead.requestTitle ?? "Need details unavailable",
+    urgency: titleCase(lead.urgency ?? "standard"),
+    needPostId: String(lead.needPostId ?? ""),
+  })), [data]);
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const defaultTab = searchParams.get("tab") ?? "new";
 
   useEffect(() => {
@@ -245,7 +178,9 @@ export default function LeadInbox() {
           }
         />
 
-        {tabs.map((tab) => (
+        {isLoading ? (
+          <BackendLoadingIndicator label="Loading leads..." className="min-h-[24rem]" />
+        ) : tabs.map((tab) => (
           <TabsContent key={tab.value} value={tab.value}>
             {!tab.items.length ? (
               <DashboardEmptyState
@@ -314,7 +249,7 @@ export default function LeadInbox() {
                               size="sm"
                               className="gap-1.5"
                               onClick={() =>
-                                navigate(`/provider/inbox/${selectedLead.id}/offer?need=${encodeURIComponent(selectedLead.need)}&leadId=${selectedLead.id}`)
+                                navigate(`/provider/inbox/${selectedLead.id}/offer?need=${encodeURIComponent(selectedLead.need)}&id=${selectedLead.needPostId}`)
                               }
                             >
                               <Send className="h-3.5 w-3.5" /> Send Offer
@@ -464,7 +399,7 @@ export default function LeadInbox() {
                           <Button
                             size="sm"
                             className="gap-1.5"
-                            onClick={() => navigate(`/provider/inbox/${lead.id}/offer?need=${encodeURIComponent(lead.need)}&leadId=${lead.id}`)}
+                            onClick={() => navigate(`/provider/inbox/${lead.id}/offer?need=${encodeURIComponent(lead.need)}&id=${lead.needPostId}`)}
                           >
                             <Send className="h-3.5 w-3.5" /> Send Offer
                           </Button>

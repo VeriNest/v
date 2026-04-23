@@ -1,262 +1,292 @@
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CalendarDays, ArrowRight, Clock, ChevronLeft, ChevronRight, MapPin, Home, Users, TrendingUp, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
+import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { useSearchFocus } from "@/hooks/use-search-focus";
+import { agentApi } from "@/lib/api";
+import { CalendarDays, Clock, MapPin, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
-const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const hours = Array.from({ length: 12 }, (_, i) => {
-  const h = i + 7;
-  return h <= 12 ? `${h}:00 AM` : `${h - 12}:00 PM`;
-});
+function titleCase(value?: string | null) {
+  if (!value) return "Pending";
+  return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
+function isSameDay(left: Date, right: Date) {
+  return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate();
+}
 
-const bookings = [
-  { day: 0, startHour: 3, duration: 2, guest: "Emeka N.", property: "2 Bed Serviced, VI", status: "Confirmed" },
-  { day: 2, startHour: 1, duration: 3, guest: "Corporate Client", property: "3 Bed Penthouse, Ikoyi", status: "Pending" },
-  { day: 4, startHour: 5, duration: 2, guest: "Fatima A.", property: "Studio, Lekki Phase 1", status: "Confirmed" },
-  { day: 5, startHour: 2, duration: 4, guest: "Guest User", property: "2 Bed Serviced, VI", status: "Confirmed" },
-  { day: 1, startHour: 7, duration: 2, guest: "Sarah K.", property: "1 Bed Luxury, Banana Island", status: "Confirmed" },
-];
-
-const upcomingBookings = [
-  { id: 1, guest: "Emeka Nwankwo", property: "2 Bed Serviced Apartment, Victoria Island", checkIn: "Mar 22", checkOut: "Mar 24", nights: 2, amount: "N90,000", status: "Confirmed", initials: "EN", avatar: "bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300" },
-  { id: 2, guest: "Corporate Client", property: "3 Bed Penthouse, Ikoyi", checkIn: "Mar 25", checkOut: "Mar 28", nights: 3, amount: "N135,000", status: "Pending", initials: "CC", avatar: "bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300" },
-  { id: 3, guest: "Fatima Abdullahi", property: "Studio Apartment, Lekki Phase 1", checkIn: "Mar 30", checkOut: "Mar 31", nights: 1, amount: "N45,000", status: "Confirmed", initials: "FA", avatar: "bg-primary/10 text-primary" },
-  { id: 4, guest: "Sarah Kolawole", property: "1 Bed Luxury, Banana Island", checkIn: "Apr 2", checkOut: "Apr 5", nights: 3, amount: "N210,000", status: "Confirmed", initials: "SK", avatar: "bg-violet-500/10 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300" },
-];
-
-const statusConfig: Record<string, { label: string; className: string; dot: string }> = {
-  Confirmed: { label: "Confirmed", className: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30", dot: "bg-emerald-500" },
-  Pending: { label: "Pending", className: "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30", dot: "bg-amber-500" },
-};
-
-const stats = [
-  { label: "This Week", value: "5", sub: "total bookings", icon: CalendarDays, accent: "text-primary", iconBg: "bg-primary/10" },
-  { label: "Confirmed", value: "4", sub: "ready to host", icon: Users, accent: "text-emerald-600 dark:text-emerald-300", iconBg: "bg-emerald-500/10 dark:bg-emerald-500/15" },
-  { label: "Pending", value: "1", sub: "needs action", icon: Clock, accent: "text-amber-600 dark:text-amber-300", iconBg: "bg-amber-500/10 dark:bg-amber-500/15" },
-  { label: "Revenue", value: "N480K", sub: "projected", icon: TrendingUp, accent: "text-foreground", iconBg: "bg-muted" },
-];
 export default function ProviderCalendar() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
+  useSearchFocus();
+  const queryClient = useQueryClient();
+  const [filter, setFilter] = useState<"all" | "upcoming" | "pending">("all");
+  const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
+  const [scheduledFor, setScheduledFor] = useState("");
+  const [comment, setComment] = useState("");
+  const { data = [] } = useQuery({
+    queryKey: ["/agent/bookings"],
+    queryFn: () => agentApi.listBookings(),
+  });
+
+  const updateBookingMutation = useMutation({
+    mutationFn: (payload: { id: string; scheduledFor?: string; notes?: string; status?: string }) =>
+      agentApi.updateBooking(payload.id, {
+        scheduledFor: payload.scheduledFor ? new Date(payload.scheduledFor).toISOString() : undefined,
+        notes: payload.notes?.trim() || undefined,
+        status: payload.status,
+      }),
+    onSuccess: () => {
+      toast.success("Visit updated");
+      setEditingBookingId(null);
+      setComment("");
+      queryClient.invalidateQueries({ queryKey: ["/agent/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/agent/calendar"] });
+      queryClient.invalidateQueries({ queryKey: ["/seeker/bookings"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to update visit";
+      toast.error(message);
+    },
+  });
+
+  const bookings = useMemo(
+    () =>
+      data
+        .map((item: any) => ({
+          id: String(item.id),
+          property: item.propertyTitle ?? "Property",
+          location: item.propertyLocation ?? "Unknown location",
+          guest: item.seekerName ?? "Seeker",
+          type: titleCase(item.bookingType),
+          status: titleCase(item.status),
+          scheduledAt: item.scheduledFor ? new Date(item.scheduledFor) : null,
+          notes: item.notes ? String(item.notes) : "",
+        }))
+        .sort((left, right) => {
+          if (!left.scheduledAt && !right.scheduledAt) return 0;
+          if (!left.scheduledAt) return 1;
+          if (!right.scheduledAt) return -1;
+          return left.scheduledAt.getTime() - right.scheduledAt.getTime();
+        }),
+    [data],
+  );
+
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const scheduledDates = [
-    new Date(2026, 2, 22),
-    new Date(2026, 3, 2),
-  ].filter((item) => item >= today);
-  const pendingDates = [
-    new Date(2026, 2, 25),
-    new Date(2026, 2, 30),
-  ].filter((item) => item >= today);
+  const filteredBookings = bookings.filter((booking) => {
+    if (!booking.scheduledAt) return filter === "all";
+    if (filter === "upcoming") return booking.scheduledAt >= today;
+    if (filter === "pending") return booking.status === "Pending";
+    return true;
+  });
+
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const selectedDayBookings = selectedDate
+    ? filteredBookings.filter((booking) => booking.scheduledAt && isSameDay(booking.scheduledAt, selectedDate))
+    : [];
+  const displayedBookings = selectedDayBookings.length > 0 ? selectedDayBookings : filteredBookings;
+
+  const counts = {
+    all: bookings.length,
+    upcoming: bookings.filter((booking) => booking.scheduledAt && booking.scheduledAt >= today).length,
+    pending: bookings.filter((booking) => booking.status === "Pending").length,
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Calendar</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage your short-let availability and bookings</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[160px] h-9 text-sm">
-              <Filter className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-              <SelectValue placeholder="All Properties" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Properties</SelectItem>
-              <SelectItem value="vi">2 Bed, VI</SelectItem>
-              <SelectItem value="ikoyi">3 Bed, Ikoyi</SelectItem>
-              <SelectItem value="lekki">Studio, Lekki</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-sm font-medium text-foreground px-3 whitespace-nowrap">Mar 18 - 24, 2024</span>
-            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Bookings"
+        description="View new site-visit schedules and booking requests from seekers."
+      />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {stats.map((s) => (
-          <Card key={s.label} className="border border-border/60 shadow-sm">
-            <CardContent className="p-4 flex items-start gap-3">
-              <div className={`h-9 w-9 rounded-lg ${s.iconBg} flex items-center justify-center shrink-0`}>
-                <s.icon className={`h-4 w-4 ${s.accent}`} />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {[
+          { label: "All bookings", value: counts.all, icon: CalendarDays, note: "total schedules" },
+          { label: "Upcoming", value: counts.upcoming, icon: Clock, note: "future visits" },
+          { label: "Pending", value: counts.pending, icon: Users, note: "needs attention" },
+          { label: "Today", value: selectedDayBookings.length, icon: MapPin, note: "selected date" },
+        ].map((item) => (
+          <Card key={item.label} className="border border-border/60 shadow-sm">
+            <CardContent className="flex items-start gap-3 p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <item.icon className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground font-medium">{s.label}</p>
-                <p className={`text-xl font-bold ${s.accent} leading-tight`}>{s.value}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5">{s.sub}</p>
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+                <p className="text-xl font-bold text-foreground">{item.value}</p>
+                <p className="text-[11px] text-muted-foreground">{item.note}</p>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Main Content */}
-      <Tabs defaultValue="week" className="space-y-4">
-        <TabsList className="bg-muted/50 p-1 h-auto">
-          <TabsTrigger value="week" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1.5 px-4">
-            <CalendarDays className="h-3.5 w-3.5" /> Week View
-          </TabsTrigger>
-          <TabsTrigger value="upcoming" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1.5 px-4">
-            <Clock className="h-3.5 w-3.5" /> Upcoming
-            <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-semibold">{upcomingBookings.length}</Badge>
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={filter} className="space-y-4">
+        <DashboardControlRow
+          left={
+            <TabsList className="h-auto max-w-full flex-wrap justify-start bg-muted/50 p-1">
+              <TabsTrigger value="all" onClick={() => setFilter("all")} className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                All ({counts.all})
+              </TabsTrigger>
+              <TabsTrigger value="upcoming" onClick={() => setFilter("upcoming")} className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Upcoming ({counts.upcoming})
+              </TabsTrigger>
+              <TabsTrigger value="pending" onClick={() => setFilter("pending")} className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Pending ({counts.pending})
+              </TabsTrigger>
+            </TabsList>
+          }
+        />
+      </Tabs>
 
-        {/* Week View */}
-        <TabsContent value="week">
-          <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-4">
-            <Card className="border border-border/60 shadow-sm overflow-hidden">
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <div className="grid grid-cols-8 min-w-[700px]">
-                    {/* Header Row */}
-                    <div className="bg-muted/40 px-3 py-3 text-xs font-semibold text-muted-foreground border-b border-border/60 sticky left-0 z-10 bg-muted/40">
-                      Time
-                    </div>
-                    {days.map((d, i) => (
-                      <div key={d} className={`px-3 py-3 text-xs font-semibold text-center border-b border-l border-border/60 ${i === new Date().getDay() - 1 ? "bg-primary/5 text-primary" : "bg-muted/40 text-muted-foreground"}`}>
-                        <span className="block">{d}</span>
-                        <span className={`text-lg font-bold mt-0.5 block ${i === new Date().getDay() - 1 ? "text-primary" : "text-foreground"}`}>{18 + i}</span>
-                      </div>
-                    ))}
+      <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <Card className="border border-border/60 shadow-sm">
+          <CardContent className="p-3">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              modifiers={{ scheduled: filteredBookings.filter((booking) => booking.scheduledAt).map((booking) => booking.scheduledAt as Date) }}
+              modifiersClassNames={{ scheduled: "font-semibold text-primary" }}
+              className="w-full"
+            />
+          </CardContent>
+        </Card>
 
-                    {/* Time Rows */}
-                    {hours.map((hour, hi) => (
-                      <div key={`row-${hi}`} className="contents">
-                        <div className="px-3 py-2 text-[11px] text-muted-foreground border-t border-border/40 sticky left-0 bg-background z-10 flex items-start pt-2.5">
-                          {hour}
-                        </div>
-                        {days.map((_, di) => {
-                          const booking = bookings.find(b => b.day === di && b.startHour === hi);
-                          const isToday = di === new Date().getDay() - 1;
-                          return (
-                            <div
-                              key={`${di}-${hi}`}
-                              className={`border-t border-l border-border/40 min-h-[44px] relative transition-colors cursor-pointer ${
-                                isToday ? "bg-primary/[0.02]" : "bg-background"
-                              }`}
-                            >
-                              {booking && (
-                                <div
-                                  className={`absolute inset-x-1 top-1 rounded-md px-2 py-1.5 text-xs ${
-                                    booking.status === "Confirmed"
-                                      ? "bg-primary/10 text-primary border border-primary/20"
-                                      : "bg-amber-500/10 text-amber-700 border border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30"
-                                  }`}
-                                  style={{ height: `${booking.duration * 44 - 4}px`, zIndex: 2 }}
-                                >
-                                  <p className="font-semibold truncate text-[11px] leading-tight">{booking.guest}</p>
-                                  <p className="truncate text-[10px] opacity-70 mt-0.5 flex items-center gap-0.5">
-                                    <Home className="h-2.5 w-2.5" />
-                                    {booking.property}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+        <div className="space-y-3">
+          {displayedBookings.length === 0 ? (
+            <Card className="border border-border/60 shadow-sm">
+              <CardContent className="p-5 text-sm text-muted-foreground">
+                No bookings are available for this filter yet.
               </CardContent>
             </Card>
-
-            {/* Mini Calendar Sidebar */}
-            <div className="space-y-4">
-              <Card className="border border-border/60 shadow-sm">
-                <CardContent className="p-3">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    modifiers={{ scheduled: scheduledDates, pending: pendingDates }}
-                    modifiersClassNames={{
-                      scheduled: "font-semibold text-primary",
-                      pending: "font-semibold text-primary",
-                    }}
-                    className="w-full"
-                  />
-                </CardContent>
-              </Card>
-
-              <Card className="border border-border/60 shadow-sm">
-                <CardContent className="p-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-foreground">Today's Schedule</h3>
-                  <div className="space-y-2">
-                    {[
-                      { time: "10:00 AM", guest: "Emeka N.", type: "Check-in", color: "bg-emerald-500" },
-                      { time: "2:00 PM", guest: "Sarah K.", type: "Check-out", color: "bg-primary" },
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30">
-                        <div className={`h-1.5 w-1.5 rounded-full ${item.color} shrink-0`} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-foreground truncate">{item.guest}</p>
-                          <p className="text-[10px] text-muted-foreground">{item.time} · {item.type}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Upcoming */}
-        <TabsContent value="upcoming" className="space-y-3">
-          {upcomingBookings.map((b) => {
-            const s = statusConfig[b.status];
-            return (
-              <Card key={b.id} className="border border-border/60 shadow-sm">
-                <CardContent className="p-5">
-                  <div className="flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Avatar className="h-10 w-10 border border-border/60 shrink-0">
-                        <AvatarFallback className={`text-xs font-semibold ${b.avatar}`}>{b.initials}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm text-foreground truncate">{b.guest}</p>
-                        <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
-                          <MapPin className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{b.property}</span>
-                        </div>
+          ) : (
+            <>
+              {selectedDayBookings.length === 0 ? (
+                <Card className="border border-border/60 shadow-sm">
+                  <CardContent className="p-4 text-sm text-muted-foreground">
+                    No bookings fall on the selected date. Showing all filtered bookings instead.
+                  </CardContent>
+                </Card>
+              ) : null}
+              {displayedBookings.map((booking) => (
+              <Card key={booking.id} className="border border-border/60 shadow-sm">
+                <CardContent className="space-y-4 p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-base font-semibold text-foreground">{booking.property}</p>
+                      <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <MapPin className="h-3 w-3" />
+                        <span>{booking.location}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 shrink-0">
-                      <div className="text-right hidden sm:block">
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 justify-end">
-                          {b.checkIn} <ArrowRight className="h-3 w-3" /> {b.checkOut}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">{b.nights} night{b.nights > 1 ? "s" : ""}</p>
-                      </div>
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${s.className}`}>
-                        <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />{s.label}
-                      </span>
-                      <p className="font-bold text-sm text-foreground min-w-[80px] text-right">{b.amount}</p>
+                    <Badge variant="outline" className="px-2 py-0.5 text-[10px]">
+                      {booking.status}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <div className="rounded-xl bg-secondary/20 p-3">
+                      <p className="text-[11px] text-muted-foreground">Seeker</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{booking.guest}</p>
+                    </div>
+                    <div className="rounded-xl bg-secondary/20 p-3">
+                      <p className="text-[11px] text-muted-foreground">Type</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">{booking.type}</p>
+                    </div>
+                    <div className="rounded-xl bg-secondary/20 p-3">
+                      <p className="text-[11px] text-muted-foreground">Time</p>
+                      <p className="mt-1 text-sm font-medium text-foreground">
+                        {booking.scheduledAt ? booking.scheduledAt.toLocaleString() : "Pending"}
+                      </p>
                     </div>
                   </div>
+
+                  {booking.notes ? (
+                    <div className="rounded-xl border border-border/60 bg-secondary/15 px-3 py-2 text-sm text-muted-foreground">
+                      {booking.notes}
+                    </div>
+                  ) : null}
+
+                  {editingBookingId === booking.id ? (
+                    <div className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
+                      <Input
+                        type="datetime-local"
+                        value={scheduledFor}
+                        onChange={(event) => setScheduledFor(event.target.value)}
+                      />
+                      <Textarea
+                        rows={3}
+                        placeholder="Add meetup location or reschedule note"
+                        value={comment}
+                        onChange={(event) => setComment(event.target.value)}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          disabled={updateBookingMutation.isPending}
+                          onClick={() =>
+                            updateBookingMutation.mutate({
+                              id: booking.id,
+                              scheduledFor: scheduledFor || undefined,
+                              notes: comment,
+                              status: "confirmed",
+                            })
+                          }
+                        >
+                          Confirm & save
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditingBookingId(null)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {booking.status !== "Confirmed" ? (
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            updateBookingMutation.mutate({
+                              id: booking.id,
+                              status: "confirmed",
+                            })
+                          }
+                          disabled={updateBookingMutation.isPending}
+                        >
+                          Accept visit
+                        </Button>
+                      ) : null}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingBookingId(booking.id);
+                          setScheduledFor(
+                            booking.scheduledAt
+                              ? new Date(booking.scheduledAt.getTime() - booking.scheduledAt.getTimezoneOffset() * 60_000).toISOString().slice(0, 16)
+                              : "",
+                          );
+                          setComment("");
+                        }}
+                      >
+                        Reschedule / add meetup note
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
-            );
-          })}
-        </TabsContent>
-      </Tabs>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

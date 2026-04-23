@@ -1,5 +1,7 @@
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   AlertCircle,
   ArrowRight,
@@ -20,6 +22,7 @@ import {
 
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { agentApi, formatCompactCurrency, getPropertyImage } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,13 +31,6 @@ import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 
-const mockListings = [
-  { id: "l1", title: "3 Bed Flat, Lekki Phase 1", price: "N2,500,000/yr", location: "Lekki, Lagos", bedrooms: "3" },
-  { id: "l2", title: "2 Bed Apartment, Ikeja GRA", price: "N1,800,000/yr", location: "Ikeja, Lagos", bedrooms: "2" },
-  { id: "l3", title: "Studio, Wuse 2", price: "N1,200,000/yr", location: "Wuse 2, Abuja", bedrooms: "Studio" },
-  { id: "l4", title: "4 Bed Duplex, Maitama", price: "N5,000,000/yr", location: "Maitama, Abuja", bedrooms: "4" },
-];
-
 const steps = [
   { id: 1, label: "Select Listing", icon: Building2 },
   { id: 2, label: "Pricing & Availability", icon: DollarSign },
@@ -42,12 +38,41 @@ const steps = [
   { id: 4, label: "Review & Send", icon: CheckCircle2 },
 ];
 
+const videoExtensions = [".mp4", ".mov", ".webm", ".ogg", ".m4v", ".avi", ".mkv"];
+
+function isVideoUrl(url: string) {
+  const normalized = url.split("?")[0].toLowerCase();
+  return videoExtensions.some((extension) => normalized.endsWith(extension));
+}
+
 export default function SendOffer() {
   const navigate = useNavigate();
+  const { id: leadId } = useParams();
   const [searchParams] = useSearchParams();
   const leadNeed = searchParams.get("need") || "Tenant Request";
+  const needPostIdFromQuery = searchParams.get("id") || "";
 
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const { data = [] } = useQuery({ queryKey: ["/agent/properties"], queryFn: () => agentApi.listProperties() });
+  const { data: leadData } = useQuery({
+    queryKey: ["/agent/leads", leadId, "offer-context"],
+    queryFn: () => agentApi.getLead(leadId!),
+    enabled: Boolean(leadId) && !needPostIdFromQuery,
+  });
+  const listings = useMemo(
+    () =>
+      data.map((listing: any) => ({
+        id: String(listing.id),
+        title: listing.title ?? "Listing",
+        rawPrice: Number(listing.price ?? 0),
+        price: `${formatCompactCurrency(Number(listing.price ?? 0))}/yr`,
+        location: listing.location ?? "Unknown",
+        bedrooms: String((listing.title ?? "").match(/(\d+)/)?.[1] ?? 2),
+        media: Array.isArray(listing.images) ? listing.images.filter((value: unknown) => typeof value === "string") : [],
+      })),
+    [data],
+  );
   const [currentStep, setCurrentStep] = useState(1);
   const [prioritySend, setPrioritySend] = useState(false);
   const [selectedListing, setSelectedListing] = useState("");
@@ -56,11 +81,15 @@ export default function SendOffer() {
   const [customTerms, setCustomTerms] = useState("");
   const [message, setMessage] = useState("");
 
-  const selectedListingData = mockListings.find((listing) => listing.id === selectedListing);
+  const needPostId = needPostIdFromQuery || String((leadData as any)?.lead?.needPostId ?? "");
+  const resolvedLeadNeed = String((leadData as any)?.lead?.requestTitle ?? leadNeed);
+  const selectedListingData = listings.find((listing) => listing.id === selectedListing);
+  const selectedListingMedia = selectedListingData?.media ?? [];
   const progress = (currentStep / steps.length) * 100;
 
   const canAdvance = () => {
     if (currentStep === 1) return selectedListing.length > 0;
+    if (currentStep === 3) return message.trim().length > 0;
     return true;
   };
 
@@ -102,7 +131,7 @@ export default function SendOffer() {
     <div className="mx-auto max-w-5xl space-y-6">
       <DashboardPageHeader
         title="Send Offer"
-        description={`Responding to ${leadNeed} with the same staged workflow used across provider actions.`}
+        description={`Responding to ${resolvedLeadNeed} with the same staged workflow used across provider actions.`}
         badge={<DashboardStatusBadge tone="info">Provider workflow</DashboardStatusBadge>}
         actions={
           <Button variant="outline" size="sm" onClick={() => navigate("/provider/inbox")} className="gap-1.5">
@@ -154,7 +183,7 @@ export default function SendOffer() {
                 <CardDescription>Choose which property to offer for this tenant's need</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {mockListings.map((listing) => (
+                {listings.map((listing) => (
                   <button
                     key={listing.id}
                     onClick={() => setSelectedListing(listing.id)}
@@ -246,7 +275,7 @@ export default function SendOffer() {
             <Card className="border border-border/60 shadow-sm">
               <CardHeader className="pb-4">
                 <CardTitle className="text-base">Message & Photos</CardTitle>
-                <CardDescription>Write a personalized pitch and attach property photos</CardDescription>
+                <CardDescription>Write a personalized pitch and review the images or videos already attached from your selected property</CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="space-y-1.5">
@@ -257,16 +286,40 @@ export default function SendOffer() {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                   />
-                  <p className="text-[11px] text-muted-foreground">Personalized messages get stronger response rates.</p>
+                  <p className="text-[11px] text-muted-foreground">A cover message is required. Personalized messages get stronger response rates.</p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">Property Photos</label>
-                  <div className="cursor-pointer rounded-xl border-2 border-dashed border-border p-8 text-center">
-                    <ImagePlus className="mx-auto h-10 w-10 text-muted-foreground/40" />
-                    <p className="mt-2 text-sm text-muted-foreground">Drag and drop or click to upload</p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">Available after backend is connected</p>
-                  </div>
+                  <label className="text-sm font-medium text-foreground">Property Media</label>
+                  {selectedListingData ? (
+                    selectedListingMedia.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                        {selectedListingMedia.map((mediaUrl, index) => (
+                          <div key={`${selectedListingData.id}-${index}`} className="overflow-hidden rounded-xl border border-border/60 bg-muted/20">
+                            {isVideoUrl(mediaUrl) ? (
+                              <video
+                                src={mediaUrl}
+                                controls
+                                preload="metadata"
+                                className="h-32 w-full bg-black object-cover"
+                              />
+                            ) : (
+                              <img src={mediaUrl} alt={`${selectedListingData.title} media ${index + 1}`} className="h-32 w-full object-cover" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-muted-foreground">
+                        This listing does not have uploaded media yet. Add property images or videos to the listing and they will appear here automatically.
+                      </div>
+                    )
+                  ) : (
+                    <div className="rounded-xl border border-dashed border-border p-8 text-center">
+                      <ImagePlus className="mx-auto h-10 w-10 text-muted-foreground/40" />
+                      <p className="mt-2 text-sm text-muted-foreground">Select a listing first to load its saved property media.</p>
+                    </div>
+                  )}
                 </div>
 
                 <Card className={`border transition-all ${prioritySend ? "border-primary bg-primary/5" : "border-border/60"}`}>
@@ -308,7 +361,7 @@ export default function SendOffer() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {[
-                    { label: "Tenant Need", value: leadNeed },
+                    { label: "Tenant Need", value: resolvedLeadNeed },
                     { label: "Your Listing", value: selectedListingData?.title || "Not selected" },
                     { label: "Offer Price", value: offerPrice ? `N${offerPrice}` : selectedListingData?.price || "Listing price" },
                     { label: "Move-in Date", value: moveInDate || "Flexible" },
@@ -334,6 +387,31 @@ export default function SendOffer() {
                   </div>
                 ) : null}
 
+                {selectedListingData ? (
+                  <div className="rounded-lg border border-border/40 bg-muted/30 p-3">
+                    <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Attached Listing Media</p>
+                    <div className="mt-2 grid grid-cols-2 gap-3 md:grid-cols-3">
+                      {(selectedListingMedia.length > 0 ? selectedListingMedia : [getPropertyImage([], 0)]).map((mediaUrl, index) => (
+                        <div key={`review-${index}`} className="overflow-hidden rounded-lg border border-border/50 bg-background">
+                          {isVideoUrl(mediaUrl) ? (
+                            <video
+                              src={mediaUrl}
+                              controls
+                              preload="metadata"
+                              className="h-24 w-full bg-black object-cover"
+                            />
+                          ) : (
+                            <img src={mediaUrl} alt={`${selectedListingData.title} preview ${index + 1}`} className="h-24 w-full object-cover" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {selectedListingMedia.length === 0 ? (
+                      <p className="mt-2 text-xs text-muted-foreground">No uploaded listing media was found, so a fallback preview is shown here only.</p>
+                    ) : null}
+                  </div>
+                ) : null}
+
                 {prioritySend ? (
                   <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3">
                     <Rocket className="h-4 w-4 text-primary" />
@@ -341,7 +419,13 @@ export default function SendOffer() {
                   </div>
                 ) : null}
 
-                <Button onClick={() => setSubmitted(true)} className="h-11 w-full gap-2 text-sm font-medium">
+                {!needPostId ? (
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-muted-foreground">
+                    This offer is still resolving the linked seeker post. If you opened this page from an older lead link, wait a moment and then send again.
+                  </div>
+                ) : null}
+
+                <Button onClick={async () => { try { setSubmitting(true); await agentApi.createOffer({ needPostId, propertyId: selectedListing, offerPriceAmount: Number(String(offerPrice).replace(/[^0-9]/g, "")) || Number(selectedListingData?.rawPrice ?? 0), offerPriceCurrency: "NGN", offerPricePeriod: "year", moveInDate: moveInDate || undefined, customTerms, message: message.trim(), prioritySend }); setSubmitted(true); } catch (error) { const message = error instanceof Error ? error.message : "Unable to send offer"; toast.error(message); } finally { setSubmitting(false); } }} disabled={submitting || !selectedListing || !needPostId || message.trim().length === 0} className="h-11 w-full gap-2 text-sm font-medium">
                   <Send className="h-4 w-4" /> Send Offer
                 </Button>
               </CardContent>

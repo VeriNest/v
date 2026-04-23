@@ -1,15 +1,21 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Activity, Camera } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Bell, Shield, Trash2, KeyRound, Building2, Activity, CreditCard, Camera } from "lucide-react";
-import { useRef } from "react";
+import { Textarea } from "@/components/ui/textarea";
 import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardSettingsRow, DashboardSettingsSection } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { agentSettingsApi, authApi, onboardingApi, clearStoredSession } from "@/lib/api";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 const activityLog = [
   { action: "Sent offer for 3 Bed in Lekki", time: "1 hour ago", type: "Offer" },
@@ -28,14 +34,146 @@ const typeStyles: Record<string, string> = {
 };
 
 export default function ProviderSettings() {
+  const navigate = useNavigate();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingAlerts, setSavingAlerts] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [experienceRange, setExperienceRange] = useState("");
+  const [bio, setBio] = useState("");
+  const [city, setCity] = useState("");
+  const [operatingCity, setOperatingCity] = useState("");
+  const [operatingState, setOperatingState] = useState("");
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setAvatarUrl(url);
+  const { data: me } = useQuery({
+    queryKey: ["/auth/me"],
+    queryFn: () => authApi.me(),
+  });
+
+  const { data: notificationSettings } = useQuery({
+    queryKey: ["/agent/notification-settings"],
+    queryFn: () => agentSettingsApi.get(),
+  });
+
+  useEffect(() => {
+    if (!me) return;
+    setPhone(me.profile?.phone ?? "");
+    setCity(me.profile?.city ?? "");
+    setBio(me.profile?.bio ?? me.user.bio ?? "");
+    setCompanyName(String(me.roleProfile?.company_name ?? ""));
+    setExperienceRange(String(me.roleProfile?.experience_range ?? ""));
+    if (me.profile?.avatarUrl) {
+      setAvatarUrl(me.profile.avatarUrl);
+    }
+  }, [me, setAvatarUrl]);
+
+  useEffect(() => {
+    if (!notificationSettings) return;
+    setNotificationsEnabled(notificationSettings.notifications_enabled);
+    setOperatingCity(notificationSettings.operating_city ?? "");
+    setOperatingState(notificationSettings.operating_state ?? "");
+  }, [notificationSettings]);
+
+  const initials = useMemo(() => {
+    const source = me?.user.full_name?.trim() || me?.user.email?.trim() || "Agent";
+    return source
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("") || "AG";
+  }, [me]);
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !me) return;
+
+    try {
+      setUploadingAvatar(true);
+      const uploaded = await uploadToCloudinary(file, "avatar");
+      setAvatarUrl(uploaded.secureUrl);
+      await onboardingApi.saveProfile({
+        role: "agent",
+        phone,
+        city,
+        operatingState,
+        avatar_url: uploaded.secureUrl,
+        companyName,
+        experienceRange,
+        specializations: Array.isArray(me.roleProfile?.specializations_json) ? me.roleProfile.specializations_json : [],
+        bio,
+      });
+      toast.success("Profile image updated");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to update profile image";
+      toast.error(message);
+    } finally {
+      setUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!me) return;
+    try {
+      setSavingProfile(true);
+      await onboardingApi.saveProfile({
+        role: "agent",
+        phone,
+        city,
+        operatingState,
+        avatar_url: avatarUrl,
+        companyName,
+        experienceRange,
+        specializations: Array.isArray(me.roleProfile?.specializations_json) ? me.roleProfile.specializations_json : [],
+        bio,
+      });
+      toast.success("Profile updated");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to save profile";
+      toast.error(message);
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleSaveAlerts = async () => {
+    try {
+      setSavingAlerts(true);
+      await agentSettingsApi.update({
+        notifications_enabled: notificationsEnabled,
+        operating_city: operatingCity,
+        operating_state: operatingState,
+      });
+      toast.success("Alert settings updated");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to save alert settings";
+      toast.error(message);
+    } finally {
+      setSavingAlerts(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("Are you sure you want to permanently delete your account? This action cannot be undone.")) {
+      return;
+    }
+
+    setDeletingAccount(true);
+    try {
+      await authApi.deleteAccount();
+      toast.success("Account deleted successfully");
+      clearStoredSession();
+      navigate("/");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to delete account";
+      toast.error(message);
+    } finally {
+      setDeletingAccount(false);
     }
   };
 
@@ -43,7 +181,7 @@ export default function ProviderSettings() {
     <div className="max-w-4xl mx-auto space-y-6 min-w-0">
       <DashboardPageHeader
         title="Settings"
-        description="Manage your provider profile, payouts, alerts, and security controls."
+        description="Manage your provider profile, lead routing details, alerts, and account controls."
       />
 
       <Card className="border border-border/60 shadow-sm">
@@ -53,11 +191,13 @@ export default function ProviderSettings() {
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
               ) : (
-                <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">AJ</AvatarFallback>
+                <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">{initials}</AvatarFallback>
               )}
             </Avatar>
             <button
+              type="button"
               onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingAvatar}
               className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 cursor-pointer"
             >
               <Camera className="h-4 w-4 text-background" />
@@ -65,12 +205,14 @@ export default function ProviderSettings() {
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-foreground truncate">Adebayo Johnson</p>
-            <p className="text-sm text-muted-foreground truncate">adebayo@dwello.ng</p>
+            <p className="font-semibold text-foreground truncate">{me?.user.full_name ?? "Agent"}</p>
+            <p className="text-sm text-muted-foreground truncate">{me?.user.email ?? "-"}</p>
           </div>
           <div className="flex shrink-0 flex-wrap justify-center gap-1.5 sm:justify-end">
             <DashboardStatusBadge tone="info">Agent</DashboardStatusBadge>
-            <DashboardStatusBadge tone="success">Verified</DashboardStatusBadge>
+            <DashboardStatusBadge tone={me?.user.verification_status === "verified" ? "success" : "warning"}>
+              {me?.user.verification_status === "verified" ? "Verified" : "Pending"}
+            </DashboardStatusBadge>
           </div>
         </CardContent>
       </Card>
@@ -79,84 +221,63 @@ export default function ProviderSettings() {
         <TabsList className="bg-muted/50 p-1 h-auto flex-wrap">
           <TabsTrigger value="general" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">General</TabsTrigger>
           <TabsTrigger value="business" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Business</TabsTrigger>
-          <TabsTrigger value="payouts" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Payouts</TabsTrigger>
           <TabsTrigger value="notifications" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Alerts</TabsTrigger>
           <TabsTrigger value="security" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Security</TabsTrigger>
           <TabsTrigger value="activity" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
-          <DashboardSettingsSection title="Profile Information" description="Update your provider identity and business contact details.">
+          <DashboardSettingsSection title="Profile Information" description="Update the details attached to your provider profile.">
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Full Name</label><Input defaultValue="Adebayo Johnson" /></div>
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Email</label><Input defaultValue="adebayo@dwello.ng" /></div>
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Phone</label><Input defaultValue="+234 803 456 7890" /></div>
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Company</label><Input defaultValue="Lagos Homes Ltd" /></div>
+                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Full Name</label><Input value={me?.user.full_name ?? ""} disabled /></div>
+                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Email</label><Input value={me?.user.email ?? ""} disabled /></div>
+                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Phone</label><Input value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
+                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Primary City</label><Input value={city} onChange={(e) => setCity(e.target.value)} /></div>
+                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Company</label><Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} /></div>
+                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Experience Range</label><Input value={experienceRange} onChange={(e) => setExperienceRange(e.target.value)} /></div>
               </div>
-              <div className="flex justify-end pt-2"><Button>Save Changes</Button></div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">Bio</label>
+                <Textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} />
+              </div>
+              <div className="flex justify-end pt-2"><Button onClick={() => void handleSaveProfile()} disabled={savingProfile || !me}>{savingProfile ? "Saving..." : "Save Changes"}</Button></div>
             </CardContent>
           </DashboardSettingsSection>
         </TabsContent>
 
         <TabsContent value="business">
-          <DashboardSettingsSection title="Business Settings" description="Configure how leads, bookings, and listing exposure are handled.">
-            <DashboardSettingsRow
-              label="Auto-respond to matching leads"
-              description="Send template offers to leads matching your listings."
-              control={<Switch />}
-            />
-            <DashboardSettingsRow
-              label="Accept short-let bookings"
-              description="Show your listings in short-let search results."
-              control={<Switch defaultChecked />}
-            />
-            <DashboardSettingsRow
-              label="Instant booking"
-              description="Allow tenants to book without manual approval."
-              control={<Switch />}
-            />
-          </DashboardSettingsSection>
-        </TabsContent>
-
-        <TabsContent value="payouts">
-          <DashboardSettingsSection title="Payout Settings" description="Manage the bank details and payout schedule used for provider settlements.">
+          <DashboardSettingsSection title="Lead Routing Details" description="These onboarding details determine which seeker posts are routed to your queue.">
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Bank Name</label><Input defaultValue="GTBank" /></div>
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Account Number</label><Input defaultValue="0123456789" /></div>
-                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Account Name</label><Input defaultValue="Adebayo Johnson" /></div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">Payout Frequency</label>
-                  <select className="w-full h-10 rounded-lg border border-input bg-background px-3 text-sm text-foreground">
-                    <option>Weekly</option>
-                    <option>Bi-weekly</option>
-                    <option>Monthly</option>
-                  </select>
-                </div>
+                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Operating City</label><Input value={operatingCity} disabled /></div>
+                <div className="space-y-1.5"><label className="text-sm font-medium text-foreground">Operating State</label><Input value={operatingState} disabled /></div>
               </div>
-              <div className="flex justify-end pt-2"><Button>Update Payout Details</Button></div>
+              <p className="text-xs text-muted-foreground">Operating location is locked after onboarding and is used to route matching seeker needs to your lead inbox.</p>
             </CardContent>
           </DashboardSettingsSection>
         </TabsContent>
 
         <TabsContent value="notifications">
-          <DashboardSettingsSection title="Notification Preferences" description="Choose which provider alerts should interrupt your workflow.">
-            <DashboardSettingsRow
-              label="New lead alerts"
-              description="Get notified when new leads match your listings."
-              control={<Switch defaultChecked />}
-            />
-            <DashboardSettingsRow
-              label="Payout notifications"
-              description="Notify when payouts are released from escrow."
-              control={<Switch defaultChecked />}
-            />
-            <DashboardSettingsRow
-              label="SLA warnings"
-              description="Alert when response time SLA is close to expiring."
-              control={<Switch defaultChecked />}
-            />
+          <DashboardSettingsSection title="Notification Preferences" description="Control whether matching seeker posts and provider alerts are routed to you.">
+            <CardContent className="space-y-4">
+              <DashboardSettingsRow
+                label="Matching seeker post alerts"
+                description="Enable routing for seeker needs that match your operating city or state."
+                control={<Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />}
+              />
+              <DashboardSettingsRow
+                label="Operating City"
+                description={operatingCity || "Not set during onboarding"}
+                control={<span className="text-xs text-muted-foreground">Read only</span>}
+              />
+              <DashboardSettingsRow
+                label="Operating State"
+                description={operatingState || "Not set during onboarding"}
+                control={<span className="text-xs text-muted-foreground">Read only</span>}
+              />
+              <div className="flex justify-end pt-2"><Button onClick={() => void handleSaveAlerts()} disabled={savingAlerts}>{savingAlerts ? "Saving..." : "Save Alert Settings"}</Button></div>
+            </CardContent>
           </DashboardSettingsSection>
         </TabsContent>
 
@@ -164,13 +285,8 @@ export default function ProviderSettings() {
           <DashboardSettingsSection title="Security" description="Manage the sign-in and protection controls for your provider account.">
             <DashboardSettingsRow
               label="Change Password"
-              description="Last changed 7 days ago."
+              description="Use your account security flow to update your password."
               control={<Button variant="outline" size="sm">Update</Button>}
-            />
-            <DashboardSettingsRow
-              label="Two-Factor Auth"
-              description="Secure your account with 2FA."
-              control={<Button variant="outline" size="sm">Enable</Button>}
             />
           </DashboardSettingsSection>
 
@@ -178,13 +294,12 @@ export default function ProviderSettings() {
             <CardContent>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5 gap-3">
                 <div className="min-w-0"><p className="font-medium text-sm text-foreground">Delete Account</p><p className="text-xs text-muted-foreground">Permanently delete your provider account and all listings.</p></div>
-                <Button variant="destructive" size="sm" className="shrink-0">Delete Account</Button>
+                <Button variant="destructive" size="sm" className="shrink-0" onClick={handleDeleteAccount} disabled={deletingAccount}>{deletingAccount ? "Deleting..." : "Delete Account"}</Button>
               </div>
             </CardContent>
           </DashboardSettingsSection>
         </TabsContent>
 
-        {/* Activity - Mobile cards */}
         <TabsContent value="activity">
           <Card className="border border-border/60 shadow-sm">
             <CardHeader className="pb-4">

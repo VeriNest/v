@@ -1,4 +1,7 @@
 ﻿import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import {
   MapPin, Calendar, Bed, CheckCircle2, ShieldCheck, FileText, Plus, ChevronRight,
   ChevronLeft, Zap, Clock, Eye, Rocket, ArrowRight, Home, Sparkles, AlertCircle
@@ -16,12 +19,7 @@ import { Progress } from "@/components/ui/progress";
 import { DashboardHistoryRow } from "@/components/dashboard/DashboardHistoryRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
-
-const previousNeeds = [
-  { id: 1, title: "3 Bed in Lekki Phase 1", budget: "₦2.5M/yr", status: "Active", offers: 4, date: "Mar 15, 2024", urgency: "Soon" },
-  { id: 2, title: "Studio in Wuse 2, Abuja", budget: "₦1.2M/yr", status: "Closed", offers: 7, date: "Feb 28, 2024", urgency: "Flexible" },
-  { id: 3, title: "2 Bed Short-let, VI", budget: "₦45K/night", status: "Active", offers: 2, date: "Mar 18, 2024", urgency: "Urgent" },
-];
+import { seekerApi } from "@/lib/api";
 
 const amenities = ["24hr Power", "Security", "Water Supply", "Parking", "Gated Estate", "Pet Friendly", "Furnished", "Swimming Pool", "Gym", "Serviced", "Elevator", "Balcony"];
 
@@ -38,14 +36,36 @@ const urgencyLevels = [
   { value: "urgent", label: "Urgent", desc: "Need ASAP", icon: Zap, color: "text-red-600 dark:text-red-300", bg: "bg-red-500/10 border-red-500/20 dark:bg-red-500/15 dark:border-red-500/30", dot: "bg-red-500" },
 ];
 
+const nigerianStates = [
+  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno", "Cross River",
+  "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "Gombe", "Imo", "Jigawa", "Kaduna", "Kano", "Katsina",
+  "Kebbi", "Kogi", "Kwara", "Lagos", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo", "Plateau",
+  "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara", "FCT",
+].sort();
+
 const formatBudget = (val: number) => {
   if (val >= 1000000) return `₦${(val / 1000000).toFixed(1)}M`;
   if (val >= 1000) return `₦${(val / 1000).toFixed(0)}K`;
   return `₦${val}`;
 };
 
+const formatNeedDate = (value: string) =>
+  new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
+
+type NeedRow = {
+  id: string;
+  request_title: string;
+  min_budget: number;
+  max_budget: number;
+  status: string;
+  response_count: number;
+  created_at: string;
+};
+
 export default function PostNeed() {
+  const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [urgency, setUrgency] = useState("flexible");
@@ -54,8 +74,14 @@ export default function PostNeed() {
   const [propertyType, setPropertyType] = useState("rent");
   const [bedrooms, setBedrooms] = useState("2");
   const [location, setLocation] = useState("");
+  const [selectedState, setSelectedState] = useState("");
   const [moveInDate, setMoveInDate] = useState("");
   const [notes, setNotes] = useState("");
+
+  const { data: needs = [] } = useQuery<NeedRow[]>({
+    queryKey: ["/seeker/needs"],
+    queryFn: () => seekerApi.listNeeds() as Promise<NeedRow[]>,
+  });
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
@@ -63,9 +89,77 @@ export default function PostNeed() {
 
   const progress = (currentStep / steps.length) * 100;
 
+  const parseLocation = () => {
+    const parts = location
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+
+    const area = parts[0] ?? location.trim();
+    const city = parts[1] ?? area;
+    const state = selectedState || "Unspecified";
+
+    return {
+      area,
+      city,
+      state,
+    };
+  };
+
+  const bedroomCount = () => {
+    if (bedrooms === "self") return 1;
+    if (bedrooms === "4+") return 4;
+    return Number.parseInt(bedrooms, 10) || 1;
+  };
+
+  const requestTitle = () => {
+    const bedroomLabel = bedrooms === "self" ? "Self-con" : `${bedrooms} Bed`;
+    const propertyLabel =
+      propertyType === "shortlet" ? "Short-let" : propertyType === "shared" ? "Shared Apartment" : "Rent";
+    const locationLabel = [location.trim(), selectedState].filter(Boolean).join(", ");
+    return `${bedroomLabel} ${propertyLabel} in ${locationLabel || "Preferred Area"}`;
+  };
+
+  const handlePublishNeed = async () => {
+    const trimmedLocation = location.trim();
+    if (!trimmedLocation || !selectedState) {
+      toast.error("Preferred area and state are required");
+      setCurrentStep(2);
+      return;
+    }
+
+    const { area, city, state } = parseLocation();
+
+    try {
+      setSubmitting(true);
+      await seekerApi.createNeed({
+        request_title: requestTitle(),
+        area,
+        city,
+        state,
+        property_type: propertyType,
+        bedrooms: bedroomCount(),
+        min_budget: budgetRange[0],
+        max_budget: budgetRange[1],
+        pricing_preference: propertyType === "shortlet" ? "per_night" : "per_year",
+        desired_features: selectedTags,
+        description:
+          notes.trim() ||
+          `Urgency: ${urgency}. Move-in date: ${moveInDate || "Flexible"}. Boost requested: ${boost ? "Yes" : "No"}.`,
+      });
+      setSubmitted(true);
+      toast.success("Need published successfully");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to publish need";
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const canAdvance = () => {
     if (currentStep === 1) return propertyType && bedrooms;
-    if (currentStep === 2) return location.length > 0;
+    if (currentStep === 2) return location.length > 0 && selectedState.length > 0;
     return true;
   };
 
@@ -103,7 +197,7 @@ export default function PostNeed() {
           </TabsTrigger>
           <TabsTrigger value="history" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1.5">
             <FileText className="h-3.5 w-3.5" /> My Posts
-            <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-semibold">{previousNeeds.length}</Badge>
+            <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px] font-semibold">{needs.length}</Badge>
           </TabsTrigger>
         </TabsList>
 
@@ -242,17 +336,31 @@ export default function PostNeed() {
                   </CardHeader>
                   <CardContent className="space-y-5">
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-foreground">Preferred Location</label>
+                      <label className="text-sm font-medium text-foreground">Preferred State</label>
+                      <Select value={selectedState} onValueChange={setSelectedState}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a state" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {nigerianStates.map((state) => (
+                            <SelectItem key={state} value={state}>{state}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground">Preferred Area / City</label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                          placeholder="e.g. Lekki Phase 1, Lagos or Wuse 2, Abuja"
+                          placeholder="e.g. Lekki Phase 1, Ikeja, Wuse 2"
                           className="pl-9"
                           value={location}
                           onChange={(e) => setLocation(e.target.value)}
                         />
                       </div>
-                      <p className="text-[11px] text-muted-foreground">You can list multiple areas separated by commas</p>
+                      <p className="text-[11px] text-muted-foreground">Enter your preferred area first, then optionally add a city after a comma</p>
                     </div>
 
                     <div className="space-y-3">
@@ -379,7 +487,7 @@ export default function PostNeed() {
                       {[
                         { label: "Type", value: propertyType === "rent" ? "Rent (Long-term)" : propertyType === "shortlet" ? "Short-let" : "Shared Apartment" },
                         { label: "Bedrooms", value: bedrooms === "self" ? "Self-contain" : `${bedrooms} Bedroom${bedrooms !== "1" ? "s" : ""}` },
-                        { label: "Location", value: location || "Not specified" },
+                        { label: "Location", value: [location, selectedState].filter(Boolean).join(", ") || "Not specified" },
                         { label: "Budget", value: `${formatBudget(budgetRange[0])} — ${formatBudget(budgetRange[1])}` },
                         { label: "Move-in", value: moveInDate || "Flexible" },
                         { label: "Urgency", value: urgencyLevels.find(l => l.value === urgency)?.label || "" },
@@ -416,7 +524,7 @@ export default function PostNeed() {
                       </div>
                     )}
 
-                    <Button onClick={() => setSubmitted(true)} className="w-full h-11 text-sm font-medium gap-2">
+                    <Button onClick={() => void handlePublishNeed()} disabled={submitting} className="w-full h-11 text-sm font-medium gap-2">
                       <CheckCircle2 className="h-4 w-4" /> Publish Need
                     </Button>
                   </CardContent>
@@ -513,38 +621,41 @@ export default function PostNeed() {
               </div>
             </CardHeader>
             <CardContent className="divide-y divide-border/60">
-              {previousNeeds.map((need) => {
-                const urg = urgencyLevels.find(l => l.label === need.urgency);
-                return (
-                  <div key={need.id} className="py-4 first:pt-0 last:pb-0">
+              {needs.length === 0 ? (
+                <div className="py-10 text-center text-sm text-muted-foreground">
+                  No posted needs yet.
+                </div>
+              ) : (
+                needs.map((need) => (
+                  <button
+                    key={need.id}
+                    type="button"
+                    className="block w-full py-4 text-left first:pt-0 last:pb-0"
+                    onClick={() => navigate("/seeker/offers")}
+                  >
                     <DashboardHistoryRow
                       icon={FileText}
-                      title={need.title}
+                      title={need.request_title}
                       subtitle={
                         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          <span>{need.budget}</span>
+                          <span>{formatBudget(need.min_budget)} — {formatBudget(need.max_budget)}</span>
                           <span>·</span>
-                          <span>{need.date}</span>
+                          <span>{formatNeedDate(need.created_at)}</span>
                           <span>·</span>
-                          <span>{need.offers} offers</span>
+                          <span>{need.response_count} offers</span>
                         </div>
                       }
                       badges={
                         <div className="flex flex-wrap items-center gap-2">
-                          {urg ? (
-                            <DashboardStatusBadge tone={urg.value === "urgent" ? "danger" : urg.value === "soon" ? "warning" : "info"} dot>
-                              {urg.label}
-                            </DashboardStatusBadge>
-                          ) : null}
-                          <DashboardStatusBadge tone={need.status === "Active" ? "success" : "neutral"}>
-                            {need.status}
+                          <DashboardStatusBadge tone={need.status === "active" ? "success" : "neutral"}>
+                            {need.status.charAt(0).toUpperCase() + need.status.slice(1)}
                           </DashboardStatusBadge>
                         </div>
                       }
                     />
-                  </div>
-                );
-              })}
+                  </button>
+                ))
+              )}
             </CardContent>
           </Card>
         </TabsContent>

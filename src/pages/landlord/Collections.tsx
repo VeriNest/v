@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ArrowUpRight, CheckCircle2, Clock4, Download, Filter, Receipt, Search, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,13 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
+import { formatCompactCurrency, landlordApi, titleCase } from "@/lib/api";
 
-export const rows = [
-  { id: "COL-201", tenant: "Bode Akin", unit: "Palm Residence A1", property: "Palm Residence", amount: "N850,000", state: "Paid", due: "Apr 02", method: "Bank transfer" },
-  { id: "COL-202", tenant: "Amber Foods", unit: "Admiralty Suites 5B", property: "Admiralty Suites", amount: "N1,450,000", state: "Due tomorrow", due: "Apr 07", method: "Pending invoice" },
-  { id: "COL-203", tenant: "Ruth Samuel", unit: "Lekki Court B2", property: "Lekki Court", amount: "N620,000", state: "Overdue", due: "Apr 01", method: "Reminder sent" },
-  { id: "COL-204", tenant: "Nova Labs", unit: "Admiralty Suites 4C", property: "Admiralty Suites", amount: "N1,450,000", state: "Paid", due: "Apr 03", method: "Corporate remittance" },
-];
+export const rows = [] as any[];
 
 const stateStyles: Record<string, { className: string }> = {
   Paid: { className: "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:bg-emerald-500/15 dark:border-emerald-500/30 dark:text-emerald-300" },
@@ -25,6 +22,17 @@ const stateStyles: Record<string, { className: string }> = {
 export default function LandlordCollections() {
   useSearchFocus();
   const [search, setSearch] = useState("");
+  const { data = [] } = useQuery({ queryKey: ["/landlord/collections"], queryFn: () => landlordApi.listCollections() });
+  const rows = useMemo(() => data.map((row: any) => ({
+    id: row.id,
+    tenant: row.tenant_user_id ?? "Tenant",
+    unit: row.unit_id ?? "Unit",
+    property: row.lease_id ?? "Property",
+    amount: formatCompactCurrency(Number(row.amount ?? 0)),
+    state: titleCase(row.status ?? "due"),
+    due: row.due_date ? new Date(row.due_date).toLocaleDateString() : "Pending",
+    method: row.currency ?? "NGN",
+  })), [data]);
 
   const filtered = useMemo(
     () =>

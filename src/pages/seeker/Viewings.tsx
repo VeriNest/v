@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
@@ -11,7 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { CalendarDays, Clock3, MapPin, ShieldCheck, Wallet } from "lucide-react";
-import { viewings } from "./Bookings";
+import { seekerApi } from "@/lib/api";
 
 const viewingStatusStyles: Record<string, string> = {
   Scheduled: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
@@ -107,7 +108,21 @@ export default function SeekerViewings() {
   useSearchFocus();
   const [search, setSearch] = useState("");
   const [viewingFilter, setViewingFilter] = useState<"all" | "active" | "pending">("all");
-  const viewingDates = useMemo(() => viewings.map((item) => ({ ...item, date: parseViewingDate(item.time) })), []);
+  const { data = [] } = useQuery({
+    queryKey: ["/seeker/bookings"],
+    queryFn: () => seekerApi.listBookings(),
+  });
+  const viewings = useMemo(() => data.map((item: any) => ({
+    id: item.id,
+    property: item.propertyTitle ?? "Viewing",
+    location: item.propertyLocation ?? "Unknown location",
+    host: item.providerName ?? "Provider",
+    amount: item.bookingType ?? "viewing",
+    status: String(item.status ?? "pending").toLowerCase() === "confirmed" ? "Scheduled" : "Pending confirmation",
+    time: item.scheduledFor ? new Date(item.scheduledFor).toLocaleString() : "Pending",
+    note: item.notes ?? "No additional notes",
+  })).filter((item: any) => item.amount.toLowerCase().includes("viewing") || item.status), [data]);
+  const viewingDates = useMemo(() => viewings.map((item) => ({ ...item, date: parseViewingDate(item.time) })), [viewings]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(viewingDates[0]?.date);
 
   const normalizedQuery = search.trim().toLowerCase();

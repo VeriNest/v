@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -13,83 +14,27 @@ import {
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { SeekerPageSearch } from "@/components/seeker/SeekerPageSearch";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchFocus } from "@/hooks/use-search-focus";
+import { formatCompactCurrency, seekerApi } from "@/lib/api";
 
-export const bookings = [
-  {
-    id: "BK-402",
-    property: "The Maple Court",
-    location: "Lekki Phase 1",
-    host: "Adebayo Johnson",
-    amount: "N2,500,000",
-    paymentStatus: "Escrow held",
-    status: "Awaiting viewing",
-    dateLabel: "Viewing tomorrow, 2:00 PM",
-    detail: "Annual rent booking",
-  },
-  {
-    id: "BK-311",
-    property: "Apex Studio",
-    location: "Wuse 2",
-    host: "Chioma Okafor",
-    amount: "N1,200,000",
-    paymentStatus: "Payment confirmed",
-    status: "Confirmed",
-    dateLabel: "Check-in Apr 14",
-    detail: "Studio apartment",
-  },
-  {
-    id: "BK-128",
-    property: "Harbour View",
-    location: "Victoria Island",
-    host: "ShortStay NG",
-    amount: "N135,000",
-    paymentStatus: "Part payment made",
-    status: "Pending balance",
-    dateLabel: "Short-let, 3 nights",
-    detail: "Serviced apartment",
-  },
-];
+function titleForStatus(value?: string) {
+  if (!value) return "Pending";
+  return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
-export const viewings = [
-  {
-    id: "VW-22",
-    property: "Palm Residence A1",
-    location: "Lekki Phase 1",
-    host: "Bode Akin",
-    amount: "N850,000",
-    status: "Scheduled",
-    time: "Tomorrow, 10:00 AM",
-    note: "Gate code will be shared one hour before arrival.",
-  },
-  {
-    id: "VW-09",
-    property: "Admiralty Suites 4C",
-    location: "Ikoyi",
-    host: "Nova Realty",
-    amount: "N1,450,000",
-    status: "Pending confirmation",
-    time: "Apr 12, 1:00 PM",
-    note: "Host requested a quick call before the visit.",
-  },
-  {
-    id: "VW-31",
-    property: "Lekki Court B2",
-    location: "Lekki Phase 1",
-    host: "Ruth Samuel",
-    amount: "Vendor visit",
-    status: "Scheduled",
-    time: "Apr 15, 3:30 PM",
-    note: "Inspection focused on water pressure and finishing.",
-  },
-];
+function titleForBookingType(value?: string) {
+  if (!value) return "Booking";
+  return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
 const bookingStatusStyles: Record<string, string> = {
   Confirmed: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
+  Pending: "bg-primary/10 text-primary border-primary/20",
   "Awaiting viewing": "bg-primary/10 text-primary border-primary/20",
   "Pending balance": "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30",
 };
@@ -122,6 +67,25 @@ export default function SeekerBookings() {
   useSearchFocus();
   const [search, setSearch] = useState("");
   const [bookingFilter, setBookingFilter] = useState<"all" | "active" | "pending">("all");
+  const { data = [] } = useQuery({
+    queryKey: ["/seeker/bookings"],
+    queryFn: () => seekerApi.listBookings(),
+  });
+  const bookings = useMemo(() => data.map((item: any, index: number) => ({
+    id: item.id ?? `BK-${index + 1}`,
+    property: item.propertyTitle ?? "Property booking",
+    location: item.propertyLocation ?? "Unknown location",
+    host: item.providerName ?? "Provider",
+    hostPhone: item.providerPhone ?? "",
+    hostAvatarUrl: item.providerAvatarUrl ?? null,
+    amount: formatCompactCurrency(Number(item.amount ?? 0)),
+    paymentStatus: titleForStatus(item.status),
+    status: titleForStatus(item.status),
+    dateLabel: item.scheduledFor ? new Date(item.scheduledFor).toLocaleString() : "Schedule pending",
+    detail: titleForBookingType(item.bookingType),
+    initials: String(item.providerName ?? "PR").split(" ").map((part: string) => part[0]).join("").slice(0, 2) || "PR",
+  })), [data]);
+  const viewings = bookings.filter((item) => item.detail.toLowerCase().includes("viewing") || item.status.toLowerCase().includes("awaiting") || item.status.toLowerCase().includes("confirmed"));
 
   const normalizedQuery = search.trim().toLowerCase();
 
@@ -133,18 +97,18 @@ export default function SeekerBookings() {
     );
 
     if (bookingFilter === "active") {
-      return matches.filter((item) => item.status === "Confirmed" || item.status === "Awaiting viewing");
+      return matches.filter((item) => item.status === "Confirmed" || item.status === "Awaiting viewing" || item.status === "Pending");
     }
     if (bookingFilter === "pending") {
-      return matches.filter((item) => item.status === "Pending balance");
+      return matches.filter((item) => item.status === "Pending balance" || item.status === "Pending");
     }
     return matches;
   }, [normalizedQuery, bookingFilter]);
 
   const bookingCounts = {
     all: bookings.length,
-    active: bookings.filter((item) => item.status === "Confirmed" || item.status === "Awaiting viewing").length,
-    pending: bookings.filter((item) => item.status === "Pending balance").length,
+    active: bookings.filter((item) => item.status === "Confirmed" || item.status === "Awaiting viewing" || item.status === "Pending").length,
+    pending: bookings.filter((item) => item.status === "Pending balance" || item.status === "Pending").length,
   };
 
   return (
@@ -212,7 +176,16 @@ export default function SeekerBookings() {
               <div className="grid grid-cols-2 gap-2.5 text-sm">
                 <div className="rounded-xl bg-secondary/20 p-3">
                   <p className="text-[11px] text-muted-foreground">Host</p>
-                  <p className="mt-1 truncate font-medium text-foreground">{item.host}</p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Avatar className="h-8 w-8 border border-border/60">
+                      {item.hostAvatarUrl ? (
+                        <img src={item.hostAvatarUrl} alt={item.host} className="h-full w-full rounded-full object-cover" />
+                      ) : (
+                        <AvatarFallback className="bg-primary/10 text-[10px] font-medium text-primary">{item.initials}</AvatarFallback>
+                      )}
+                    </Avatar>
+                    <p className="truncate font-medium text-foreground">{item.host}</p>
+                  </div>
                 </div>
                 <div className="rounded-xl bg-secondary/20 p-3">
                   <p className="text-[11px] text-muted-foreground">Amount</p>
@@ -227,6 +200,13 @@ export default function SeekerBookings() {
                   <p className="mt-1 truncate font-medium text-foreground">{item.dateLabel}</p>
                 </div>
               </div>
+
+              {item.status === "Confirmed" && item.hostPhone ? (
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2.5 text-sm">
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Agent phone</p>
+                  <p className="mt-1 font-medium text-foreground">{item.hostPhone}</p>
+                </div>
+              ) : null}
 
               <div className="rounded-xl border border-border/50 bg-secondary/15 px-3 py-2.5 text-xs text-muted-foreground">
                 {item.detail}

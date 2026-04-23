@@ -14,6 +14,7 @@ import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
 import RentPage from "./pages/Rent.tsx";
 import PropertiesPage from "./pages/Properties.tsx";
+import PropertyDetailPage from "./pages/PropertyDetail.tsx";
 
 // Admin
 import AdminLayout from "./components/admin/AdminLayout.tsx";
@@ -48,6 +49,7 @@ import Bookings from "./pages/seeker/Bookings.tsx";
 import Viewings from "./pages/seeker/Viewings.tsx";
 import Saved from "./pages/seeker/Saved.tsx";
 import SeekerSettings from "./pages/seeker/Settings.tsx";
+import AgentProfile from "./pages/seeker/AgentProfile.tsx";
 
 // Provider
 import ProviderLayout from "./components/provider/ProviderLayout.tsx";
@@ -60,6 +62,7 @@ import ProviderCalendar from "./pages/provider/Calendar.tsx";
 import ProviderSettings from "./pages/provider/Settings.tsx";
 import LeadDetail from "./pages/provider/LeadDetail.tsx";
 import SendOffer from "./pages/provider/SendOffer.tsx";
+import ListingDetail from "./pages/provider/ListingDetail.tsx";
 import DashboardSearch from "./pages/shared/DashboardSearch.tsx";
 import { ThemeProvider } from "@/components/theme-provider";
 import ScrollToTop from "@/components/router/ScrollToTop";
@@ -96,6 +99,7 @@ const App = () => (
             <Route path="/contact" element={<Contact />} />
             <Route path="/rent" element={<RentPage />} />
             <Route path="/properties" element={<PropertiesPage />} />
+            <Route path="/properties/:id" element={<PropertyDetailPage />} />
           </Route>
 
           {/* Admin Dashboard */}
@@ -120,6 +124,7 @@ const App = () => (
               <Route path="search" element={<DashboardSearch role="seeker" />} />
               <Route path="post" element={<PostNeed />} />
               <Route path="offers" element={<Offers />} />
+              <Route path="agents/:id" element={<AgentProfile />} />
               <Route path="bookings" element={<Bookings />} />
               <Route path="viewings" element={<Viewings />} />
               <Route path="saved" element={<Saved />} />
@@ -134,6 +139,7 @@ const App = () => (
               <Route path="inbox/:id" element={<LeadDetail />} />
               <Route path="inbox/:id/offer" element={<SendOffer />} />
               <Route path="listings" element={<Listings />} />
+              <Route path="listings/:id" element={<ListingDetail />} />
               <Route path="listings/new" element={<AddListing />} />
               <Route path="payouts" element={<Payouts />} />
               <Route path="calendar" element={<ProviderCalendar />} />

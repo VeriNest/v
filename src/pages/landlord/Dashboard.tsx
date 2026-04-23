@@ -216,7 +216,7 @@ export default function LandlordDashboard() {
       },
   ], []);
 
-  const { applyPreset, layout, move, moveTo, reset, resetItem, setSize, showWidget, toggleVisibility } = useDashboardLayout("dwello_dashboard_layout_landlord_v2", widgetDefinitions.map((widget) => ({ id: widget.id, size: widget.defaultSize, availableSizes: widget.availableSizes })));
+  const { applyPreset, layout, move, moveTo, reset, resetItem, setSize, showWidget, toggleVisibility } = useDashboardLayout("verinest_dashboard_layout_landlord_v2", widgetDefinitions.map((widget) => ({ id: widget.id, size: widget.defaultSize, availableSizes: widget.availableSizes })));
   const widgetMap = useMemo(() => new Map(widgetDefinitions.map((widget) => [widget.id, widget])), [widgetDefinitions]);
   const visibleWidgets = layout.flatMap((item) => {
     const widget = widgetMap.get(item.id);

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,13 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle, ArrowUpRight, Filter, Plus, Search, ShieldCheck, Wrench } from "lucide-react";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
-
-const issues = [
-  { issue: "Water heater replacement", unit: "Lekki Court A2", priority: "Urgent", assigned: "Vendor pending", status: "Open", age: "2 hrs", note: "Tenant without hot water" },
-  { issue: "Generator service request", unit: "Palm Residence B1", priority: "Normal", assigned: "PowerFix Ltd", status: "In progress", age: "1 day", note: "Vendor scheduled for 4PM" },
-  { issue: "Ceiling leak inspection", unit: "Admiralty Suites 2A", priority: "Urgent", assigned: "Rapid Repairs", status: "Open", age: "4 hrs", note: "Leak worsened after rain" },
-  { issue: "Gate access lock fault", unit: "Palm Residence A3", priority: "Normal", assigned: "Resolved", status: "Resolved", age: "Closed today", note: "Main gate lock replaced" },
-];
+import { landlordApi, titleCase } from "@/lib/api";
 
 const statusStyles: Record<string, string> = {
   Open: "bg-primary/10 text-primary border-primary/20",
@@ -29,7 +24,17 @@ const priorityStyles: Record<string, string> = {
 
 export default function LandlordMaintenance() {
   const [search, setSearch] = useState("");
-  const filtered = useMemo(() => issues.filter((item) => [item.issue, item.unit, item.assigned].some((value) => value.toLowerCase().includes(search.toLowerCase()))), [search]);
+  const { data = [] } = useQuery({ queryKey: ["/landlord/maintenance"], queryFn: () => landlordApi.listMaintenance() });
+  const issues = useMemo(() => data.map((item: any) => ({
+    issue: item.title ?? "Issue",
+    unit: item.unit_id ?? "Unit",
+    priority: titleCase(item.severity ?? "medium"),
+    assigned: item.assigned_vendor_name ?? "Vendor pending",
+    status: titleCase(item.status ?? "open"),
+    age: item.created_at ? new Date(item.created_at).toLocaleDateString() : "now",
+    note: item.description ?? "",
+  })), [data]);
+  const filtered = useMemo(() => issues.filter((item) => [item.issue, item.unit, item.assigned].some((value) => value.toLowerCase().includes(search.toLowerCase()))), [issues, search]);
   const open = filtered.filter((item) => item.status === "Open");
   const inProgress = filtered.filter((item) => item.status === "In progress");
   const resolved = filtered.filter((item) => item.status === "Resolved");

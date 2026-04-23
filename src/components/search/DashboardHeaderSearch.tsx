@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import { DashboardSearchRole } from "@/lib/dashboard-search";
 import { useDashboardSearchResults } from "@/hooks/use-dashboard-search-results";
 import { searchDashboardEntriesLive } from "@/lib/typesense-search";
@@ -81,8 +82,8 @@ export function DashboardHeaderSearch({ role, placeholder }: DashboardHeaderSear
         {open && query.trim() ? (
           <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-30 rounded-xl border border-border/60 bg-background p-2 shadow-xl">
             {loading ? (
-              <div className="px-3 py-4 text-sm text-muted-foreground">
-                Searching...
+              <div className="px-3 py-4">
+                <BackendLoadingIndicator label="Loading..." compact inline />
               </div>
             ) : results.length > 0 ? (
               <div className="space-y-1">
@@ -187,8 +188,8 @@ export function DashboardHeaderSearch({ role, placeholder }: DashboardHeaderSear
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
               {query.trim() ? (
                 loading ? (
-                  <div className="py-8 text-center text-sm text-muted-foreground">
-                    Searching...
+                  <div className="py-8">
+                    <BackendLoadingIndicator label="Loading..." compact inline />
                   </div>
                 ) : results.length > 0 ? (
                   <div className="space-y-2">

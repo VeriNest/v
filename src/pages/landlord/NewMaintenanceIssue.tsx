@@ -1,10 +1,13 @@
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { AlertTriangle, ArrowLeft, CheckCircle2, ClipboardList, FileText, Plus, Wrench } from "lucide-react";
 
 import { DashboardHistoryRow } from "@/components/dashboard/DashboardHistoryRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { landlordApi } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 
-import { units } from "./Units";
 
 const vendors = ["Vendor pending", "Rapid Repairs", "PowerFix Ltd", "Prime Facility Services"];
 const previousIssues = [
@@ -24,14 +26,16 @@ const previousIssues = [
 
 export default function LandlordNewMaintenanceIssue() {
   const navigate = useNavigate();
-  const [unit, setUnit] = useState(units[0]?.name ?? "");
+  const { data: unitRows = [] } = useQuery({ queryKey: ["/landlord/units"], queryFn: () => landlordApi.listUnits() });
+  const units = useMemo(() => unitRows.map((item: any) => ({ id: item.id, name: item.name ?? item.unit_code ?? "Unit", propertyId: item.property_id, state: item.occupancy_status ?? "vacant", tenant: item.tenant_user_id ?? "Vacant", lease: item.lease_id ?? "Not set" })), [unitRows]);
+  const [unit, setUnit] = useState("");
   const [issue, setIssue] = useState("");
   const [priority, setPriority] = useState("Normal");
   const [assigned, setAssigned] = useState(vendors[0]);
   const [note, setNote] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const selectedUnit = useMemo(() => units.find((item) => item.name === unit), [unit]);
+  const selectedUnit = useMemo(() => units.find((item) => item.name === unit), [unit, units]);
 
   if (submitted) {
     return (
@@ -150,7 +154,7 @@ export default function LandlordNewMaintenanceIssue() {
                   <Button variant="outline" asChild>
                     <Link to="/landlord/maintenance">Cancel</Link>
                   </Button>
-                  <Button onClick={() => setSubmitted(true)} disabled={!issue.trim()} className="gap-1.5">
+                  <Button onClick={async () => { try { const selected = units.find((item) => item.name === unit); await landlordApi.createMaintenance({ propertyId: selected?.propertyId, unitId: selected?.id, title: issue, description: note || issue, severity: priority.toLowerCase() === "urgent" ? "urgent" : "medium" }); setSubmitted(true); } catch (error) { const message = error instanceof Error ? error.message : "Unable to log maintenance issue"; toast.error(message); } }} disabled={!issue.trim() || !unit} className="gap-1.5">
                     <Plus className="h-4 w-4" /> Log Issue
                   </Button>
                 </div>

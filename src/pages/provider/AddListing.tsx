@@ -1,9 +1,11 @@
-﻿import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+﻿import { useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   MapPin, Calendar, CheckCircle2, ShieldCheck, FileText, Plus, ChevronRight,
   ChevronLeft, Eye, Rocket, ArrowRight, Building2, Sparkles, AlertCircle,
-  ImagePlus, Home, Bed, DollarSign, Tag
+  ImagePlus, Home, Bed, DollarSign, Tag, ShieldAlert
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,8 @@ import { Progress } from "@/components/ui/progress";
 import { DashboardHistoryRow } from "@/components/dashboard/DashboardHistoryRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { landlordApi, propertiesApi, authApi } from "@/lib/api";
+import { uploadToCloudinary } from "@/lib/cloudinary";
 
 const previousListings = [
   { id: 1, title: "3 Bedroom Flat, Lekki Phase 1", price: "₦2.5M/yr", status: "Active", views: 45, date: "Mar 15, 2024", type: "Rent" },
@@ -25,6 +29,13 @@ const previousListings = [
 ];
 
 const amenities = ["24hr Power", "Security", "Water Supply", "Parking", "Gated Estate", "Pet Friendly", "Furnished", "Swimming Pool", "Gym", "Serviced", "Elevator", "Balcony"];
+
+const nigerianStates = [
+  "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno", "Cross River",
+  "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "Gombe", "Imo", "Jigawa", "Kaduna", "Kano", "Katsina",
+  "Kebbi", "Kogi", "Kwara", "Lagos", "Lafia", "Nasarawa", "Niger", "Ogun", "Ondo", "Osun", "Oyo",
+  "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara", "FCT"
+].sort();
 
 const steps = [
   { id: 1, label: "Property Details", icon: Building2 },
@@ -41,10 +52,17 @@ const statusStyles: Record<string, { color: string; bg: string; dot: string }> =
 
 export default function AddListing() {
   const navigate = useNavigate();
+  const locationState = useLocation();
   const [submitted, setSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   const [boost, setBoost] = useState(false);
+
+  // Fetch user data to check verification status
+  const { data: me } = useQuery({
+    queryKey: ["/auth/me"],
+    queryFn: () => authApi.me(),
+  });
 
   // Step 1
   const [listingType, setListingType] = useState("rent");
@@ -59,9 +77,64 @@ export default function AddListing() {
 
   // Step 3
   const [description, setDescription] = useState("");
+  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const mediaInputRef = useRef<HTMLInputElement>(null);
+  const isLandlordFlow = locationState.pathname.startsWith("/landlord");
+
+  // Check if user is verified (for agents)
+  const isVerified = me?.user.verification_status === "verified" || isLandlordFlow;
+
+  const handleSubmitListing = async () => {
+    try {
+      setSubmitting(true);
+      const payload = {
+        title,
+        price: Number(String(price).replace(/[^0-9]/g, "")) || 0,
+        location,
+        exact_address: address || location,
+        description,
+        images: mediaUrls,
+        contact_name: "Verinest User",
+        contact_phone: "+2340000000000",
+        is_service_apartment: listingType === "shortlet",
+        listing_type: listingType,
+      };
+      if (isLandlordFlow) {
+        await landlordApi.createProperty(payload);
+      } else {
+        await propertiesApi.createAgent(payload);
+      }
+      setSubmitted(true);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to save listing";
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const toggleAmenity = (tag: string) => {
     setSelectedAmenities(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+  };
+
+  const handleMediaUpload = async (files: FileList | null) => {
+    if (!files?.length) return;
+    try {
+      setUploadingMedia(true);
+      const uploaded = await Promise.all(Array.from(files).map((file) => uploadToCloudinary(file, "property")));
+      setMediaUrls((prev) => [...prev, ...uploaded.map((item) => item.secureUrl)]);
+      toast.success(`${uploaded.length} file${uploaded.length === 1 ? "" : "s"} uploaded`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to upload property media";
+      toast.error(message);
+    } finally {
+      setUploadingMedia(false);
+      if (mediaInputRef.current) {
+        mediaInputRef.current.value = "";
+      }
+    }
   };
 
   const progress = (currentStep / steps.length) * 100;
@@ -88,7 +161,7 @@ export default function AddListing() {
         </div>
         <div className="flex gap-3">
           <Button onClick={() => { setSubmitted(false); setCurrentStep(1); setTitle(""); setLocation(""); setPrice(""); setDescription(""); setSelectedAmenities([]); setBoost(false); }} variant="outline" size="sm">Add Another</Button>
-          <Button size="sm" onClick={() => navigate("/provider/listings")}>View My Listings</Button>
+          <Button size="sm" onClick={() => navigate(isLandlordFlow ? "/landlord/properties" : "/provider/listings")}>View My Listings</Button>
         </div>
       </div>
     );
@@ -100,6 +173,20 @@ export default function AddListing() {
         title="Add a Listing"
         description="List your property — verified tenants will discover and send you offers."
       />
+
+      {!isLandlordFlow && !isVerified && (
+        <Card className="border border-amber-500/20 bg-amber-50/50 dark:bg-amber-500/5">
+          <CardContent className="p-4 flex items-start gap-3">
+            <ShieldAlert className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-sm text-amber-900 dark:text-amber-200">Verification Required</p>
+              <p className="text-xs text-amber-800 dark:text-amber-300 mt-1">
+                Your verification is pending. Once approved by our team, you'll be able to list properties. You can still prepare your listings in the meantime.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs defaultValue="new" className="space-y-4">
         <TabsList className="bg-muted/50 p-1 h-auto">
@@ -237,15 +324,13 @@ export default function AddListing() {
                         <SelectTrigger>
                           <div className="flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <SelectValue placeholder="Select city" />
+                            <SelectValue placeholder="Select state" />
                           </div>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Lagos">Lagos</SelectItem>
-                          <SelectItem value="Abuja">Abuja</SelectItem>
-                          <SelectItem value="Port Harcourt">Port Harcourt</SelectItem>
-                          <SelectItem value="Ibadan">Ibadan</SelectItem>
-                          <SelectItem value="Kano">Kano</SelectItem>
+                          {nigerianStates.map((state) => (
+                            <SelectItem key={state} value={state}>{state}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -342,12 +427,41 @@ export default function AddListing() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-foreground">Property Photos</label>
-                      <div className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer">
+                      <label className="text-sm font-medium text-foreground">Property Photos & Videos</label>
+                      <button
+                        type="button"
+                        onClick={() => mediaInputRef.current?.click()}
+                        className="w-full border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={uploadingMedia}
+                      >
                         <ImagePlus className="h-10 w-10 mx-auto text-muted-foreground/40" />
-                        <p className="text-sm text-muted-foreground mt-2">Drag & drop or click to upload</p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">Available after backend is connected</p>
-                      </div>
+                        <p className="text-sm text-muted-foreground mt-2">{uploadingMedia ? "Uploading media..." : "Drag & drop or click to upload"}</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">Images and videos upload directly to Cloudinary</p>
+                      </button>
+                      <input
+                        ref={mediaInputRef}
+                        type="file"
+                        accept="image/*,video/*"
+                        multiple
+                        className="hidden"
+                        onChange={(event) => { void handleMediaUpload(event.target.files); }}
+                      />
+                      {mediaUrls.length > 0 && (
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                          {mediaUrls.map((url) => {
+                            const isVideo = /\.(mp4|mov|webm|m4v)(\?|$)/i.test(url);
+                            return (
+                              <div key={url} className="overflow-hidden rounded-xl border border-border/60 bg-muted/20">
+                                {isVideo ? (
+                                  <video src={url} className="h-28 w-full object-cover" muted playsInline controls />
+                                ) : (
+                                  <img src={url} alt="Property media" className="h-28 w-full object-cover" />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
 
                     {/* Boost card */}
@@ -437,8 +551,18 @@ export default function AddListing() {
                       </div>
                     )}
 
-                    <Button onClick={() => setSubmitted(true)} className="w-full h-11 text-sm font-medium gap-2">
-                      <CheckCircle2 className="h-4 w-4" /> Publish Listing
+                    <Button 
+                      onClick={() => {
+                        if (!isVerified) {
+                          toast.error("You must complete your verification before listing properties");
+                          return;
+                        }
+                        void handleSubmitListing();
+                      }} 
+                      disabled={submitting || !isVerified} 
+                      className="w-full h-11 text-sm font-medium gap-2"
+                    >
+                      <CheckCircle2 className="h-4 w-4" /> {!isVerified ? "Verification Required" : "Publish Listing"}
                     </Button>
                   </CardContent>
                 </Card>

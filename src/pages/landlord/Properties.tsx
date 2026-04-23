@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { Building2, DoorOpen, FileWarning, Filter, Plus, Search, Wallet, Wrench } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,17 +10,28 @@ import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadg
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
+import { landlordApi, formatCompactCurrency, titleCase } from "@/lib/api";
 
-export const properties = [
-  { id: "p1", name: "Palm Residence", location: "Lekki Phase 1", units: 6, occupied: 5, collections: "N4.8M", docs: "Complete", status: "Healthy", vacant: 1, openIssues: 1, yield: "92%" },
-  { id: "p2", name: "Admiralty Suites", location: "Victoria Island", units: 8, occupied: 7, collections: "N7.2M", docs: "1 expiring", status: "Attention", vacant: 1, openIssues: 3, yield: "95%" },
-  { id: "p3", name: "Lekki Court", location: "Ikate", units: 4, occupied: 3, collections: "N3.1M", docs: "Pending upload", status: "At risk", vacant: 1, openIssues: 2, yield: "77%" },
-];
+export const properties = [] as any[];
 
 export default function LandlordProperties() {
   useSearchFocus();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
+  const { data = [] } = useQuery({ queryKey: ["/landlord/properties"], queryFn: () => landlordApi.listProperties() });
+  const properties = useMemo(() => data.map((property: any) => ({
+    id: property.id,
+    name: property.title ?? "Property",
+    location: property.location ?? "Unknown location",
+    units: 0,
+    occupied: 0,
+    collections: formatCompactCurrency(Number(property.price ?? 0)),
+    docs: titleCase(String(property.status ?? "pending")),
+    status: String(property.status ?? "draft").toLowerCase() === "published" ? "Healthy" : "Attention",
+    vacant: 0,
+    openIssues: 0,
+    yield: "0%",
+  })), [data]);
 
   useEffect(() => {
     setSearch(searchParams.get("q") ?? "");

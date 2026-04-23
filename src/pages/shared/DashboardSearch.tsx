@@ -3,6 +3,7 @@ import { ArrowRight, Search } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import { DashboardSearchRole, dashboardSearchConfig } from "@/lib/dashboard-search";
 import { useDashboardSearchResults } from "@/hooks/use-dashboard-search-results";
 
@@ -63,12 +64,8 @@ export default function DashboardSearch({ role }: DashboardSearchProps) {
       {query.trim() ? (
         loading ? (
           <Card className="border border-border/60 shadow-sm">
-            <CardContent className="p-8 text-center">
-              <Search className="mx-auto h-10 w-10 text-muted-foreground/40" />
-              <p className="mt-4 text-sm font-medium text-foreground">Searching...</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Looking through {config.label.toLowerCase()} content.
-              </p>
+            <CardContent className="p-8">
+              <BackendLoadingIndicator label="Loading..." compact />
             </CardContent>
           </Card>
         ) : results.length > 0 ? (
