@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verinest — Loading</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --terra:    #C4714A;
+    --terra-dk: #A85D38;
+    --terra-lt: #E8C4AE;
+    --cream:    #FAF7F3;
+    --warm-bg:  #F0EBE3;
+    --dark:     #161412;
+    --dark-2:   #1F1C19;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--warm-bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'DM Sans', sans-serif;
+    gap: 64px;
+  }
+
+  /* ── Section labels ── */
+  .label {
+    font-size: 9px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #B09880;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ════════════════════════════════
+     LOADER 1 — ORBIT RING
+     The roof icon sits still at centre.
+     A terracotta dot orbits it on a
+     thin circular track, trailing a
+     fading arc behind it.
+  ════════════════════════════════ */
+  .orbit-wrap {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Static track ring */
+  .orbit-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1.5px solid rgba(196, 113, 74, 0.15);
+  }
+
+  /* Rotating arc SVG */
+  .orbit-arc {
+    position: absolute;
+    inset: 0;
+    animation: spin-arc 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes spin-arc {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  /* Centre logo icon */
+  .orbit-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--terra);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(196, 113, 74, 0.35);
+    animation: icon-breathe 1.6s ease-in-out infinite;
+    z-index: 2;
+  }
+
+  @keyframes icon-breathe {
+    0%, 100% { box-shadow: 0 4px 20px rgba(196, 113, 74, 0.35); transform: scale(1); }
+    50%       { box-shadow: 0 6px 28px rgba(196, 113, 74, 0.55); transform: scale(1.04); }
+  }
+
+  /* ════════════════════════════════
+     LOADER 2 — MORPH RING
+     The icon mark itself pulses while
+     a segmented ring rotates around it,
+     each segment fading out like a comet.
+  ════════════════════════════════ */
+  .morph-wrap {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .morph-ring {
+    position: absolute;
+    inset: 0;
+    animation: spin-reverse 2s linear infinite;
+  }
+
+  @keyframes spin-reverse {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(-360deg); }
+  }
+
+  .morph-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--terra);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 24px rgba(196, 113, 74, 0.4);
+    z-index: 2;
+    animation: morph-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes morph-pulse {
+    0%, 100% { border-radius: 14px; transform: rotate(0deg); }
+    25%       { border-radius: 20px; transform: rotate(3deg); }
+    50%       { border-radius: 14px; transform: rotate(0deg); }
+    75%       { border-radius: 20px; transform: rotate(-3deg); }
+  }
+
+  /* ════════════════════════════════
+     LOADER 3 — DARK FULLSCREEN
+     Premium page-load overlay style.
+     Icon on dark bg with glow ring
+     and animated dots below.
+  ════════════════════════════════ */
+  .fullscreen-mock {
+    width: 300px;
+    height: 420px;
+    background: var(--dark);
+    border-radius: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  }
+
+  /* Ambient glow behind icon */
+  .glow-orb {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(196,113,74,0.18) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { transform: scale(1);   opacity: 0.7; }
+    50%       { transform: scale(1.2); opacity: 1; }
+  }
+
+  .fs-icon-wrap {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 28px;
+    z-index: 2;
+  }
+
+  .fs-ring {
+    position: absolute;
+    inset: 0;
+    animation: spin-arc 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  .fs-icon {
+    width: 62px;
+    height: 62px;
+    background: var(--terra);
+    border-radius: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 1px rgba(196,113,74,0.3), 0 8px 32px rgba(196,113,74,0.45);
+    z-index: 3;
+    animation: icon-breathe 1.8s ease-in-out infinite;
+  }
+
+  .fs-wordmark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: #FAF7F3;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+    z-index: 2;
+  }
+  .fs-wordmark em { font-style: italic; color: var(--terra); }
+
+  .fs-status {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(196,113,74,0.7);
+    margin-bottom: 24px;
+    z-index: 2;
+    animation: text-fade 1.8s ease-in-out infinite;
+  }
+
+  @keyframes text-fade {
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1; }
+  }
+
+  /* Dot trio loader */
+  .dot-trio {
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+  }
+
+  .trio-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--terra);
+    border-radius: 50%;
+    animation: dot-wave 1.4s ease-in-out infinite;
+  }
+  .trio-dot:nth-child(1) { animation-delay: 0s; }
+  .trio-dot:nth-child(2) { animation-delay: 0.18s; }
+  .trio-dot:nth-child(3) { animation-delay: 0.36s; }
+
+  @keyframes dot-wave {
+    0%, 100% { transform: translateY(0);  opacity: 0.4; }
+    50%       { transform: translateY(-6px); opacity: 1; }
+  }
+
+  /* Bottom bar on fullscreen */
+  .fs-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0; right: 0;
+    height: 3px;
+    background: rgba(196,113,74,0.15);
+    border-radius: 0 0 28px 28px;
+    overflow: hidden;
+  }
+
+  .fs-progress {
+    height: 100%;
+    background: var(--terra);
+    border-radius: 0 0 28px 28px;
+    animation: progress-slide 2.4s ease-in-out infinite;
+  }
+
+  @keyframes progress-slide {
+    0%   { width: 0%;   margin-left: 0; }
+    50%  { width: 70%;  margin-left: 0; }
+    100% { width: 0%;   margin-left: 100%; }
+  }
+
+  /* ════════════════════════════════
+     LOADER 4 — INLINE / BUTTON SIZE
+     Tiny version for use inside
+     buttons or inline states.
+  ════════════════════════════════ */
+  .inline-demos {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 260px;
+  }
+
+  .btn-loading {
+    width: 100%;
+    padding: 16px;
+    background: var(--terra);
+    border: none;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+    letter-spacing: 0.03em;
+    cursor: default;
+  }
+
+  .btn-loading-ghost {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: 1.5px solid var(--terra);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--terra);
+    cursor: default;
+  }
+
+  .mini-spin {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    animation: spin-arc 1s linear infinite;
+  }
+
+  /* ── small icon for inline ── */
+  .mini-icon {
+    width: 18px;
+    height: 18px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ── LOADER 1: ORBIT ── -->
+<div class="section">
+  <p class="label">Orbit Ring</p>
+  <div class="orbit-wrap">
+    <div class="orbit-track"></div>
+
+    <!-- Rotating arc with dot -->
+    <svg class="orbit-arc" viewBox="0 0 100 100" fill="none">
+      <!-- Fading arc trail -->
+      <circle cx="50" cy="50" r="47"
+        stroke="url(#arcGrad)"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-dasharray="80 220"
+        fill="none"/>
+      <!-- Leading dot -->
+      <circle cx="97" cy="50" r="4" fill="#C4714A"/>
+      <defs>
+        <linearGradient id="arcGrad" gradientUnits="userSpaceOnUse"
+          x1="50" y1="3" x2="97" y2="50">
+          <stop offset="0%" stop-color="#C4714A" stop-opacity="0"/>
+          <stop offset="100%" stop-color="#C4714A" stop-opacity="1"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <!-- Centre icon -->
+    <div class="orbit-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M3 11L12 3l9 8" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="9" y="13" width="6" height="8" rx="3" fill="white"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── LOADER 2: MORPH RING ── -->
+<div class="section">
+  <p class="label">Segmented Comet Ring</p>
+  <div class="morph-wrap">
+
+    <!-- Segmented rotating ring -->
+    <svg class="morph-ring" viewBox="0 0 110 110" fill="none">
+      <circle cx="55" cy="55" r="50" stroke="rgba(196,113,74,0.1)" stroke-width="2" fill="none"/>
+      <!-- 4 arc segments, progressively fading -->
+      <circle cx="55" cy="55" r="50"
+        stroke="#C4714A" stroke-width="2.5" stroke-linecap="round"
+        stroke-dasharray="30 284" stroke-dashoffset="0"
+        fill="none" opacity="1"/>
+      <circle cx="55" cy="55" r="50"
+        stroke="#C4714A" stroke-width="2" stroke-linecap="round"
+        stroke-dasharray="22 284" stroke-dashoffset="-38"
+        fill="none" opacity="0.55"/>
+      <circle cx="55" cy="55" r="50"
+        stroke="#C4714A" stroke-width="1.5" stroke-linecap="round"
+        stroke-dasharray="14 284" stroke-dashoffset="-68"
+        fill="none" opacity="0.25"/>
+      <circle cx="55" cy="55" r="50"
+        stroke="#C4714A" stroke-width="1" stroke-linecap="round"
+        stroke-dasharray="8 284" stroke-dashoffset="-90"
+        fill="none" opacity="0.1"/>
+    </svg>
+
+    <div class="morph-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <path d="M3 11L12 3l9 8" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="9" y="13" width="6" height="8" rx="3" fill="white"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── LOADER 3: FULLSCREEN DARK ── -->
+<div class="section">
+  <p class="label">Full-Screen Page Load</p>
+  <div class="fullscreen-mock">
+    <div class="glow-orb"></div>
+
+    <div class="fs-icon-wrap">
+      <!-- Rotating arc ring -->
+      <svg class="fs-ring" viewBox="0 0 120 120" fill="none">
+        <circle cx="60" cy="60" r="56"
+          stroke="rgba(196,113,74,0.12)"
+          stroke-width="2" fill="none"/>
+        <circle cx="60" cy="60" r="56"
+          stroke="url(#fsArcGrad)"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-dasharray="100 252"
+          fill="none"/>
+        <circle cx="116" cy="60" r="5" fill="#C4714A"/>
+        <defs>
+          <linearGradient id="fsArcGrad" gradientUnits="userSpaceOnUse"
+            x1="60" y1="4" x2="116" y2="60">
+            <stop offset="0%"   stop-color="#C4714A" stop-opacity="0"/>
+            <stop offset="100%" stop-color="#C4714A" stop-opacity="0.9"/>
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <div class="fs-icon">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+          <path d="M3 11L12 3l9 8" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="9" y="13" width="6" height="8" rx="3" fill="white"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="fs-wordmark">Veri<em>nest</em></div>
+    <div class="fs-status">Verifying your identity</div>
+    <div class="dot-trio">
+      <div class="trio-dot"></div>
+      <div class="trio-dot"></div>
+      <div class="trio-dot"></div>
+    </div>
+
+    <div class="fs-bottom">
+      <div class="fs-progress"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── LOADER 4: INLINE BUTTON ── -->
+<div class="section">
+  <p class="label">Inline Button States</p>
+  <div class="inline-demos">
+
+    <div class="btn-loading">
+      <svg class="mini-spin" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="9" r="7.5"
+          stroke="rgba(255,255,255,0.25)" stroke-width="2" fill="none"/>
+        <circle cx="9" cy="9" r="7.5"
+          stroke="white" stroke-width="2"
+          stroke-linecap="round"
+          stroke-dasharray="20 27"
+          fill="none"/>
+        <circle cx="16.5" cy="9" r="2" fill="white"/>
+      </svg>
+      Finding Matches...
+    </div>
+
+    <div class="btn-loading-ghost">
+      <svg class="mini-spin" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="9" r="7.5"
+          stroke="rgba(196,113,74,0.25)" stroke-width="2" fill="none"/>
+        <circle cx="9" cy="9" r="7.5"
+          stroke="#C4714A" stroke-width="2"
+          stroke-linecap="round"
+          stroke-dasharray="20 27"
+          fill="none"/>
+        <circle cx="16.5" cy="9" r="2" fill="#C4714A"/>
+      </svg>
+      Uploading Document...
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

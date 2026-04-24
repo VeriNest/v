@@ -86,9 +86,38 @@ export default function Onboarding() {
   const kycStep = isProvider ? 3 : role === "seeker" ? 3 : null;
 
   const handleComplete = () => {
-    if (role) {
-      navigate(dashboardPathForRole(role));
+    // Enforce verification requirements before allowing dashboard access
+    if (!role) {
+      toast.error("Role not selected");
+      return;
     }
+
+    // For agents and landlords: require both document upload and facial verification
+    if ((role === "agent" || role === "landlord") && (!uploadedDocFiles["National ID (NIN)"] || !facialVerificationComplete)) {
+      toast.error("Please complete document upload and facial verification before continuing", {
+        description: "Both NIN document and liveness check are required",
+      });
+      return;
+    }
+
+    // For seekers: require facial verification
+    if (role === "seeker" && !facialVerificationComplete) {
+      toast.error("Please complete the liveness check before continuing", {
+        description: "Facial verification is required for all users",
+      });
+      return;
+    }
+
+    // Additional check: verify the backend confirms verification status
+    if (me?.verification?.status && me.verification.status.toLowerCase() !== "verified" && me.verification.status.toLowerCase() !== "approved") {
+      toast.error("Verification not yet approved by backend", {
+        description: "Please wait a moment or refresh the page",
+      });
+      return;
+    }
+
+    // All checks passed - proceed to dashboard
+    navigate(dashboardPathForRole(role));
   };
 
   useEffect(() => {
