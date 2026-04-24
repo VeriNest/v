@@ -90,7 +90,7 @@ export function LoadingSpinner({ fullScreen = false, size = 'md' }: LoadingSpinn
 
 export function PageLoadingSpinner() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-background">
+    <div className="min-h-screen w-full flex items-center sm:items-start sm:pt-12 lg:items-center justify-center bg-background">
       <div className="text-center space-y-4">
         <div className="flex justify-center">
           <div className="w-16 h-16 relative">

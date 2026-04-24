@@ -251,14 +251,14 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
     if (!baseline) return false;
 
     if (stepKey === "up") {
-      return metrics.pitch < baseline.pitch - 0.018;
+      return metrics.pitch > baseline.pitch + 0.018;
     }
 
     if (stepKey === "left") {
-      return metrics.yaw < baseline.yaw - 0.03;
+      return metrics.yaw > baseline.yaw + 0.03;
     }
 
-    return metrics.yaw > baseline.yaw + 0.03;
+    return metrics.yaw < baseline.yaw - 0.03;
   };
 
   useEffect(() => {
@@ -627,8 +627,9 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
 
   if (screen === "camera") {
     return (
-      <div className="w-full max-w-[480px] bg-[#f0ebe3]">
-        <div className="flex items-center justify-between border-b border-[#e2dad0] bg-[#faf7f3] px-5 py-4">
+      <div className="flex justify-center items-center w-full min-h-screen bg-background p-4">
+        <div className="w-full max-w-[480px] bg-[#f0ebe3] rounded-lg overflow-hidden flex flex-col max-h-[100vh] sm:max-h-[90vh]">
+          <div className="flex items-center justify-between border-b border-[#e2dad0] bg-[#faf7f3] px-5 py-4">
           <div className="flex items-center gap-[9px]">
             <div className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] bg-[#c4714a]">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -745,6 +746,7 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
           <Button onClick={handleCancel} variant="outline" className="mt-auto h-11 w-full">
             Cancel
           </Button>
+          </div>
         </div>
       </div>
     );
