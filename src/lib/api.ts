@@ -67,6 +67,7 @@ export type NotificationItem = {
 };
 
 const API_ROOT = (import.meta.env.VITE_API_BASE_URL ?? "https://api.verinest.xyz").replace(/\/$/, "");
+
 const API_PREFIX = `${API_ROOT}/api/v1`;
 const SESSION_KEY = "verinest_session";
 const KYC_STATUS_KEY = "verinest_kyc_status";
