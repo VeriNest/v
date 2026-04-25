@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Camera, Loader2, Upload } from "lucide-react";
+import { ArrowRight, Camera, Upload } from "lucide-react";
 import * as faceapi from "face-api.js";
 import { toast } from "sonner";
 
+import { FullscreenLoader, InlineSpinner, OrbitLoader } from "@/components/Loaders";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { uploadToCloudinary } from "@/lib/cloudinary";
@@ -441,6 +442,10 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
     onCancel?.();
   };
 
+  if (uploading) {
+    return <FullscreenLoader status="Submitting verification" />;
+  }
+
   if (screen === "intro") {
     return (
       <div className="w-full max-w-[480px] overflow-hidden bg-[#f0ebe3]">
@@ -681,7 +686,7 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
             {isPreparingCamera ? (
               <div className="absolute inset-0 flex items-center justify-center bg-black/45">
                 <div className="flex flex-col items-center gap-3 text-white">
-                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <OrbitLoader size="sm" />
                   <p className="text-sm">Opening camera...</p>
                 </div>
               </div>
@@ -790,14 +795,7 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
 
         <div className="space-y-2">
           <Button onClick={handleSubmitVerification} disabled={uploading} className="h-12 w-full bg-[#c4714a] text-white hover:bg-[#a85d38]">
-            {uploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting Verification...
-              </>
-            ) : (
-              "Confirm & Continue"
-            )}
+            {uploading ? <><InlineSpinner variant="solid" /> Submitting Verification...</> : "Confirm & Continue"}
           </Button>
           <Button onClick={resetFlow} variant="outline" className="h-11 w-full" disabled={uploading}>
             Try Again

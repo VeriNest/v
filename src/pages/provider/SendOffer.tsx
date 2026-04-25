@@ -20,6 +20,7 @@ import {
   Tag,
 } from "lucide-react";
 
+import { InlineSpinner } from "@/components/Loaders";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { agentApi, formatCompactCurrency, getPropertyImage } from "@/lib/api";
@@ -426,7 +427,8 @@ export default function SendOffer() {
                 ) : null}
 
                 <Button onClick={async () => { try { setSubmitting(true); await agentApi.createOffer({ needPostId, propertyId: selectedListing, offerPriceAmount: Number(String(offerPrice).replace(/[^0-9]/g, "")) || Number(selectedListingData?.rawPrice ?? 0), offerPriceCurrency: "NGN", offerPricePeriod: "year", moveInDate: moveInDate || undefined, customTerms, message: message.trim(), prioritySend }); setSubmitted(true); } catch (error) { const message = error instanceof Error ? error.message : "Unable to send offer"; toast.error(message); } finally { setSubmitting(false); } }} disabled={submitting || !selectedListing || !needPostId || message.trim().length === 0} className="h-11 w-full gap-2 text-sm font-medium">
-                  <Send className="h-4 w-4" /> Send Offer
+                  {submitting ? <InlineSpinner variant="solid" /> : <Send className="h-4 w-4" />}
+                  {submitting ? "Sending Offer..." : "Send Offer"}
                 </Button>
               </CardContent>
             </Card>

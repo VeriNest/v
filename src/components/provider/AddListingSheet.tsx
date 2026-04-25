@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { InlineSpinner, MorphLoader } from "@/components/Loaders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +12,16 @@ import { toast } from "sonner";
 interface AddListingSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onListingAdded: (listing: any) => void;
+  onListingAdded: (listing: {
+    id: string;
+    title: string;
+    type: string;
+    price: string;
+    location: string;
+    status: string;
+    views: number;
+    offers: number;
+  }) => void;
 }
 
 export function AddListingSheet({ open, onOpenChange, onListingAdded }: AddListingSheetProps) {
@@ -56,6 +66,12 @@ export function AddListingSheet({ open, onOpenChange, onListingAdded }: AddListi
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-md overflow-y-auto">
+        {submitting ? (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-background/90 backdrop-blur-sm">
+            <MorphLoader size="sm" />
+            <p className="text-sm text-muted-foreground">Creating listing...</p>
+          </div>
+        ) : null}
         <SheetHeader className="pb-4">
           <SheetTitle className="text-lg">Add New Listing</SheetTitle>
           <SheetDescription className="text-xs">List a property for tenants to discover.</SheetDescription>
@@ -131,7 +147,7 @@ export function AddListingSheet({ open, onOpenChange, onListingAdded }: AddListi
 
           <div className="flex gap-2 pt-2">
             <Button onClick={handleSubmit} disabled={submitting} className="flex-1 gap-1.5">
-              <Plus className="h-3.5 w-3.5" />
+              {submitting ? <InlineSpinner variant="solid" /> : <Plus className="h-3.5 w-3.5" />}
               {submitting ? "Creating..." : "Create Listing"}
             </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>

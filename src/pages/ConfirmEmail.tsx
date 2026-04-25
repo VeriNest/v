@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { ArrowRight, Mail, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
+import { InlineSpinner } from "@/components/Loaders";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -156,7 +157,7 @@ export default function ConfirmEmail() {
 
             <div className="space-y-2">
               <Button type="button" className="w-full h-11 rounded-lg font-medium gap-2" onClick={handleVerify} disabled={otpValue.length !== 5 || submitting}>
-                {submitting ? "Verifying..." : <>Verify email <ArrowRight className="h-4 w-4" /></>}
+                {submitting ? <><InlineSpinner variant="solid" /> Verifying...</> : <>Verify email <ArrowRight className="h-4 w-4" /></>}
               </Button>
 
               <Button type="button" variant="outline" className="w-full h-11 rounded-lg font-medium gap-2" onClick={handleResend}>

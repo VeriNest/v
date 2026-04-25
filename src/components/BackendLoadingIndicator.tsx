@@ -1,3 +1,4 @@
+import { FullscreenLoader, OrbitLoader } from "@/components/Loaders";
 import { cn } from "@/lib/utils";
 
 type BackendLoadingIndicatorProps = {
@@ -5,6 +6,7 @@ type BackendLoadingIndicatorProps = {
   className?: string;
   compact?: boolean;
   inline?: boolean;
+  fullscreen?: boolean;
 };
 
 export function BackendLoadingIndicator({
@@ -12,32 +14,31 @@ export function BackendLoadingIndicator({
   className,
   compact = false,
   inline = false,
+  fullscreen = false,
 }: BackendLoadingIndicatorProps) {
+  if (fullscreen) {
+    return <FullscreenLoader status={label} />;
+  }
+
   return (
     <div
       className={cn(
-        "backend-loading-shell",
-        compact && "backend-loading-shell--compact",
-        inline && "backend-loading-shell--inline",
+        "flex items-center justify-center",
+        compact ? "min-h-[8rem]" : "min-h-[14rem]",
+        inline && "min-h-0",
         className,
       )}
     >
-      <div className="backend-loading-container" aria-live="polite" aria-busy="true">
-        <div className="backend-loading-house" aria-hidden="true">
-          <div className="backend-loading-roof">
-            <svg viewBox="0 0 36 20" fill="none">
-              <path
-                d="M4 16 L18 4 L32 16"
-                stroke="white"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <div className="backend-loading-door" />
-        </div>
-        <span className="backend-loading-text">{label}</span>
+      <div
+        aria-live="polite"
+        aria-busy="true"
+        className={cn(
+          "flex flex-col items-center justify-center gap-3 text-center",
+          inline ? "py-1" : "rounded-3xl border border-border/60 bg-background/80 px-6 py-6 shadow-sm backdrop-blur-sm",
+        )}
+      >
+        <OrbitLoader size={compact || inline ? "sm" : "md"} />
+        <span className={cn("text-sm text-muted-foreground", inline && "text-xs")}>{label}</span>
       </div>
     </div>
   );

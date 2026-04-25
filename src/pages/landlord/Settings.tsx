@@ -9,6 +9,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAvatar } from "@/contexts/AvatarContext";
+import { InlineSpinner } from "@/components/Loaders";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardSettingsSection, DashboardSettingsRow } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
@@ -266,7 +267,7 @@ export default function LandlordSettings() {
             <DashboardSettingsRow
               label="Delete Account"
               description="Permanently remove your landlord account, portfolio history, and rent collection records."
-              control={<Button variant="destructive" size="sm" className="shrink-0" onClick={handleDeleteAccount} disabled={deletingAccount}>{deletingAccount ? "Deleting..." : "Delete Account"}</Button>}
+              control={<Button variant="destructive" size="sm" className="shrink-0" onClick={handleDeleteAccount} disabled={deletingAccount}>{deletingAccount ? <><InlineSpinner variant="solid" /> Deleting...</> : "Delete Account"}</Button>}
             />
           </DashboardSettingsSection>
         </TabsContent>

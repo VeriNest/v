@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { InlineSpinner, MorphLoader } from "@/components/Loaders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,6 +53,12 @@ export function SendOfferSheet({ open, onOpenChange, leadNeed, onOfferSent }: Se
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-md overflow-y-auto">
+        {sending ? (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-background/90 backdrop-blur-sm">
+            <MorphLoader size="sm" />
+            <p className="text-sm text-muted-foreground">Sending offer...</p>
+          </div>
+        ) : null}
         <SheetHeader className="pb-4">
           <SheetTitle className="text-lg">Send Offer</SheetTitle>
           <SheetDescription className="text-xs">
@@ -120,7 +127,7 @@ export function SendOfferSheet({ open, onOpenChange, leadNeed, onOfferSent }: Se
 
           <div className="flex gap-2 pt-2">
             <Button onClick={handleSubmit} disabled={sending} className="flex-1 gap-1.5">
-              <Send className="h-3.5 w-3.5" />
+              {sending ? <InlineSpinner variant="solid" /> : <Send className="h-3.5 w-3.5" />}
               {sending ? "Sending..." : "Send Offer"}
             </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>

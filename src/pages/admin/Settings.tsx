@@ -15,6 +15,7 @@ import { DashboardSettingsSection, DashboardSettingsRow } from "@/components/das
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { useAvatar } from "@/contexts/AvatarContext";
 import { authApi, clearStoredSession } from "@/lib/api";
+import { InlineSpinner } from "@/components/Loaders";
 import {
   Activity,
   Bell,
@@ -503,7 +504,7 @@ export default function AdminSettings() {
             <DashboardSettingsRow
               label="Delete Account"
               description="Permanently delete your admin account. This action cannot be undone."
-              control={<Button variant="destructive" size="sm" className="shrink-0" onClick={handleDeleteAccount} disabled={deletingAccount}>{deletingAccount ? "Deleting..." : "Delete Account"}</Button>}
+              control={<Button variant="destructive" size="sm" className="shrink-0" onClick={handleDeleteAccount} disabled={deletingAccount}>{deletingAccount ? <><InlineSpinner variant="solid" /> Deleting...</> : "Delete Account"}</Button>}
             />
           </DashboardSettingsSection>
         </TabsContent>

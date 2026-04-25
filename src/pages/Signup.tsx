@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, User, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import { InlineSpinner } from "@/components/Loaders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -105,7 +106,7 @@ export default function Signup() {
               </div>
 
               <Button type="submit" className="w-full h-11 rounded-lg font-medium gap-2" disabled={submitting}>
-                {submitting ? "Creating account..." : <>Continue <ArrowRight className="h-4 w-4" /></>}
+                {submitting ? <><InlineSpinner variant="solid" /> Creating account...</> : <>Continue <ArrowRight className="h-4 w-4" /></>}
               </Button>
 
               <p className="text-[11px] text-center text-muted-foreground">
