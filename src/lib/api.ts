@@ -183,7 +183,8 @@ export function needsOnboardingCompletion(payload?: AuthMeResponse | null) {
   }
   if (payload.user.role === "agent" || payload.user.role === "landlord") {
     const status = String(payload.verification?.status ?? payload.user.verification_status ?? "").toLowerCase();
-    return !["submitted", "pending", "in_review", "approved", "verified"].includes(status);
+    const hasVerificationProgress = ["submitted", "pending", "in_review", "approved", "verified"].includes(status);
+    return !hasVerificationProgress || !payload.livenessCompleted;
   }
   return false;
 }
