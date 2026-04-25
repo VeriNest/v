@@ -8,10 +8,10 @@ import {
   User, Mail, Wallet, Clock, Star, HomeIcon, BadgeCheck,
   Upload, FileText, ShieldCheck, AlertTriangle, Camera, X
 } from "lucide-react";
+import { FullscreenLoader, OrbitLoader } from "@/components/Loaders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import { authApi, dashboardPathForRole, getStoredSession, onboardingApi, resolveAuthenticatedPath, setStoredKycStatus, setStoredSession, verificationApi } from "@/lib/api";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { FacialVerification } from "@/components/provider/FacialVerification";
@@ -86,9 +86,38 @@ export default function Onboarding() {
   const kycStep = isProvider ? 3 : role === "seeker" ? 3 : null;
 
   const handleComplete = () => {
-    if (role) {
-      navigate(dashboardPathForRole(role));
+    // Enforce verification requirements before allowing dashboard access
+    if (!role) {
+      toast.error("Role not selected");
+      return;
     }
+
+    // For agents and landlords: require both document upload and facial verification
+    if ((role === "agent" || role === "landlord") && (!uploadedDocFiles["National ID (NIN)"] || !facialVerificationComplete)) {
+      toast.error("Please complete document upload and facial verification before continuing", {
+        description: "Both NIN document and liveness check are required",
+      });
+      return;
+    }
+
+    // For seekers: require facial verification
+    if (role === "seeker" && !facialVerificationComplete) {
+      toast.error("Please complete the liveness check before continuing", {
+        description: "Facial verification is required for all users",
+      });
+      return;
+    }
+
+    // Additional check: verify the backend confirms verification status
+    if (me?.verification?.status && me.verification.status.toLowerCase() !== "verified" && me.verification.status.toLowerCase() !== "approved") {
+      toast.error("Verification not yet approved by backend", {
+        description: "Please wait a moment or refresh the page",
+      });
+      return;
+    }
+
+    // All checks passed - proceed to dashboard
+    navigate(dashboardPathForRole(role));
   };
 
   useEffect(() => {
@@ -354,7 +383,7 @@ export default function Onboarding() {
   const uploadedCount = docs.filter(d => uploadedDocs[d.label]).length;
 
   if (isLoading || (session?.token && !me)) {
-    return <BackendLoadingIndicator label="Loading onboarding..." className="min-h-screen" />;
+    return <FullscreenLoader status="Loading onboarding" />;
   }
 
   if (step === 3 && role === "agent") {
@@ -839,7 +868,8 @@ export default function Onboarding() {
                             disabled={uploadingDoc === doc.label}
                             className="mt-3 flex items-center gap-2 px-4 h-9 rounded-xl border border-border/60 bg-muted/30 text-xs font-medium text-muted-foreground hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all disabled:cursor-not-allowed disabled:opacity-60"
                           >
-                            <Upload className="h-3.5 w-3.5" /> {uploadingDoc === doc.label ? "Uploading..." : "Choose file"}
+                            {uploadingDoc === doc.label ? <OrbitLoader size="sm" /> : <Upload className="h-3.5 w-3.5" />}
+                            {uploadingDoc === doc.label ? "Uploading..." : "Choose file"}
                           </button>
                         ) : (
                           <p className="mt-2 text-xs text-emerald-600 font-medium flex items-center gap-1">

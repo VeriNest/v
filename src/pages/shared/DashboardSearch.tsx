@@ -1,9 +1,9 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowRight, Search } from "lucide-react";
+import { OrbitLoader } from "@/components/Loaders";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import { DashboardSearchRole, dashboardSearchConfig } from "@/lib/dashboard-search";
 import { useDashboardSearchResults } from "@/hooks/use-dashboard-search-results";
 
@@ -64,8 +64,9 @@ export default function DashboardSearch({ role }: DashboardSearchProps) {
       {query.trim() ? (
         loading ? (
           <Card className="border border-border/60 shadow-sm">
-            <CardContent className="p-8">
-              <BackendLoadingIndicator label="Loading..." compact />
+            <CardContent className="flex flex-col items-center justify-center gap-4 p-8 text-center">
+              <OrbitLoader size="sm" />
+              <p className="text-sm text-muted-foreground">Loading...</p>
             </CardContent>
           </Card>
         ) : results.length > 0 ? (

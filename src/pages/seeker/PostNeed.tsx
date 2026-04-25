@@ -6,6 +6,7 @@ import {
   MapPin, Calendar, Bed, CheckCircle2, ShieldCheck, FileText, Plus, ChevronRight,
   ChevronLeft, Zap, Clock, Eye, Rocket, ArrowRight, Home, Sparkles, AlertCircle
 } from "lucide-react";
+import { InlineSpinner } from "@/components/Loaders";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -525,7 +526,8 @@ export default function PostNeed() {
                     )}
 
                     <Button onClick={() => void handlePublishNeed()} disabled={submitting} className="w-full h-11 text-sm font-medium gap-2">
-                      <CheckCircle2 className="h-4 w-4" /> Publish Need
+                      {submitting ? <InlineSpinner variant="solid" /> : <CheckCircle2 className="h-4 w-4" />}
+                      {submitting ? "Publishing..." : "Publish Need"}
                     </Button>
                   </CardContent>
                 </Card>

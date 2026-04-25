@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Activity, Camera } from "lucide-react";
+import { InlineSpinner, OrbitLoader } from "@/components/Loaders";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -200,7 +201,7 @@ export default function ProviderSettings() {
               disabled={uploadingAvatar}
               className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 cursor-pointer"
             >
-              <Camera className="h-4 w-4 text-background" />
+              {uploadingAvatar ? <OrbitLoader size="sm" /> : <Camera className="h-4 w-4 text-background" />}
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
@@ -241,7 +242,7 @@ export default function ProviderSettings() {
                 <label className="text-sm font-medium text-foreground">Bio</label>
                 <Textarea value={bio} onChange={(e) => setBio(e.target.value)} rows={4} />
               </div>
-              <div className="flex justify-end pt-2"><Button onClick={() => void handleSaveProfile()} disabled={savingProfile || !me}>{savingProfile ? "Saving..." : "Save Changes"}</Button></div>
+              <div className="flex justify-end pt-2"><Button onClick={() => void handleSaveProfile()} disabled={savingProfile || !me}>{savingProfile ? <><InlineSpinner variant="solid" /> Saving...</> : "Save Changes"}</Button></div>
             </CardContent>
           </DashboardSettingsSection>
         </TabsContent>
@@ -276,7 +277,7 @@ export default function ProviderSettings() {
                 description={operatingState || "Not set during onboarding"}
                 control={<span className="text-xs text-muted-foreground">Read only</span>}
               />
-              <div className="flex justify-end pt-2"><Button onClick={() => void handleSaveAlerts()} disabled={savingAlerts}>{savingAlerts ? "Saving..." : "Save Alert Settings"}</Button></div>
+              <div className="flex justify-end pt-2"><Button onClick={() => void handleSaveAlerts()} disabled={savingAlerts}>{savingAlerts ? <><InlineSpinner variant="solid" /> Saving...</> : "Save Alert Settings"}</Button></div>
             </CardContent>
           </DashboardSettingsSection>
         </TabsContent>
@@ -294,7 +295,7 @@ export default function ProviderSettings() {
             <CardContent>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-destructive/20 bg-destructive/5 gap-3">
                 <div className="min-w-0"><p className="font-medium text-sm text-foreground">Delete Account</p><p className="text-xs text-muted-foreground">Permanently delete your provider account and all listings.</p></div>
-                <Button variant="destructive" size="sm" className="shrink-0" onClick={handleDeleteAccount} disabled={deletingAccount}>{deletingAccount ? "Deleting..." : "Delete Account"}</Button>
+                <Button variant="destructive" size="sm" className="shrink-0" onClick={handleDeleteAccount} disabled={deletingAccount}>{deletingAccount ? <><InlineSpinner variant="solid" /> Deleting...</> : "Delete Account"}</Button>
               </div>
             </CardContent>
           </DashboardSettingsSection>

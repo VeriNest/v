@@ -15,7 +15,7 @@ export default function AdminLayout() {
   const { isChecking } = useAuthAccess("admin");
 
   if (isChecking) {
-    return <BackendLoadingIndicator label="Checking access..." className="min-h-screen" />;
+    return <BackendLoadingIndicator label="Checking access..." fullscreen />;
   }
 
   return (

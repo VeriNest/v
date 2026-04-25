@@ -19,7 +19,7 @@ export default function ProviderLayout() {
   useBookingReminders("provider");
 
   if (isChecking) {
-    return <BackendLoadingIndicator label="Checking access..." className="min-h-screen" />;
+    return <BackendLoadingIndicator label="Checking access..." fullscreen />;
   }
 
   return (

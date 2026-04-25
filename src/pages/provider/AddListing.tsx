@@ -7,6 +7,7 @@ import {
   ChevronLeft, Eye, Rocket, ArrowRight, Building2, Sparkles, AlertCircle,
   ImagePlus, Home, Bed, DollarSign, Tag, ShieldAlert
 } from "lucide-react";
+import { InlineSpinner, OrbitLoader } from "@/components/Loaders";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -434,7 +435,7 @@ export default function AddListing() {
                         className="w-full border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={uploadingMedia}
                       >
-                        <ImagePlus className="h-10 w-10 mx-auto text-muted-foreground/40" />
+                        {uploadingMedia ? <div className="flex justify-center"><OrbitLoader size="sm" /></div> : <ImagePlus className="h-10 w-10 mx-auto text-muted-foreground/40" />}
                         <p className="text-sm text-muted-foreground mt-2">{uploadingMedia ? "Uploading media..." : "Drag & drop or click to upload"}</p>
                         <p className="text-[11px] text-muted-foreground mt-0.5">Images and videos upload directly to Cloudinary</p>
                       </button>
@@ -562,7 +563,8 @@ export default function AddListing() {
                       disabled={submitting || !isVerified} 
                       className="w-full h-11 text-sm font-medium gap-2"
                     >
-                      <CheckCircle2 className="h-4 w-4" /> {!isVerified ? "Verification Required" : "Publish Listing"}
+                      {submitting ? <InlineSpinner variant="solid" /> : <CheckCircle2 className="h-4 w-4" />}
+                      {submitting ? "Publishing..." : !isVerified ? "Verification Required" : "Publish Listing"}
                     </Button>
                   </CardContent>
                 </Card>

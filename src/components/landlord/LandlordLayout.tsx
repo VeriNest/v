@@ -17,7 +17,7 @@ export default function LandlordLayout() {
   const { isChecking } = useAuthAccess("landlord");
 
   if (isChecking) {
-    return <BackendLoadingIndicator label="Checking access..." className="min-h-screen" />;
+    return <BackendLoadingIndicator label="Checking access..." fullscreen />;
   }
 
   return (

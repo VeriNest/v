@@ -292,7 +292,7 @@ export default function Dashboard() {
   });
 
   if (loading || isLoading) {
-    return <BackendLoadingIndicator label="Loading dashboard..." className="min-h-[70vh]" />;
+    return <BackendLoadingIndicator label="Loading dashboard..." fullscreen />;
   }
 
   return (
