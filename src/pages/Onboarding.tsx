@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
@@ -43,6 +43,7 @@ const nigerianStates = [
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const session = getStoredSession();
   const [step, setStep] = useState(1);
   const [role, setRole] = useState<Role | null>(null);
@@ -73,10 +74,13 @@ export default function Onboarding() {
   // Agent/Landlord facial verification
   const [facialVerificationComplete, setFacialVerificationComplete] = useState(false);
   const [verificationPhotoUrl, setVerificationPhotoUrl] = useState<string | null>(null);
+  const [isRetakingRejectedVerification, setIsRetakingRejectedVerification] = useState(false);
   const { data: me, isLoading } = useQuery({
     queryKey: ["/auth/me", "onboarding"],
     queryFn: () => authApi.me(),
     enabled: Boolean(session?.token),
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     retry: 0,
   });
 
@@ -84,6 +88,9 @@ export default function Onboarding() {
   const totalSteps = role === "seeker" ? 4 : role === "agent" ? 4 : role === "landlord" ? 4 : 3;
   const successStep = role === "seeker" ? 4 : role === "agent" || role === "landlord" ? 4 : 3;
   const kycStep = isProvider ? 3 : role === "seeker" ? 3 : null;
+  const verificationStatus = String(me?.verification?.status ?? me?.user.verification_status ?? "").toLowerCase();
+  const isRejectedVerification = (role === "agent" || role === "landlord") && verificationStatus === "rejected";
+  const rejectionReason = me?.verification?.rejectionReason ?? me?.verification?.notes ?? null;
 
   const handleComplete = () => {
     // Enforce verification requirements before allowing dashboard access
@@ -145,6 +152,23 @@ export default function Onboarding() {
       setStep((current) => Math.max(current, 2));
     }
   }, [me, navigate, session?.token]);
+
+  useEffect(() => {
+    if (!isRejectedVerification) {
+      setIsRetakingRejectedVerification(false);
+      return;
+    }
+
+    setStoredKycStatus("rejected");
+    setFacialVerificationComplete(false);
+    setVerificationPhotoUrl(null);
+    setUploadedDocs({});
+    setUploadedDocFiles({});
+    setUploadingDoc(null);
+    setActiveDocLabel(null);
+    setIsRetakingRejectedVerification(false);
+    setStep(3);
+  }, [isRejectedVerification]);
 
   const handleRoleContinue = async () => {
     if (!role) return;
@@ -234,6 +258,9 @@ export default function Onboarding() {
         });
       }
       setStoredKycStatus("submitted");
+      await queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
+      await queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] });
+      await queryClient.invalidateQueries({ queryKey: ["/auth/me", "onboarding"] });
       setStep(successStep);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to submit verification";
@@ -346,6 +373,9 @@ export default function Onboarding() {
       });
 
       setStoredKycStatus("submitted");
+      await queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
+      await queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] });
+      await queryClient.invalidateQueries({ queryKey: ["/auth/me", "onboarding"] });
       setStep(successStep);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to submit verification";
@@ -387,13 +417,75 @@ export default function Onboarding() {
   }
 
   if (step === 3 && role === "agent") {
+    if (isRejectedVerification && !isRetakingRejectedVerification) {
+      return (
+        <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
+          <div className="px-4 sm:px-6 py-4 sm:py-5 flex items-center justify-between sticky top-0 z-40 bg-background/95 backdrop-blur-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-amber-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 12 L12 4 L21 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <rect x="9" y="14" width="6" height="8" rx="1" fill="white"/>
+                </svg>
+              </div>
+              <span className="text-sm sm:text-base font-semibold text-foreground">Verinest</span>
+            </div>
+          </div>
+          <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-4 sm:py-8 w-full">
+            <div className="w-full max-w-md space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="rounded-3xl border border-red-200/80 bg-red-50/80 p-6 space-y-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100">
+                  <AlertTriangle className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-red-600 tracking-widest uppercase">Verification rejected</p>
+                  <h1 className="text-3xl font-bold text-foreground tracking-tight">Resubmit your NIN and liveness check</h1>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Your previous provider verification was rejected. Please upload a clearer NIN document and complete the liveness check again.
+                  </p>
+                  {rejectionReason ? (
+                    <div className="rounded-2xl border border-red-200 bg-white/80 p-4 text-sm text-foreground">
+                      {rejectionReason}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border/60 bg-card p-5 space-y-3">
+                <p className="text-sm font-semibold text-foreground">What to fix</p>
+                <p className="text-xs text-muted-foreground">Upload a readable NIN document, then retake the facial liveness flow in a well-lit environment.</p>
+              </div>
+              <Button onClick={() => setIsRetakingRejectedVerification(true)} className="w-full h-12 rounded-xl text-sm font-semibold gap-2">
+                Resubmit verification <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-[#f0ebe3]">
         <FacialVerification
           userRole="agent"
-          onSuccess={(photoUrl) => {
+          onSuccess={(photoUrl, providerDocumentUrl) => {
             setVerificationPhotoUrl(photoUrl);
             setFacialVerificationComplete(true);
+            if (providerDocumentUrl) {
+              setUploadedDocs((current) => ({ ...current, ["National ID (NIN)"]: true }));
+              setUploadedDocFiles((current) => ({
+                ...current,
+                ["National ID (NIN)"]: {
+                  fileUrl: providerDocumentUrl,
+                  fileKey: "submitted-via-liveness",
+                  mimeType: "application/octet-stream",
+                },
+              }));
+            }
+            void Promise.all([
+              queryClient.invalidateQueries({ queryKey: ["/auth/me"] }),
+              queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] }),
+              queryClient.invalidateQueries({ queryKey: ["/auth/me", "onboarding"] }),
+            ]);
             setTimeout(() => setStep(4), 1500);
           }}
           onCancel={() => setStep(2)}
@@ -816,6 +908,23 @@ export default function Onboarding() {
               <h1 className="text-3xl font-bold text-foreground tracking-tight">Verify your identity</h1>
               <p className="text-muted-foreground text-sm">Build trust with tenants and unlock premium features.</p>
             </div>
+
+            {isRejectedVerification ? (
+              <div className="rounded-2xl border border-red-200/80 bg-red-50/80 p-4 flex items-start gap-3">
+                <div className="h-10 w-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-foreground">Verification rejected</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Resubmit your ownership documents and any required verification checks so the team can review a fresh verification.
+                  </p>
+                  {rejectionReason ? (
+                    <p className="text-xs text-foreground">{rejectionReason}</p>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
 
             {/* Benefits card */}
             <div className="rounded-2xl border border-emerald-200/60 bg-emerald-50/30 p-4 flex items-start gap-3">
