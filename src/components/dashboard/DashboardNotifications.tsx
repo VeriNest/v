@@ -141,7 +141,7 @@ export function DashboardNotifications({ role }: { role: DashboardRole }) {
     if (!item.readAt) {
       await notificationsApi.readOne(item.id);
       await refresh();
-    }
+     }
     if (item.actionUrl === "/onboarding") {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["/auth/me"] }),
