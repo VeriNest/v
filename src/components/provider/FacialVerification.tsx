@@ -16,53 +16,24 @@ interface FacialVerificationProps {
 }
 
 type Screen = "intro" | "nin-upload" | "camera" | "success" | "error";
-type StepKey = "center" | "up" | "left" | "right";
 
 type FaceMetrics = {
   yaw: number;
   pitch: number;
   centerOffsetX: number;
   centerOffsetY: number;
+  leftEyeOpen: boolean;
+  rightEyeOpen: boolean;
 };
 
-const STEP_SEQUENCE: Array<{
-  key: StepKey;
-  title: string;
-  description: string;
-  icon: string;
-  progress: number;
-}> = [
-  {
-    key: "center",
-    title: "Centre your face",
-    description: "Fit your face inside the oval and hold still",
-    icon: "👁️",
-    progress: 15,
-  },
-  {
-    key: "up",
-    title: "Look straight up",
-    description: "Tilt your head upward slowly",
-    icon: "↑",
-    progress: 40,
-  },
-  {
-    key: "left",
-    title: "Look to your left",
-    description: "Turn your head to the left",
-    icon: "←",
-    progress: 65,
-  },
-  {
-    key: "right",
-    title: "Look to your right",
-    description: "Turn your head to the right",
-    icon: "→",
-    progress: 88,
-  },
-];
+const BLINK_DETECTION_INFO = {
+  title: "Verify it's really you",
+  description: "Simply blink naturally when ready. Keep your face centered.",
+  icon: "👁️",
+  progress: 50,
+};
 
-const MATCH_THRESHOLD_MS = 900;
+const BLINK_DETECTION_THRESHOLD_MS = 500;
 const DETECTION_INTERVAL_MS = 180;
 const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
 
@@ -97,47 +68,52 @@ async function detectFaceMetrics(video: HTMLVideoElement): Promise<FaceMetrics |
   const frameCenterX = video.videoWidth / 2;
   const frameCenterY = video.videoHeight / 2;
 
+  // Eye open detection - calculate eye aspect ratio
+  const leftEyeTop = landmarks[37];
+  const leftEyeBottom = landmarks[41];
+  const rightEyeTop = landmarks[43];
+  const rightEyeBottom = landmarks[47];
+
+  const leftEyeDistance = Math.hypot(leftEyeTop.x - leftEyeBottom.x, leftEyeTop.y - leftEyeBottom.y);
+  const rightEyeDistance = Math.hypot(rightEyeTop.x - rightEyeBottom.x, rightEyeTop.y - rightEyeBottom.y);
+
   return {
     yaw: (nose.x - eyeCenterX) / box.width,
     pitch: (nose.y - eyeCenterY) / box.height,
     centerOffsetX: (faceCenterX - frameCenterX) / box.width,
     centerOffsetY: (faceCenterY - frameCenterY) / box.height,
+    leftEyeOpen: leftEyeDistance > 3,
+    rightEyeOpen: rightEyeDistance > 3,
   };
 }
 
-function ArrowGlyph({ stepKey }: { stepKey: StepKey | null }) {
-  if (!stepKey || stepKey === "center") return null;
-
-  const d =
-    stepKey === "up"
-      ? "M12 19V5M5 12l7-7 7 7"
-      : stepKey === "left"
-        ? "M19 12H5M12 19l-7-7 7-7"
-        : "M5 12h14M12 5l7 7-7 7";
-
+function FaceGlyph() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-      <path d={d} stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+      <circle cx="8" cy="9" r="1.5" fill="white" />
+      <circle cx="16" cy="9" r="1.5" fill="white" />
+      <path d="M8 15c2 2 6 2 8 0" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="12" cy="12" r="11" stroke="white" strokeWidth="2" />
     </svg>
   );
 }
 
 export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVerificationProps) {
   const [screen, setScreen] = useState<Screen>("intro");
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [ninFile, setNinFile] = useState<File | null>(null);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [captureTime, setCaptureTime] = useState("");
   const [uploading, setUploading] = useState(false);
   const [isPreparingCamera, setIsPreparingCamera] = useState(false);
-  const [isHoldingPose, setIsHoldingPose] = useState(false);
   const [errorMessage, setErrorMessage] = useState("Camera access is required for facial verification. Please enable camera permissions and try again.");
   const [countdown, setCountdown] = useState<number | null>(null);
   const [flash, setFlash] = useState(false);
   const [ovalState, setOvalState] = useState<"idle" | "scanning" | "success">("idle");
+  const [blinkDetected, setBlinkDetected] = useState(false);
 
-  const baselineRef = useRef<FaceMetrics | null>(null);
+  const eyeStateRef = useRef<{ leftOpen: boolean; rightOpen: boolean }>({ leftOpen: true, rightOpen: true });
+  const blinkCountRef = useRef(0);
   const holdStartRef = useRef<number | null>(null);
   const detectionIntervalRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
   const countdownTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
@@ -147,9 +123,8 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ninInputRef = useRef<HTMLInputElement>(null);
 
-  const currentStep = STEP_SEQUENCE[currentStepIndex] ?? STEP_SEQUENCE[0];
   const navStepLabel = userRole === "seeker" ? "Step 3 of 4" : "Step 3 of 4";
-  const showArrow = currentStep.key !== "center" && screen === "camera" && !countdown;
+  const showProgress = screen === "camera" && !countdown;
 
   const introCopy = useMemo(() => {
     const roleCopy = userRole === "seeker" ? "verified seekers" : "verified providers";
@@ -174,13 +149,13 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
     setIsHoldingPose(false);
   };
 
-  const resetStepTracking = (stepIndex = 0) => {
+  const resetTracking = () => {
     holdStartRef.current = null;
-    baselineRef.current = null;
-    setCurrentStepIndex(stepIndex);
-    setProgress(stepIndex === 0 ? 0 : STEP_SEQUENCE[stepIndex]?.progress ?? 0);
-    setIsHoldingPose(false);
+    eyeStateRef.current = { leftOpen: true, rightOpen: true };
+    blinkCountRef.current = 0;
+    setProgress(30);
     setOvalState("scanning");
+    setBlinkDetected(false);
   };
 
   const resetFlow = () => {
@@ -188,7 +163,7 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
     setCapturedPhoto(null);
     setCaptureTime("");
     setFlash(false);
-    resetStepTracking(0);
+    resetTracking();
     setScreen("intro");
     setErrorMessage("Camera access is required for facial verification. Please enable camera permissions and try again.");
     setIsPreparingCamera(false);
@@ -237,29 +212,30 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
     tick(3);
   };
 
-  const matchesStep = (stepKey: StepKey, metrics: FaceMetrics) => {
-    const baseline = baselineRef.current;
-    const centered =
+  const detectBlink = (metrics: FaceMetrics) => {
+    const faceWellCentered =
       Math.abs(metrics.centerOffsetX) < 0.18 &&
-      Math.abs(metrics.centerOffsetY) < 0.24;
+      Math.abs(metrics.centerOffsetY) < 0.24 &&
+      Math.abs(metrics.yaw) < 0.045;
 
-    if (!centered) return false;
-
-    if (stepKey === "center") {
-      return Math.abs(metrics.yaw) < 0.045 && Math.abs(metrics.centerOffsetX) < 0.12;
+    if (!faceWellCentered) {
+      eyeStateRef.current = { leftOpen: true, rightOpen: true };
+      return false;
     }
 
-    if (!baseline) return false;
+    const previousLeftOpen = eyeStateRef.current.leftOpen;
+    const previousRightOpen = eyeStateRef.current.rightOpen;
 
-    if (stepKey === "up") {
-      return metrics.pitch > baseline.pitch + 0.018;
-    }
+    eyeStateRef.current = {
+      leftOpen: metrics.leftEyeOpen,
+      rightOpen: metrics.rightEyeOpen,
+    };
 
-    if (stepKey === "left") {
-      return metrics.yaw > baseline.yaw + 0.03;
-    }
-
-    return metrics.yaw < baseline.yaw - 0.03;
+    // Detect blink: eyes were open, now closed
+    const leftEyeBlinked = previousLeftOpen && !metrics.leftEyeOpen;
+    const rightEyeBlinked = previousRightOpen && !metrics.rightEyeOpen;
+    
+    return leftEyeBlinked || rightEyeBlinked;
   };
 
   useEffect(() => {
@@ -289,7 +265,7 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
 
         video.srcObject = stream;
         await video.play();
-        resetStepTracking(0);
+        resetTracking();
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unable to start camera";
         setErrorMessage(message.includes("Permission") ? "Camera access is required for facial verification. Please enable camera permissions and try again." : "We could not start the camera for liveness verification.");
@@ -319,52 +295,40 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
       const metrics = await detectFaceMetrics(videoRef.current);
       if (!metrics) {
         holdStartRef.current = null;
-        setIsHoldingPose(false);
         setOvalState("scanning");
         return;
       }
 
-      if (currentStep.key === "center" && !baselineRef.current && matchesStep("center", metrics)) {
-        baselineRef.current = metrics;
-      }
+      // Check if face is well-centered
+      const faceWellCentered =
+        Math.abs(metrics.centerOffsetX) < 0.18 &&
+        Math.abs(metrics.centerOffsetY) < 0.24 &&
+        Math.abs(metrics.yaw) < 0.045;
 
-      const matched = matchesStep(currentStep.key, metrics);
-      if (!matched) {
+      if (!faceWellCentered) {
         holdStartRef.current = null;
-        setIsHoldingPose(false);
         setOvalState("scanning");
+        setProgress(30);
         return;
       }
 
       setOvalState("success");
+      setProgress(60);
 
-      const now = Date.now();
-      if (!holdStartRef.current) {
-        holdStartRef.current = now;
+      // Detect blink
+      const blinked = detectBlink(metrics);
+
+      if (blinked) {
+        blinkCountRef.current++;
+        setBlinkDetected(true);
+        setProgress(85);
+
+        // After detecting one blink, capture photo
+        if (blinkCountRef.current >= 1) {
+          setProgress(95);
+          beginCountdown();
+        }
       }
-
-      const heldFor = now - holdStartRef.current;
-      setIsHoldingPose(true);
-
-      if (heldFor < MATCH_THRESHOLD_MS) return;
-
-      holdStartRef.current = null;
-      setIsHoldingPose(false);
-
-      if (currentStepIndex === 0 && !baselineRef.current) {
-        baselineRef.current = metrics;
-      }
-
-      if (currentStepIndex >= STEP_SEQUENCE.length - 1) {
-        setProgress(95);
-        beginCountdown();
-        return;
-      }
-
-      const nextStepIndex = currentStepIndex + 1;
-      setCurrentStepIndex(nextStepIndex);
-      setProgress(STEP_SEQUENCE[nextStepIndex].progress);
-      setOvalState("scanning");
     };
 
     detectionIntervalRef.current = window.setInterval(runDetection, DETECTION_INTERVAL_MS);
@@ -375,7 +339,7 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
         detectionIntervalRef.current = null;
       }
     };
-  }, [countdown, currentStep, currentStepIndex, isPreparingCamera, screen]);
+  }, [screen, isPreparingCamera]);
 
   useEffect(() => {
     return () => {
@@ -651,25 +615,14 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
 
         <div className="flex min-h-[calc(100vh-67px)] flex-col px-5 pb-10 pt-6">
           <div className="mb-5">
-            <h2 className="font-serif text-[26px] font-semibold text-[#1a1814]">Liveness Check</h2>
+            <h2 className="font-serif text-[26px] font-semibold text-[#1a1814]">Verify it's Really You</h2>
             <p className="mt-1 text-[12.5px] text-[#9a8f84]">
-              {isPreparingCamera ? "Preparing your camera..." : currentStep.title}
+              {isPreparingCamera ? "Preparing your camera..." : "Simply blink naturally when ready"}
             </p>
           </div>
 
           <div className="mb-6 h-[3px] w-full overflow-hidden rounded bg-[#e2dad0]">
             <div className="h-full rounded bg-[#c4714a] transition-all duration-500" style={{ width: `${progress}%` }} />
-          </div>
-
-          <div className="mb-5 flex justify-center gap-2">
-            {STEP_SEQUENCE.map((step, index) => (
-              <div
-                key={step.key}
-                className={`h-2 w-2 rounded-full transition-all duration-300 ${
-                  index < currentStepIndex ? "bg-[#c4714a]" : index === currentStepIndex ? "scale-125 bg-[#c4714a]" : "bg-[#e2dad0]"
-                }`}
-              />
-            ))}
           </div>
 
           <div className="relative mb-5 w-full overflow-hidden rounded-[24px] bg-[#161412]" style={{ aspectRatio: "3 / 4" }}>
@@ -711,10 +664,10 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
 
             <div
               className={`pointer-events-none absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#c4714a]/95 transition-opacity duration-300 ${
-                showArrow ? "opacity-100" : "opacity-0"
+                showProgress ? "opacity-100" : "opacity-0"
               }`}
             >
-              <ArrowGlyph stepKey={showArrow ? currentStep.key : null} />
+              <FaceGlyph />
             </div>
 
             {countdown !== null ? (
@@ -730,20 +683,20 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
             />
           </div>
 
-          <div className={`mb-4 flex items-center gap-[14px] rounded-2xl border bg-[#faf7f3] px-5 py-[18px] transition-colors ${isHoldingPose ? "border-[#c4714a]" : "border-[#e2dad0]"}`}>
-            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[22px] ${isHoldingPose ? "bg-[#c4714a] text-white" : "bg-[#f0e0d4] text-[#1a1814]"}`}>
-              {currentStep.icon}
+          <div className={`mb-4 flex items-center gap-[14px] rounded-2xl border bg-[#faf7f3] px-5 py-[18px] transition-colors ${blinkDetected ? "border-[#c4714a]" : "border-[#e2dad0]"}`}>
+            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[22px] ${blinkDetected ? "bg-[#c4714a] text-white" : "bg-[#f0e0d4] text-[#1a1814]"}`}>
+              👁️
             </div>
             <div>
               <strong className="block text-[13.5px] font-medium text-[#1a1814]">
-                {countdown !== null ? "Hold still..." : currentStep.title}
+                {countdown !== null ? "Hold still..." : "Ready to capture"}
               </strong>
               <span className="text-[11.5px] text-[#9a8f84]">
                 {countdown !== null
                   ? "Taking your verification snapshot"
-                  : isHoldingPose
-                    ? "Pose detected. Hold steady to continue."
-                    : currentStep.description}
+                  : blinkDetected
+                    ? "Blink detected! Capturing..."
+                    : "Keep your face centered and blink naturally"}
               </span>
             </div>
           </div>
