@@ -25,6 +25,7 @@ type FaceMetrics = {
 const DETECTION_INTERVAL_MS = 150;
 const COUNTDOWN_START = 3;
 const FACE_HOLD_MS = 250;
+const PREVIEW_ASPECT_RATIO = 3 / 4;
 const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
 
 let modelsPromise: Promise<void> | null = null;
@@ -140,13 +141,39 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    canvas.width = video.videoWidth || 720;
-    canvas.height = video.videoHeight || 960;
+    const sourceWidth = video.videoWidth || 720;
+    const sourceHeight = video.videoHeight || 960;
+    const sourceAspectRatio = sourceWidth / sourceHeight;
+
+    let cropWidth = sourceWidth;
+    let cropHeight = sourceHeight;
+
+    if (sourceAspectRatio > PREVIEW_ASPECT_RATIO) {
+      cropWidth = sourceHeight * PREVIEW_ASPECT_RATIO;
+    } else {
+      cropHeight = sourceWidth / PREVIEW_ASPECT_RATIO;
+    }
+
+    const cropX = (sourceWidth - cropWidth) / 2;
+    const cropY = (sourceHeight - cropHeight) / 2;
+
+    canvas.width = Math.round(cropWidth);
+    canvas.height = Math.round(cropHeight);
 
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    context.drawImage(
+      video,
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
     const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
     setCapturedPhoto(dataUrl);
     setCaptureTime(new Date().toLocaleTimeString("en-NG", { hour: "2-digit", minute: "2-digit" }));
@@ -356,86 +383,88 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
 
   if (screen === "intro") {
     return (
-      <div className="w-full max-w-[480px] overflow-hidden bg-[#f0ebe3]">
-        <div className="flex items-center justify-between border-b border-[#e2dad0] bg-[#faf7f3] px-5 py-4">
-          <div className="flex items-center gap-[9px]">
-            <div className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] bg-[#c4714a]">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M3 12 L12 4 L21 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <rect x="9" y="14" width="6" height="8" rx="3" fill="white" />
-              </svg>
-            </div>
-            <span className="font-serif text-[20px] font-semibold tracking-[0.03em] text-[#1a1814]">
-              Veri<em className="text-[#c4714a]">nest</em>
-            </span>
-          </div>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-[#9a8f84]">{navStepLabel}</span>
-        </div>
-
-        <div className="flex min-h-[calc(100vh-67px)] flex-col px-5 pb-10 pt-6">
-          <div className="mb-5 inline-flex w-fit items-center gap-1.5 self-start rounded-[20px] bg-[#f0e0d4] px-3 py-[5px]">
-            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-              <circle cx="6" cy="6" r="5" stroke="#C4714A" strokeWidth="1.5" />
-              <path d="M3.5 6l1.8 1.8 3.2-3.2" stroke="#C4714A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#c4714a]">Identity Verification</span>
-          </div>
-
-          <h2 className="mb-3 font-serif text-[34px] font-semibold leading-[1.15] text-[#1a1814]">
-            Let&apos;s confirm
-            <br />
-            it&apos;s really <em className="text-[#c4714a]">you.</em>
-          </h2>
-          <p className="mb-8 text-[13.5px] leading-[1.65] text-[#9a8f84]">{introCopy}</p>
-
-          <div className="mb-9 flex flex-col">
-            {[
-              {
-                num: "01",
-                title: "Position your face",
-                description: "Centre your face inside the oval guide on screen",
-              },
-              {
-                num: "02",
-                title: "Follow the instructions",
-                description: "Look up, then left, then right as prompted",
-              },
-              {
-                num: "03",
-                title: "Photo is captured",
-                description: "We take a clear snapshot to attach to your profile",
-              },
-            ].map((item, index, list) => (
-              <div
-                key={item.num}
-                className={`flex items-start gap-4 py-[18px] ${index < list.length - 1 ? "border-b border-[#e2dad0]" : ""}`}
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-[1.5px] border-[#c4714a] font-serif text-[15px] font-semibold text-[#c4714a]">
-                  {item.num}
-                </div>
-                <div>
-                  <strong className="mb-0.5 block text-[13.5px] font-medium text-[#1a1814]">{item.title}</strong>
-                  <span className="text-xs leading-[1.5] text-[#9a8f84]">{item.description}</span>
-                </div>
+      <div className="flex min-h-screen items-center justify-center bg-[#f0ebe3] px-4 py-6 sm:px-6">
+        <div className="w-full max-w-[480px] overflow-hidden rounded-[28px] bg-[#f0ebe3] shadow-[0_20px_60px_rgba(26,24,20,0.08)]">
+          <div className="flex items-center justify-between border-b border-[#e2dad0] bg-[#faf7f3] px-5 py-4">
+            <div className="flex items-center gap-[9px]">
+              <div className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] bg-[#c4714a]">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M3 12 L12 4 L21 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="9" y="14" width="6" height="8" rx="3" fill="white" />
+                </svg>
               </div>
-            ))}
+              <span className="font-serif text-[20px] font-semibold tracking-[0.03em] text-[#1a1814]">
+                Veri<em className="text-[#c4714a]">nest</em>
+              </span>
+            </div>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-[#9a8f84]">{navStepLabel}</span>
           </div>
 
-          <button
-            type="button"
-            onClick={handleBeginLiveness}
-            className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#c4714a] px-4 py-[17px] text-sm font-medium tracking-[0.04em] text-white transition active:scale-[0.98] active:bg-[#a85d38]"
-          >
-            <Camera className="h-4 w-4" />
-            Begin Liveness Check
-          </button>
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="mt-2.5 w-full rounded-[14px] border-[1.5px] border-[#e2dad0] bg-transparent px-4 py-3.5 text-[13px] text-[#9a8f84] transition active:border-[#c4714a] active:text-[#c4714a]"
-          >
-            Maybe Later
-          </button>
+          <div className="flex flex-col px-5 pb-8 pt-6 sm:px-6 sm:pb-10">
+            <div className="mb-5 inline-flex w-fit items-center gap-1.5 self-start rounded-[20px] bg-[#f0e0d4] px-3 py-[5px]">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                <circle cx="6" cy="6" r="5" stroke="#C4714A" strokeWidth="1.5" />
+                <path d="M3.5 6l1.8 1.8 3.2-3.2" stroke="#C4714A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#c4714a]">Identity Verification</span>
+            </div>
+
+            <h2 className="mb-3 font-serif text-[34px] font-semibold leading-[1.15] text-[#1a1814]">
+              Let&apos;s confirm
+              <br />
+              it&apos;s really <em className="text-[#c4714a]">you.</em>
+            </h2>
+            <p className="mb-8 text-[13.5px] leading-[1.65] text-[#9a8f84]">{introCopy}</p>
+
+            <div className="mb-9 flex flex-col">
+              {[
+                {
+                  num: "01",
+                  title: "Position your face",
+                  description: "Centre your face inside the oval guide on screen",
+                },
+                {
+                  num: "02",
+                  title: "Follow the instructions",
+                  description: "Look up, then left, then right as prompted",
+                },
+                {
+                  num: "03",
+                  title: "Photo is captured",
+                  description: "We take a clear snapshot to attach to your profile",
+                },
+              ].map((item, index, list) => (
+                <div
+                  key={item.num}
+                  className={`flex items-start gap-4 py-[18px] ${index < list.length - 1 ? "border-b border-[#e2dad0]" : ""}`}
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-[1.5px] border-[#c4714a] font-serif text-[15px] font-semibold text-[#c4714a]">
+                    {item.num}
+                  </div>
+                  <div>
+                    <strong className="mb-0.5 block text-[13.5px] font-medium text-[#1a1814]">{item.title}</strong>
+                    <span className="text-xs leading-[1.5] text-[#9a8f84]">{item.description}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleBeginLiveness}
+              className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#c4714a] px-4 py-[17px] text-sm font-medium tracking-[0.04em] text-white transition active:scale-[0.98] active:bg-[#a85d38]"
+            >
+              <Camera className="h-4 w-4" />
+              Begin Liveness Check
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="mt-2.5 w-full rounded-[14px] border-[1.5px] border-[#e2dad0] bg-transparent px-4 py-3.5 text-[13px] text-[#9a8f84] transition active:border-[#c4714a] active:text-[#c4714a]"
+            >
+              Maybe Later
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -443,7 +472,8 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
 
   if (screen === "nin-upload") {
     return (
-      <div className="w-full max-w-[480px] overflow-hidden bg-[#f0ebe3]">
+      <div className="flex min-h-screen items-center justify-center bg-[#f0ebe3] px-4 py-6 sm:px-6">
+      <div className="w-full max-w-[480px] overflow-hidden rounded-[28px] bg-[#f0ebe3] shadow-[0_20px_60px_rgba(26,24,20,0.08)]">
         <div className="flex items-center justify-between border-b border-[#e2dad0] bg-[#faf7f3] px-5 py-4">
           <div className="flex items-center gap-[9px]">
             <div className="flex h-[34px] w-[34px] items-center justify-center rounded-[9px] bg-[#c4714a]">
@@ -459,7 +489,7 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
           <span className="text-[10px] uppercase tracking-[0.2em] text-[#9a8f84]">Step 2 of 4</span>
         </div>
 
-        <div className="flex min-h-[calc(100vh-67px)] flex-col px-5 pb-10 pt-6">
+        <div className="flex flex-col px-5 pb-8 pt-6 sm:px-6 sm:pb-10">
           <div className="mb-5 inline-flex w-fit items-center gap-1.5 self-start rounded-[20px] bg-[#f0e0d4] px-3 py-[5px]">
             <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
               <circle cx="6" cy="6" r="5" stroke="#C4714A" strokeWidth="1.5" />
@@ -534,6 +564,7 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
             </button>
           </div>
         </div>
+      </div>
       </div>
     );
   }
@@ -656,47 +687,56 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
 
   if (screen === "success") {
     return (
-      <div className="w-full max-w-md space-y-6 text-center">
-        <div className="h-1 w-full overflow-hidden rounded-full bg-[#e2dad0]">
-          <div className="h-full w-full rounded bg-[#5cb87a]" />
-        </div>
-
-        <div className="space-y-3 pt-6">
-          <div className="mx-auto flex h-[88px] w-[88px] items-center justify-center rounded-full bg-[#ebf7ef]">
-            <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
-              <path d="M10 22l8 8 16-16" stroke="#5CB87A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+      <div className="flex min-h-screen items-center justify-center bg-[#f0ebe3] px-4 py-6 sm:px-6">
+        <div className="w-full max-w-md space-y-6 rounded-[28px] bg-[#f0ebe3] px-5 py-6 text-center shadow-[0_20px_60px_rgba(26,24,20,0.08)] sm:px-6">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-[#e2dad0]">
+            <div className="h-full w-full rounded bg-[#5cb87a]" />
           </div>
 
-          <h2 className="font-serif text-[30px] font-semibold text-[#1a1814]">Verification Complete</h2>
-          <p className="mx-auto max-w-[280px] text-[13px] leading-[1.6] text-[#9a8f84]">
-            {userRole === "seeker"
-              ? "Your liveness check passed. Submit it now to finish seeker verification."
-              : "Your identity has been confirmed. Submit it now so the team can review your provider verification."}
-          </p>
-        </div>
+          <div className="space-y-3 pt-2">
+            <div className="mx-auto flex h-[88px] w-[88px] items-center justify-center rounded-full bg-[#ebf7ef]">
+              <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+                <path d="M10 22l8 8 16-16" stroke="#5CB87A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
 
-        {capturedPhoto ? (
-          <div className="overflow-hidden rounded-[20px] border border-[#e2dad0] bg-[#faf7f3]">
-            <div className="px-4 pb-2 pt-3 text-left text-[9px] uppercase tracking-[0.22em] text-[#9a8f84]">Captured Photo</div>
-            <img src={capturedPhoto} alt="Captured verification photo" className="w-full" style={{ transform: "scaleX(-1)" }} />
-            <div className="flex items-center gap-2 px-4 pb-4 pt-3">
-              <div className="h-2 w-2 rounded-full bg-[#5cb87a]" />
-              <div className="text-[11px] text-[#9a8f84]">
-                <strong className="font-medium text-[#1a1814]">Liveness confirmed</strong>
-                <span> · {captureTime}</span>
+            <h2 className="font-serif text-[30px] font-semibold text-[#1a1814]">Verification Complete</h2>
+            <p className="mx-auto max-w-[280px] text-[13px] leading-[1.6] text-[#9a8f84]">
+              {userRole === "seeker"
+                ? "Your liveness check passed. Submit it now to finish seeker verification."
+                : "Your identity has been confirmed. Submit it now so the team can review your provider verification."}
+            </p>
+          </div>
+
+          {capturedPhoto ? (
+            <div className="overflow-hidden rounded-[20px] border border-[#e2dad0] bg-[#faf7f3]">
+              <div className="px-4 pb-2 pt-3 text-left text-[9px] uppercase tracking-[0.22em] text-[#9a8f84]">Captured Photo</div>
+              <div className="mx-auto aspect-[3/4] w-full max-w-[260px] overflow-hidden rounded-[16px] bg-[#161412] sm:max-w-[300px]">
+                <img
+                  src={capturedPhoto}
+                  alt="Captured verification photo"
+                  className="h-full w-full object-cover object-center"
+                  style={{ transform: "scaleX(-1)" }}
+                />
+              </div>
+              <div className="flex items-center gap-2 px-4 pb-4 pt-3">
+                <div className="h-2 w-2 rounded-full bg-[#5cb87a]" />
+                <div className="text-[11px] text-[#9a8f84]">
+                  <strong className="font-medium text-[#1a1814]">Liveness confirmed</strong>
+                  <span> · {captureTime}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ) : null}
+          ) : null}
 
-        <div className="space-y-2">
-          <Button onClick={handleSubmitVerification} disabled={uploading} className="h-12 w-full bg-[#c4714a] text-white hover:bg-[#a85d38]">
-            {uploading ? <><InlineSpinner variant="solid" /> Submitting Verification...</> : "Confirm & Continue"}
-          </Button>
-          <Button onClick={resetFlow} variant="outline" className="h-11 w-full" disabled={uploading}>
-            Try Again
-          </Button>
+          <div className="space-y-2">
+            <Button onClick={handleSubmitVerification} disabled={uploading} className="h-12 w-full bg-[#c4714a] text-white hover:bg-[#a85d38]">
+              {uploading ? <><InlineSpinner variant="solid" /> Submitting Verification...</> : "Confirm & Continue"}
+            </Button>
+            <Button onClick={resetFlow} variant="outline" className="h-11 w-full" disabled={uploading}>
+              Try Again
+            </Button>
+          </div>
         </div>
       </div>
     );
