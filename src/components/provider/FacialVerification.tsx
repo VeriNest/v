@@ -5,7 +5,6 @@ import { toast } from "sonner";
 
 import { FullscreenLoader, InlineSpinner, OrbitLoader } from "@/components/Loaders";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { setStoredKycStatus, verificationApi } from "@/lib/api";
 
@@ -18,23 +17,14 @@ interface FacialVerificationProps {
 type Screen = "intro" | "nin-upload" | "camera" | "success" | "error";
 
 type FaceMetrics = {
-  yaw: number;
-  pitch: number;
   centerOffsetX: number;
   centerOffsetY: number;
-  leftEyeOpen: boolean;
-  rightEyeOpen: boolean;
+  faceWidthRatio: number;
+  faceHeightRatio: number;
 };
-
-const BLINK_DETECTION_INFO = {
-  title: "Verify it's really you",
-  description: "Simply blink naturally when ready. Keep your face centered.",
-  icon: "👁️",
-  progress: 50,
-};
-
-const BLINK_DETECTION_THRESHOLD_MS = 500;
-const DETECTION_INTERVAL_MS = 180;
+const DETECTION_INTERVAL_MS = 150;
+const COUNTDOWN_START = 3;
+const FACE_HOLD_MS = 250;
 const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
 
 let modelsPromise: Promise<void> | null = null;
@@ -51,39 +41,22 @@ async function ensureModelsLoaded() {
 
 async function detectFaceMetrics(video: HTMLVideoElement): Promise<FaceMetrics | null> {
   const result = await faceapi
-    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.45 }))
+    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.3 }))
     .withFaceLandmarks();
 
   if (!result) return null;
 
-  const landmarks = result.landmarks.positions;
   const box = result.detection.box;
-  const nose = landmarks[30];
-  const leftEye = landmarks[36];
-  const rightEye = landmarks[45];
-  const eyeCenterX = (leftEye.x + rightEye.x) / 2;
-  const eyeCenterY = (leftEye.y + rightEye.y) / 2;
   const faceCenterX = box.x + box.width / 2;
   const faceCenterY = box.y + box.height / 2;
   const frameCenterX = video.videoWidth / 2;
   const frameCenterY = video.videoHeight / 2;
 
-  // Eye open detection - calculate eye aspect ratio
-  const leftEyeTop = landmarks[37];
-  const leftEyeBottom = landmarks[41];
-  const rightEyeTop = landmarks[43];
-  const rightEyeBottom = landmarks[47];
-
-  const leftEyeDistance = Math.hypot(leftEyeTop.x - leftEyeBottom.x, leftEyeTop.y - leftEyeBottom.y);
-  const rightEyeDistance = Math.hypot(rightEyeTop.x - rightEyeBottom.x, rightEyeTop.y - rightEyeBottom.y);
-
   return {
-    yaw: (nose.x - eyeCenterX) / box.width,
-    pitch: (nose.y - eyeCenterY) / box.height,
     centerOffsetX: (faceCenterX - frameCenterX) / box.width,
     centerOffsetY: (faceCenterY - frameCenterY) / box.height,
-    leftEyeOpen: leftEyeDistance > 3,
-    rightEyeOpen: rightEyeDistance > 3,
+    faceWidthRatio: box.width / video.videoWidth,
+    faceHeightRatio: box.height / video.videoHeight,
   };
 }
 
@@ -110,10 +83,7 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
   const [countdown, setCountdown] = useState<number | null>(null);
   const [flash, setFlash] = useState(false);
   const [ovalState, setOvalState] = useState<"idle" | "scanning" | "success">("idle");
-  const [blinkDetected, setBlinkDetected] = useState(false);
 
-  const eyeStateRef = useRef<{ leftOpen: boolean; rightOpen: boolean }>({ leftOpen: true, rightOpen: true });
-  const blinkCountRef = useRef(0);
   const holdStartRef = useRef<number | null>(null);
   const detectionIntervalRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
   const countdownTimeoutRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
@@ -146,16 +116,12 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
     }
     isCapturingRef.current = false;
     setCountdown(null);
-    setIsHoldingPose(false);
   };
 
   const resetTracking = () => {
     holdStartRef.current = null;
-    eyeStateRef.current = { leftOpen: true, rightOpen: true };
-    blinkCountRef.current = 0;
-    setProgress(30);
+    setProgress(20);
     setOvalState("scanning");
-    setBlinkDetected(false);
   };
 
   const resetFlow = () => {
@@ -197,7 +163,7 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
   const beginCountdown = () => {
     if (isCapturingRef.current) return;
     isCapturingRef.current = true;
-    setCountdown(3);
+    setCountdown(COUNTDOWN_START);
 
     const tick = (value: number) => {
       if (value <= 0) {
@@ -209,33 +175,16 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
       countdownTimeoutRef.current = window.setTimeout(() => tick(value - 1), 850);
     };
 
-    tick(3);
+    tick(COUNTDOWN_START);
   };
 
-  const detectBlink = (metrics: FaceMetrics) => {
-    const faceWellCentered =
-      Math.abs(metrics.centerOffsetX) < 0.18 &&
-      Math.abs(metrics.centerOffsetY) < 0.24 &&
-      Math.abs(metrics.yaw) < 0.045;
-
-    if (!faceWellCentered) {
-      eyeStateRef.current = { leftOpen: true, rightOpen: true };
-      return false;
-    }
-
-    const previousLeftOpen = eyeStateRef.current.leftOpen;
-    const previousRightOpen = eyeStateRef.current.rightOpen;
-
-    eyeStateRef.current = {
-      leftOpen: metrics.leftEyeOpen,
-      rightOpen: metrics.rightEyeOpen,
-    };
-
-    // Detect blink: eyes were open, now closed
-    const leftEyeBlinked = previousLeftOpen && !metrics.leftEyeOpen;
-    const rightEyeBlinked = previousRightOpen && !metrics.rightEyeOpen;
-    
-    return leftEyeBlinked || rightEyeBlinked;
+  const isFaceCentered = (metrics: FaceMetrics) => {
+    return (
+      Math.abs(metrics.centerOffsetX) < 0.32 &&
+      Math.abs(metrics.centerOffsetY) < 0.36 &&
+      metrics.faceWidthRatio > 0.16 &&
+      metrics.faceHeightRatio > 0.16
+    );
   };
 
   useEffect(() => {
@@ -296,38 +245,33 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
       if (!metrics) {
         holdStartRef.current = null;
         setOvalState("scanning");
+        setProgress(20);
         return;
       }
 
-      // Check if face is well-centered
-      const faceWellCentered =
-        Math.abs(metrics.centerOffsetX) < 0.18 &&
-        Math.abs(metrics.centerOffsetY) < 0.24 &&
-        Math.abs(metrics.yaw) < 0.045;
+      const centered = isFaceCentered(metrics);
 
-      if (!faceWellCentered) {
+      if (!centered) {
         holdStartRef.current = null;
         setOvalState("scanning");
-        setProgress(30);
+        setProgress(20);
         return;
       }
 
+      // Once the face is clearly in frame, move quickly into capture.
       setOvalState("success");
       setProgress(60);
 
-      // Detect blink
-      const blinked = detectBlink(metrics);
+      const now = Date.now();
+      if (!holdStartRef.current) {
+        holdStartRef.current = now;
+      }
 
-      if (blinked) {
-        blinkCountRef.current++;
-        setBlinkDetected(true);
+      const heldFor = now - holdStartRef.current;
+
+      if (heldFor >= FACE_HOLD_MS) {
         setProgress(85);
-
-        // After detecting one blink, capture photo
-        if (blinkCountRef.current >= 1) {
-          setProgress(95);
-          beginCountdown();
-        }
+        beginCountdown();
       }
     };
 
@@ -617,7 +561,7 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
           <div className="mb-5">
             <h2 className="font-serif text-[26px] font-semibold text-[#1a1814]">Verify it's Really You</h2>
             <p className="mt-1 text-[12.5px] text-[#9a8f84]">
-              {isPreparingCamera ? "Preparing your camera..." : "Simply blink naturally when ready"}
+              {isPreparingCamera ? "Preparing your camera..." : "Keep your face centered. We'll capture in 3...2...1"}
             </p>
           </div>
 
@@ -683,20 +627,20 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
             />
           </div>
 
-          <div className={`mb-4 flex items-center gap-[14px] rounded-2xl border bg-[#faf7f3] px-5 py-[18px] transition-colors ${blinkDetected ? "border-[#c4714a]" : "border-[#e2dad0]"}`}>
-            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[22px] ${blinkDetected ? "bg-[#c4714a] text-white" : "bg-[#f0e0d4] text-[#1a1814]"}`}>
+          <div className={`mb-4 flex items-center gap-[14px] rounded-2xl border bg-[#faf7f3] px-5 py-[18px] transition-colors ${progress > 60 ? "border-[#c4714a]" : "border-[#e2dad0]"}`}>
+            <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[22px] ${progress > 60 ? "bg-[#c4714a] text-white" : "bg-[#f0e0d4] text-[#1a1814]"}`}>
               👁️
             </div>
             <div>
               <strong className="block text-[13.5px] font-medium text-[#1a1814]">
-                {countdown !== null ? "Hold still..." : "Ready to capture"}
+                {countdown !== null ? "Hold still..." : progress > 60 ? "Face detected!" : "Ready to capture"}
               </strong>
               <span className="text-[11.5px] text-[#9a8f84]">
                 {countdown !== null
                   ? "Taking your verification snapshot"
-                  : blinkDetected
-                    ? "Blink detected! Capturing..."
-                    : "Keep your face centered and blink naturally"}
+                  : progress > 60
+                    ? "Starting countdown..."
+                    : "Position your face in the center of the oval"}
               </span>
             </div>
           </div>
