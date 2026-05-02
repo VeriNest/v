@@ -38,7 +38,6 @@ import { KycAlertBanner } from "@/components/KycAlertBanner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useDashboardLayout, type DashboardWidgetSize } from "@/hooks/use-dashboard-layout";
-import { useDashboardLoadingSnapshot } from "@/hooks/use-dashboard-loading-snapshot";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { toSearchId } from "@/lib/search-id";
 import { formatCompactCurrency, getPropertyImage, seekerApi } from "@/lib/api";
@@ -55,10 +54,11 @@ type WidgetDefinition = {
 export default function SeekerDashboard() {
   useSearchFocus();
   const [editing, setEditing] = useState(false);
-  const loading = useDashboardLoadingSnapshot();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ["/seeker/dashboard/overview"],
     queryFn: () => seekerApi.dashboard(),
+    staleTime: 60_000,
+    refetchOnMount: false,
   });
 
   const matchData = (data?.matchTrends?.length ? data.matchTrends : [{ week: "W1", matches: data?.recentOffers.length ?? 0 }]) as Array<{ week: string; matches: number }>;
@@ -265,7 +265,7 @@ export default function SeekerDashboard() {
       : [];
   });
 
-  if (loading || isLoading) {
+  if (isLoading && !data) {
     return <BackendLoadingIndicator label="Loading dashboard..." fullscreen />;
   }
 
@@ -278,6 +278,7 @@ export default function SeekerDashboard() {
         description="Track your property search, offers, and viewings."
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            {isFetching ? <DashboardStatusBadge tone="info">Updating</DashboardStatusBadge> : null}
             {!editing ? (
               <DashboardCustomizerToolbar
                 editing={editing}

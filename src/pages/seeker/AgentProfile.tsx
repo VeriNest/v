@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, ShieldCheck, Star } from "lucide-react";
+import { ArrowLeft, Phone, ShieldCheck, Star } from "lucide-react";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -80,7 +80,11 @@ export default function AgentProfile() {
         <CardContent className="space-y-5 p-5">
           <div className="flex items-center gap-4">
             <Avatar className="h-14 w-14 border border-border/60">
-              <AvatarFallback className="bg-primary/10 font-semibold text-primary">{initials}</AvatarFallback>
+              {user.avatar_url ? (
+                <img src={user.avatar_url} alt={user.full_name} className="h-full w-full object-cover" />
+              ) : (
+                <AvatarFallback className="bg-primary/10 font-semibold text-primary">{initials}</AvatarFallback>
+              )}
             </Avatar>
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
@@ -93,6 +97,12 @@ export default function AgentProfile() {
                   {Number(user.average_rating ?? 0).toFixed(1)}
                 </span>
                 <span>{Number(user.review_count ?? 0)} reviews</span>
+                {user.phone ? (
+                  <span className="inline-flex items-center gap-1">
+                    <Phone className="h-4 w-4 text-primary" />
+                    {user.phone}
+                  </span>
+                ) : null}
                 <span className="inline-flex items-center gap-1">
                   <ShieldCheck className="h-4 w-4 text-emerald-600" />
                   {String(user.verification_status ?? "pending")}

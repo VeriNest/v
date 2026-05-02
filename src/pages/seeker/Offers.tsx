@@ -82,6 +82,7 @@ export default function Offers() {
         property: offer.propertyTitle ?? "Property offer",
         location: offer.propertyLocation ?? "Unknown location",
         provider: offer.providerName ?? titleCase(offer.providerRole),
+        providerPhone: offer.providerPhone ?? "",
         role: titleCase(offer.providerRole ?? "agent"),
         price: `${offer.offerPriceCurrency ?? "NGN"} ${Number(offer.offerPriceAmount ?? 0).toLocaleString("en-NG")}/${offer.offerPricePeriod ?? "year"}`,
         trust: "Verified",
@@ -250,6 +251,11 @@ function OfferCard({
                 <span className="font-medium">{offer.provider}</span>
                 <DashboardStatusBadge tone={offer.role === "Agent" ? "info" : "neutral"}>{offer.role}</DashboardStatusBadge>
               </div>
+              {offer.providerPhone ? (
+                <div className="text-xs text-muted-foreground">
+                  {offer.providerPhone}
+                </div>
+              ) : null}
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3" />
                 <span>{offer.location}</span>

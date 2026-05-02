@@ -1,5 +1,5 @@
-﻿import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+﻿import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
@@ -63,21 +63,55 @@ type NeedRow = {
   created_at: string;
 };
 
+type SeekerOverview = {
+  stats?: {
+    needCount?: number;
+    savedCount?: number;
+    bookingCount?: number;
+  };
+  matchTrends?: Array<Record<string, unknown>>;
+  savedProperties?: Array<Record<string, unknown>>;
+  recentOffers?: Array<Record<string, unknown>>;
+};
+
 export default function PostNeed() {
+  const annualBudgetMin = 50000;
+  const annualBudgetMax = 10000000;
+  const annualBudgetStep = 50000;
+  const shortletBudgetMin = 10000;
+  const shortletBudgetMax = 500000;
+  const shortletBudgetStep = 5000;
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("new");
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [urgency, setUrgency] = useState("flexible");
   const [boost, setBoost] = useState(false);
-  const [budgetRange, setBudgetRange] = useState([500000, 3000000]);
+  const [budgetRange, setBudgetRange] = useState([annualBudgetMin, 3000000]);
   const [propertyType, setPropertyType] = useState("rent");
   const [bedrooms, setBedrooms] = useState("2");
   const [location, setLocation] = useState("");
   const [selectedState, setSelectedState] = useState("");
   const [moveInDate, setMoveInDate] = useState("");
   const [notes, setNotes] = useState("");
+  const isShortlet = propertyType === "shortlet";
+  const budgetMin = isShortlet ? shortletBudgetMin : annualBudgetMin;
+  const budgetMax = isShortlet ? shortletBudgetMax : annualBudgetMax;
+  const budgetStep = isShortlet ? shortletBudgetStep : annualBudgetStep;
+
+  useEffect(() => {
+    setBudgetRange((current) => {
+      const nextMin = Math.max(budgetMin, Math.min(current[0], budgetMax));
+      const nextMax = Math.max(nextMin, Math.min(current[1], budgetMax));
+      if (nextMin === current[0] && nextMax === current[1]) {
+        return current;
+      }
+      return [nextMin, nextMax];
+    });
+  }, [budgetMax, budgetMin]);
 
   const { data: needs = [] } = useQuery<NeedRow[]>({
     queryKey: ["/seeker/needs"],
@@ -148,6 +182,32 @@ export default function PostNeed() {
           notes.trim() ||
           `Urgency: ${urgency}. Move-in date: ${moveInDate || "Flexible"}. Boost requested: ${boost ? "Yes" : "No"}.`,
       });
+      queryClient.setQueryData<NeedRow[]>(["/seeker/needs"], (current = []) => [
+        {
+          id: `temp-${Date.now()}`,
+          request_title: requestTitle(),
+          min_budget: budgetRange[0],
+          max_budget: budgetRange[1],
+          status: "active",
+          response_count: 0,
+          created_at: new Date().toISOString(),
+        },
+        ...current,
+      ]);
+      queryClient.setQueryData<SeekerOverview>(["/seeker/dashboard/overview"], (current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          stats: {
+            ...current.stats,
+            needCount: (current.stats?.needCount ?? 0) + 1,
+          },
+        };
+      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/seeker/needs"] }),
+        queryClient.invalidateQueries({ queryKey: ["/seeker/dashboard/overview"] }),
+      ]);
       setSubmitted(true);
       toast.success("Need published successfully");
     } catch (error) {
@@ -178,7 +238,15 @@ export default function PostNeed() {
         </div>
         <div className="flex gap-3">
           <Button onClick={() => { setSubmitted(false); setCurrentStep(1); }} variant="outline" size="sm">Post Another</Button>
-          <Button size="sm">View My Posts</Button>
+          <Button
+            size="sm"
+            onClick={() => {
+              setSubmitted(false);
+              setActiveTab("history");
+            }}
+          >
+            View My Posts
+          </Button>
         </div>
       </div>
     );
@@ -191,7 +259,7 @@ export default function PostNeed() {
         description="Describe what you're looking for — providers will send you tailored offers."
       />
 
-      <Tabs defaultValue="new" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="bg-muted/50 p-1 h-auto">
           <TabsTrigger value="new" className="text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm gap-1.5">
             <Plus className="h-3.5 w-3.5" /> New Need
@@ -376,14 +444,14 @@ export default function PostNeed() {
                       <Slider
                         value={budgetRange}
                         onValueChange={setBudgetRange}
-                        min={propertyType === "shortlet" ? 10000 : 200000}
-                        max={propertyType === "shortlet" ? 500000 : 10000000}
-                        step={propertyType === "shortlet" ? 5000 : 100000}
+                        min={budgetMin}
+                        max={budgetMax}
+                        step={budgetStep}
                         className="py-2"
                       />
                       <div className="flex justify-between text-[11px] text-muted-foreground">
-                        <span>{formatBudget(propertyType === "shortlet" ? 10000 : 200000)}</span>
-                        <span>{formatBudget(propertyType === "shortlet" ? 500000 : 10000000)}</span>
+                        <span>{formatBudget(budgetMin)}</span>
+                        <span>{formatBudget(budgetMax)}</span>
                       </div>
                       <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border/40">
                         <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -561,7 +629,7 @@ export default function PostNeed() {
                 <CardContent className="p-5 space-y-3">
                   <div className="flex items-center gap-2">
                     <div className="p-2 rounded-lg bg-primary/10"><ShieldCheck className="h-4 w-4 text-primary" /></div>
-                    <h3 className="text-sm font-semibold text-foreground">Lagos Tenancy Law</h3>
+                    <h3 className="text-sm font-semibold text-foreground">Nigeria's Tenancy Law</h3>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">Landlords cannot demand more than 1 year advance rent for yearly tenants. All rent payments must come with a receipt.</p>
                 </CardContent>

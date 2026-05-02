@@ -55,7 +55,7 @@ const Hero = () => {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                Trusted by <span className="font-semibold text-foreground">renters, agents, and landlords</span> across Lagos and Abuja
+                Trusted by <span className="font-semibold text-foreground">renters, agents, and landlords</span> across Nigeria
               </p>
             </div>
           </div>

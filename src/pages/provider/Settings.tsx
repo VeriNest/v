@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Activity, Camera } from "lucide-react";
-import { InlineSpinner, OrbitLoader } from "@/components/Loaders";
+import { InlineSpinner } from "@/components/Loaders";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardSettingsRow, DashboardSettingsSection } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { ChangePasswordDialog } from "@/components/settings/ChangePasswordDialog";
 import { agentSettingsApi, authApi, onboardingApi, clearStoredSession } from "@/lib/api";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
@@ -36,6 +37,7 @@ const typeStyles: Record<string, string> = {
 
 export default function ProviderSettings() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -50,6 +52,7 @@ export default function ProviderSettings() {
   const [operatingCity, setOperatingCity] = useState("");
   const [operatingState, setOperatingState] = useState("");
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
 
   const { data: me } = useQuery({
     queryKey: ["/auth/me"],
@@ -108,6 +111,7 @@ export default function ProviderSettings() {
         specializations: Array.isArray(me.roleProfile?.specializations_json) ? me.roleProfile.specializations_json : [],
         bio,
       });
+      await queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
       toast.success("Profile image updated");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to update profile image";
@@ -133,6 +137,7 @@ export default function ProviderSettings() {
         specializations: Array.isArray(me.roleProfile?.specializations_json) ? me.roleProfile.specializations_json : [],
         bio,
       });
+      await queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
       toast.success("Profile updated");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to save profile";
@@ -201,7 +206,7 @@ export default function ProviderSettings() {
               disabled={uploadingAvatar}
               className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 cursor-pointer"
             >
-              {uploadingAvatar ? <OrbitLoader size="sm" /> : <Camera className="h-4 w-4 text-background" />}
+              {uploadingAvatar ? <InlineSpinner variant="solid" /> : <Camera className="h-4 w-4 text-background" />}
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
@@ -287,7 +292,7 @@ export default function ProviderSettings() {
             <DashboardSettingsRow
               label="Change Password"
               description="Use your account security flow to update your password."
-              control={<Button variant="outline" size="sm">Update</Button>}
+              control={<Button variant="outline" size="sm" onClick={() => setPasswordDialogOpen(true)}>Update</Button>}
             />
           </DashboardSettingsSection>
 
@@ -323,6 +328,7 @@ export default function ProviderSettings() {
           </Card>
         </TabsContent>
       </Tabs>
+      <ChangePasswordDialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen} />
     </div>
   );
 }

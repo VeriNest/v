@@ -14,11 +14,9 @@ import { DashboardSectionAction } from "@/components/dashboard/DashboardSectionA
 import { DashboardSectionCard } from "@/components/dashboard/DashboardSectionCard";
 import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
-import { DashboardSkeleton } from "@/components/DashboardSkeleton";
 import { KycAlertBanner } from "@/components/KycAlertBanner";
 import { Button } from "@/components/ui/button";
 import { useDashboardLayout, type DashboardWidgetSize } from "@/hooks/use-dashboard-layout";
-import { useDashboardLoadingSnapshot } from "@/hooks/use-dashboard-loading-snapshot";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { toSearchId } from "@/lib/search-id";
 
@@ -71,7 +69,6 @@ type WidgetDefinition = {
 export default function LandlordDashboard() {
   useSearchFocus();
   const [editing, setEditing] = useState(false);
-  const loading = useDashboardLoadingSnapshot();
 
   const widgetDefinitions = useMemo<WidgetDefinition[]>(() => [
     {
@@ -226,8 +223,6 @@ export default function LandlordDashboard() {
     const widget = widgetMap.get(item.id);
     return !item.visible && widget ? [{ id: item.id, title: widget.title, description: widget.description, visible: item.visible, size: item.size, availableSizes: widget.availableSizes }] : [];
   });
-
-  if (loading) return <DashboardSkeleton variant="landlord" />;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">

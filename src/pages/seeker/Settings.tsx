@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { InlineSpinner, OrbitLoader } from "@/components/Loaders";
+import { InlineSpinner } from "@/components/Loaders";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardSettingsRow, DashboardSettingsSection } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { ChangePasswordDialog } from "@/components/settings/ChangePasswordDialog";
 import { authApi, onboardingApi, clearStoredSession } from "@/lib/api";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
@@ -35,6 +36,7 @@ const typeStyles: Record<string, string> = {
 
 export default function SeekerSettings() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fullName, setFullName] = useState("");
@@ -44,6 +46,7 @@ export default function SeekerSettings() {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
 
   const { data: me } = useQuery({
     queryKey: ["/auth/me"],
@@ -94,6 +97,7 @@ export default function SeekerSettings() {
         preferredBudgetLabel: me?.roleProfile?.preferred_budget_label ?? undefined,
         moveInTimeline: me?.roleProfile?.move_in_timeline ?? undefined,
       });
+      await queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
       toast.success("Profile image updated");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to upload profile image";
@@ -117,6 +121,7 @@ export default function SeekerSettings() {
         preferredBudgetLabel: me?.roleProfile?.preferred_budget_label ?? undefined,
         moveInTimeline: me?.roleProfile?.move_in_timeline ?? undefined,
       });
+      await queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
       toast.success("Settings updated");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to save settings";
@@ -168,7 +173,7 @@ export default function SeekerSettings() {
               type="button"
               disabled={uploadingAvatar}
             >
-              {uploadingAvatar ? <OrbitLoader size="sm" /> : <Camera className="h-4 w-4 text-background" />}
+              {uploadingAvatar ? <InlineSpinner variant="solid" /> : <Camera className="h-4 w-4 text-background" />}
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
@@ -252,7 +257,7 @@ export default function SeekerSettings() {
             <DashboardSettingsRow
               label="Change Password"
               description="Use your account security flow to update your password."
-              control={<Button variant="outline" size="sm">Update</Button>}
+              control={<Button variant="outline" size="sm" onClick={() => setPasswordDialogOpen(true)}>Update</Button>}
             />
             <DashboardSettingsRow
               label="Two-Factor Auth"
@@ -293,6 +298,7 @@ export default function SeekerSettings() {
           </Card>
         </TabsContent>
       </Tabs>
+      <ChangePasswordDialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen} />
     </div>
   );
 }

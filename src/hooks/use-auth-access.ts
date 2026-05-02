@@ -2,11 +2,13 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { useAvatar } from "@/contexts/AvatarContext";
 import { authApi, dashboardPathForRole, getStoredSession, mapVerificationStatusToBanner, resolveAuthenticatedPath, setStoredKycStatus, type UserRole } from "@/lib/api";
 
 export function useAuthAccess(expectedRole?: UserRole) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setAvatarUrl } = useAvatar();
   const session = getStoredSession();
   const { data, isLoading } = useQuery({
     queryKey: ["/auth/me", "access"],
@@ -23,7 +25,8 @@ export function useAuthAccess(expectedRole?: UserRole) {
     } else {
       setStoredKycStatus(mapVerificationStatusToBanner(data.verification?.status ?? data.user.verification_status));
     }
-  }, [data]);
+    setAvatarUrl(data.profile?.avatarUrl ?? null);
+  }, [data, setAvatarUrl]);
 
   useEffect(() => {
     if (!session?.token) {
