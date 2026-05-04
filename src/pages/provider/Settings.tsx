@@ -19,21 +19,30 @@ import { ChangePasswordDialog } from "@/components/settings/ChangePasswordDialog
 import { agentSettingsApi, authApi, onboardingApi, clearStoredSession } from "@/lib/api";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
-const activityLog = [
-  { action: "Sent offer for 3 Bed in Lekki", time: "1 hour ago", type: "Offer" },
-  { action: "Published listing: Studio, Wuse 2", time: "3 hours ago", type: "Listing" },
-  { action: "Received payout PO-301: ₦2.3M", time: "1 day ago", type: "Payout" },
-  { action: "Responded to lead from Anonymous Tenant", time: "1 day ago", type: "Lead" },
-  { action: "Updated calendar availability", time: "2 days ago", type: "Calendar" },
-];
-
-const typeStyles: Record<string, string> = {
-  Offer: "bg-primary/10 text-primary border-primary/20",
-  Listing: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  Payout: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-  Lead: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  Calendar: "bg-muted text-muted-foreground border-border",
+// Map resource types to user-friendly names
+const resourceTypeNames: Record<string, string> = {
+  "need_post": "Posted a need",
+  "offer": "Received an offer",
+  "booking": "Made a booking",
+  "review": "Left a review",
+  "profile": "Updated profile",
+  "property": "Viewed a property",
+  "saved_property": "Saved a property",
+  "user": "Account activity",
 };
+
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (seconds < 60) return "just now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+  
+  return date.toLocaleDateString();
+}
 
 export default function ProviderSettings() {
   const navigate = useNavigate();
@@ -57,6 +66,11 @@ export default function ProviderSettings() {
   const { data: me } = useQuery({
     queryKey: ["/auth/me"],
     queryFn: () => authApi.me(),
+  });
+
+  const { data: activity = [], isLoading: isLoadingActivity } = useQuery({
+    queryKey: ["/auth/activity"],
+    queryFn: () => authApi.getActivity(10),
   });
 
   const { data: notificationSettings } = useQuery({
@@ -99,7 +113,6 @@ export default function ProviderSettings() {
     try {
       setUploadingAvatar(true);
       const uploaded = await uploadToCloudinary(file, "avatar");
-      setAvatarUrl(uploaded.secureUrl);
       await onboardingApi.saveProfile({
         role: "agent",
         phone,
@@ -111,7 +124,8 @@ export default function ProviderSettings() {
         specializations: Array.isArray(me.roleProfile?.specializations_json) ? me.roleProfile.specializations_json : [],
         bio,
       });
-      await queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
+      // Refetch profile to display updated image from backend
+      await queryClient.refetchQueries({ queryKey: ["/auth/me"] });
       toast.success("Profile image updated");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to update profile image";
@@ -310,20 +324,31 @@ export default function ProviderSettings() {
           <Card className="border border-border/60 shadow-sm">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Recent Activity</CardTitle></div>
-              <CardDescription>Your recent actions on the platform</CardDescription>
+              <CardDescription>A summary of your recent activities on the platform</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {activityLog.map((item, i) => (
-                  <div key={i} className="p-3 rounded-lg border border-border/60 bg-secondary/30 space-y-2">
-                    <p className="text-sm font-medium text-foreground">{item.action}</p>
-                    <div className="flex items-center justify-between">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${typeStyles[item.type]}`}>{item.type}</span>
-                      <span className="text-xs text-muted-foreground">{item.time}</span>
+              {isLoadingActivity ? (
+                <div className="flex items-center justify-center h-32">
+                  <InlineSpinner variant="solid" />
+                </div>
+              ) : activity.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">No activity yet</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {activity.map((item, i) => (
+                    <div key={i} className="p-3 rounded-lg border border-border/60 bg-secondary/30">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-foreground">
+                          {resourceTypeNames[item.resource_type || "user"] || "Activity"}
+                        </p>
+                        <span className="text-xs text-muted-foreground">{formatRelativeTime(item.timestamp)}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

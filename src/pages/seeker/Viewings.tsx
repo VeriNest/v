@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, ArrowRight, Phone, Mail } from "lucide-react";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { SeekerPageSearch } from "@/components/seeker/SeekerPageSearch";
@@ -9,10 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { CalendarDays, Clock3, MapPin, ShieldCheck, Wallet } from "lucide-react";
 import { seekerApi } from "@/lib/api";
+import { toast } from "sonner";
+import { InlineSpinner } from "@/components/Loaders";
 
 const viewingStatusStyles: Record<string, string> = {
   Scheduled: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
@@ -106,24 +110,51 @@ function isUpcomingDate(date: Date) {
 
 export default function SeekerViewings() {
   useSearchFocus();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [viewingFilter, setViewingFilter] = useState<"all" | "active" | "pending">("all");
+  const [selectedAgentViewingId, setSelectedAgentViewingId] = useState<string | null>(null);
+  
   const { data = [] } = useQuery({
     queryKey: ["/seeker/bookings"],
     queryFn: () => seekerApi.listBookings(),
   });
+
+  const confirmViewingMutation = useMutation({
+    mutationFn: (viewingId: string) => seekerApi.updateOffer(viewingId, { status: "confirmed" }),
+    onSuccess: () => {
+      toast.success("Viewing confirmed successfully");
+      queryClient.invalidateQueries({ queryKey: ["/seeker/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/seeker/offers"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to confirm viewing";
+      toast.error(message);
+    },
+  });
+
   const viewings = useMemo(() => data.map((item: any) => ({
     id: item.id,
     property: item.propertyTitle ?? "Viewing",
     location: item.propertyLocation ?? "Unknown location",
     host: item.providerName ?? "Provider",
+    hostPhone: item.providerPhone ?? "",
+    hostAvatarUrl: item.providerAvatarUrl ?? null,
     amount: item.bookingType ?? "viewing",
     status: String(item.status ?? "pending").toLowerCase() === "confirmed" ? "Scheduled" : "Pending confirmation",
     time: item.scheduledFor ? new Date(item.scheduledFor).toLocaleString() : "Pending",
+    scheduledDate: item.scheduledFor ? new Date(item.scheduledFor) : null,
     note: item.notes ?? "No additional notes",
+    initials: String(item.providerName ?? "PR").split(" ").map((part: string) => part[0]).join("").slice(0, 2) || "PR",
   })).filter((item: any) => item.amount.toLowerCase().includes("viewing") || item.status), [data]);
   const viewingDates = useMemo(() => viewings.map((item) => ({ ...item, date: parseViewingDate(item.time) })), [viewings]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(viewingDates[0]?.date);
+
+  const isViewingPassed = (scheduledDate: Date | null): boolean => {
+    if (!scheduledDate) return false;
+    const now = new Date();
+    return scheduledDate < now;
+  };
 
   const normalizedQuery = search.trim().toLowerCase();
 
@@ -322,17 +353,126 @@ export default function SeekerViewings() {
               </div>
 
               <div className="grid grid-cols-2 gap-2 border-t border-border/50 pt-3 sm:flex sm:items-center sm:justify-between">
-                <Button variant="outline" size="sm" className="h-8 w-full rounded-lg px-3 text-xs">
-                  Get directions
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 w-full rounded-lg px-3 text-xs">
-                  Contact host
-                </Button>
+                {isViewingPassed(item.scheduledDate) ? (
+                  <>
+                    <Button variant="outline" size="sm" className="h-8 w-full rounded-lg px-3 text-xs">
+                      Reschedule
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {item.status !== "Scheduled" ? (
+                      <Button 
+                        size="sm" 
+                        className="h-8 w-full rounded-lg px-3 text-xs"
+                        onClick={() => confirmViewingMutation.mutate(item.id)}
+                        disabled={confirmViewingMutation.isPending}
+                      >
+                        {confirmViewingMutation.isPending ? <InlineSpinner variant="solid" /> : "Confirm viewing"}
+                      </Button>
+                    ) : null}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 w-full rounded-lg px-3 text-xs"
+                      onClick={() => setSelectedAgentViewingId(item.id)}
+                    >
+                      Host details
+                    </Button>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {/* Host Details Modal */}
+      {selectedAgentViewingId && (() => {
+        const viewing = viewings.find((v) => v.id === selectedAgentViewingId);
+        return (
+          <Dialog open={!!selectedAgentViewingId} onOpenChange={(open) => !open && setSelectedAgentViewingId(null)}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Host Details</DialogTitle>
+                <DialogDescription>Get in touch with your host</DialogDescription>
+              </DialogHeader>
+              
+              {viewing && (
+                <div className="space-y-6">
+                  {/* Host Info */}
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                      {viewing.hostAvatarUrl ? (
+                        <img src={viewing.hostAvatarUrl} alt={viewing.host} className="h-full w-full object-cover" />
+                      ) : (
+                        <AvatarFallback>{viewing.initials}</AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{viewing.host}</h3>
+                      <p className="text-sm text-muted-foreground">{viewing.property}</p>
+                    </div>
+                  </div>
+
+                  {/* Contact Options */}
+                  <div className="space-y-3 border-t border-border/50 pt-4">
+                    {viewing.hostPhone && (
+                      <a
+                        href={`tel:${viewing.hostPhone}`}
+                        className="flex items-center gap-3 rounded-lg border border-border/50 p-3 transition-colors hover:bg-accent"
+                      >
+                        <Phone className="h-4 w-4 text-primary" />
+                        <div className="flex-1">
+                          <p className="text-xs text-muted-foreground">Call</p>
+                          <p className="text-sm font-medium">{viewing.hostPhone}</p>
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                      </a>
+                    )}
+                    
+                    <button
+                      onClick={() => {
+                        setSelectedAgentViewingId(null);
+                        toast.info("Message feature coming soon");
+                      }}
+                      className="flex items-center gap-3 rounded-lg border border-border/50 p-3 transition-colors hover:bg-accent w-full"
+                    >
+                      <Mail className="h-4 w-4 text-primary" />
+                      <div className="flex-1 text-left">
+                        <p className="text-xs text-muted-foreground">Send Message</p>
+                        <p className="text-sm font-medium">Message your host</p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  </div>
+
+                  {/* Viewing Details */}
+                  <div className="space-y-2 border-t border-border/50 pt-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Viewing Time</span>
+                      <span className="font-medium">{viewing.time}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Status</span>
+                      <Badge variant="outline" className={viewingStatusStyles[viewing.status] || ""}>{viewing.status}</Badge>
+                    </div>
+                  </div>
+
+                  {/* Close Button */}
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setSelectedAgentViewingId(null)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bell, Building2, Camera, CreditCard, FileText, Shield, User, Wrench, Activity, Clock, ReceiptText, KeyRound, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAvatar } from "@/contexts/AvatarContext";
@@ -15,26 +16,41 @@ import { DashboardSettingsSection, DashboardSettingsRow } from "@/components/das
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { authApi, clearStoredSession } from "@/lib/api";
 
-const activityLog = [
-  { action: "Recorded rent payment for Palm Residence A1", time: "1 hour ago", type: "Collection" },
-  { action: "Marked Lekki Court B2 as vacant-ready", time: "4 hours ago", type: "Portfolio" },
-  { action: "Uploaded updated ownership file", time: "Yesterday", type: "Document" },
-  { action: "Escalated water heater replacement", time: "Yesterday", type: "Maintenance" },
-  { action: "Sent overdue reminder to Admiralty Suites 5B", time: "2 days ago", type: "Collection" },
-];
-
-const activityStyles: Record<string, string> = {
-  Collection: "bg-primary/10 text-primary border-primary/20",
-  Portfolio: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/30",
-  Document: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
-  Maintenance: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30",
+// Map resource types to user-friendly names
+const resourceTypeNames: Record<string, string> = {
+  "need_post": "Posted a need",
+  "offer": "Received an offer",
+  "booking": "Made a booking",
+  "review": "Left a review",
+  "profile": "Updated profile",
+  "property": "Viewed a property",
+  "saved_property": "Saved a property",
+  "user": "Account activity",
 };
+
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (seconds < 60) return "just now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+  
+  return date.toLocaleDateString();
+}
 
 export default function LandlordSettings() {
   const navigate = useNavigate();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deletingAccount, setDeletingAccount] = useState(false);
+
+  const { data: activity = [], isLoading: isLoadingActivity } = useQuery({
+    queryKey: ["/auth/activity"],
+    queryFn: () => authApi.getActivity(10),
+  });
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -273,48 +289,36 @@ export default function LandlordSettings() {
         </TabsContent>
 
         <TabsContent value="activity">
-          <div className="space-y-4">
-            <Card className="border border-border/60 shadow-sm">
-              <CardHeader className="pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-muted-foreground" />
-                      <CardTitle className="text-base">Recent Activity</CardTitle>
-                    </div>
-                    <CardDescription>Track recent collection, portfolio, maintenance, and document actions.</CardDescription>
-                  </div>
-                  <Button variant="outline" size="sm" className="gap-1.5 w-full sm:w-auto">
-                    <ReceiptText className="h-3.5 w-3.5" /> Export Log
-                  </Button>
+          <Card className="border border-border/60 shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Recent Activity</CardTitle></div>
+              <CardDescription>A summary of your recent activities on the platform</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingActivity ? (
+                <div className="flex items-center justify-center h-32">
+                  <InlineSpinner variant="solid" />
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                {activityLog.map((item) => (
-                  <div key={`${item.type}-${item.action}`} className="rounded-xl border border-border/60 bg-secondary/30 p-3 sm:p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground">{item.action}</p>
-                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium ${activityStyles[item.type]}`}>
-                            {item.type}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {item.time}
-                          </span>
-                        </div>
+              ) : activity.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">No activity yet</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {activity.map((item, i) => (
+                    <div key={i} className="p-3 rounded-lg border border-border/60 bg-secondary/30">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-foreground">
+                          {resourceTypeNames[item.resource_type || "user"] || "Activity"}
+                        </p>
+                        <span className="text-xs text-muted-foreground">{formatRelativeTime(item.timestamp)}</span>
                       </div>
-                      <Button variant="ghost" size="sm" className="justify-start sm:justify-center">
-                        View
-                      </Button>
                     </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-          </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

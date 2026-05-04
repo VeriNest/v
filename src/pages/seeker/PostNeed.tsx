@@ -53,6 +53,30 @@ const formatBudget = (val: number) => {
 const formatNeedDate = (value: string) =>
   new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
 
+// Calculate days remaining for a need (30-day lifespan)
+function calculateNeedStatus(createdAt: string, responseCount: number): { daysRemaining: number; isExpired: boolean; tags: string[] } {
+  const created = new Date(createdAt);
+  const now = new Date();
+  const expiryDate = new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from creation
+  const daysRemaining = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const isExpired = daysRemaining <= 0;
+  
+  const tags: string[] = [];
+  if (isExpired) {
+    tags.push("Expired");
+  } else if (daysRemaining <= 7) {
+    tags.push("Expiring Soon");
+  } else {
+    tags.push("Active");
+  }
+  
+  if (responseCount > 0) {
+    tags.push("Received Offers");
+  }
+  
+  return { daysRemaining: Math.max(0, daysRemaining), isExpired, tags };
+}
+
 type NeedRow = {
   id: string;
   request_title: string;
@@ -696,35 +720,50 @@ export default function PostNeed() {
                   No posted needs yet.
                 </div>
               ) : (
-                needs.map((need) => (
-                  <button
-                    key={need.id}
-                    type="button"
-                    className="block w-full py-4 text-left first:pt-0 last:pb-0"
-                    onClick={() => navigate("/seeker/offers")}
-                  >
-                    <DashboardHistoryRow
-                      icon={FileText}
-                      title={need.request_title}
-                      subtitle={
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          <span>{formatBudget(need.min_budget)} — {formatBudget(need.max_budget)}</span>
-                          <span>·</span>
-                          <span>{formatNeedDate(need.created_at)}</span>
-                          <span>·</span>
-                          <span>{need.response_count} offers</span>
-                        </div>
-                      }
-                      badges={
-                        <div className="flex flex-wrap items-center gap-2">
-                          <DashboardStatusBadge tone={need.status === "active" ? "success" : "neutral"}>
-                            {need.status.charAt(0).toUpperCase() + need.status.slice(1)}
-                          </DashboardStatusBadge>
-                        </div>
-                      }
-                    />
-                  </button>
-                ))
+                needs.map((need) => {
+                  const { daysRemaining, isExpired, tags } = calculateNeedStatus(need.created_at, need.response_count);
+                  return (
+                    <button
+                      key={need.id}
+                      type="button"
+                      className="block w-full py-4 text-left first:pt-0 last:pb-0"
+                      onClick={() => navigate("/seeker/offers")}
+                    >
+                      <DashboardHistoryRow
+                        icon={FileText}
+                        title={need.request_title}
+                        subtitle={
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            <span>{formatBudget(need.min_budget)} — {formatBudget(need.max_budget)}</span>
+                            <span>·</span>
+                            <span>{formatNeedDate(need.created_at)}</span>
+                            <span>·</span>
+                            <span>{daysRemaining} days left</span>
+                            <span>·</span>
+                            <span>{need.response_count} offers</span>
+                          </div>
+                        }
+                        badges={
+                          <div className="flex flex-wrap items-center gap-2">
+                            {tags.map((tag) => (
+                              <DashboardStatusBadge 
+                                key={tag}
+                                tone={
+                                  tag === "Expired" ? "danger" : 
+                                  tag === "Expiring Soon" ? "warning" : 
+                                  tag === "Active" ? "success" : 
+                                  "info"
+                                }
+                              >
+                                {tag}
+                              </DashboardStatusBadge>
+                            ))}
+                          </div>
+                        }
+                      />
+                    </button>
+                  );
+                })
               )}
             </CardContent>
           </Card>
