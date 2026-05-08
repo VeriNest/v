@@ -3,13 +3,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { InlineSpinner } from "@/components/Loaders";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, Camera } from "lucide-react";
+import { Camera } from "lucide-react";
 import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardSettingsRow, DashboardSettingsSection } from "@/components/dashboard/DashboardSettingsSection";
@@ -17,31 +17,6 @@ import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadg
 import { ChangePasswordDialog } from "@/components/settings/ChangePasswordDialog";
 import { authApi, onboardingApi, clearStoredSession } from "@/lib/api";
 import { uploadToCloudinary } from "@/lib/cloudinary";
-
-// Map resource types to user-friendly names
-const resourceTypeNames: Record<string, string> = {
-  "need_post": "Posted a need",
-  "offer": "Received an offer",
-  "booking": "Made a booking",
-  "review": "Left a review",
-  "profile": "Updated profile",
-  "property": "Viewed a property",
-  "saved_property": "Saved a property",
-  "user": "Account activity",
-};
-
-function formatRelativeTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
-  if (seconds < 60) return "just now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-  
-  return date.toLocaleDateString();
-}
 
 export default function SeekerSettings() {
   const navigate = useNavigate();
@@ -60,11 +35,6 @@ export default function SeekerSettings() {
   const { data: me } = useQuery({
     queryKey: ["/auth/me"],
     queryFn: () => authApi.me(),
-  });
-
-  const { data: activity = [], isLoading: isLoadingActivity } = useQuery({
-    queryKey: ["/auth/activity"],
-    queryFn: () => authApi.getActivity(10),
   });
 
   useEffect(() => {
@@ -100,18 +70,21 @@ export default function SeekerSettings() {
     try {
       setUploadingAvatar(true);
       const uploaded = await uploadToCloudinary(file, "avatar");
+      setAvatarUrl(uploaded.secureUrl);
       await onboardingApi.saveProfile({
         role: "seeker",
         phone,
         city: me?.profile?.city ?? preferredLocation,
-        avatar_url: uploaded.secureUrl,
+        avatarUrl: uploaded.secureUrl,
         preferredCity: preferredLocation,
         preferredAccommodationType: me?.roleProfile?.preferred_accommodation_type ?? undefined,
         preferredBudgetLabel: me?.roleProfile?.preferred_budget_label ?? undefined,
         moveInTimeline: me?.roleProfile?.move_in_timeline ?? undefined,
       });
-      // Refetch profile to display updated image from backend
-      await queryClient.refetchQueries({ queryKey: ["/auth/me"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/auth/me"] }),
+        queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] }),
+      ]);
       toast.success("Profile image updated");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to upload profile image";
@@ -129,13 +102,16 @@ export default function SeekerSettings() {
         role: "seeker",
         phone,
         city: me?.profile?.city ?? preferredLocation,
-        avatar_url: avatarUrl,
+        avatarUrl: avatarUrl,
         preferredCity: preferredLocation,
         preferredAccommodationType: me?.roleProfile?.preferred_accommodation_type ?? undefined,
         preferredBudgetLabel: me?.roleProfile?.preferred_budget_label ?? undefined,
         moveInTimeline: me?.roleProfile?.move_in_timeline ?? undefined,
       });
-      await queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/auth/me"] }),
+        queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] }),
+      ]);
       toast.success("Settings updated");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to save settings";
@@ -207,7 +183,6 @@ export default function SeekerSettings() {
           <TabsTrigger value="preferences" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Preferences</TabsTrigger>
           <TabsTrigger value="notifications" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Alerts</TabsTrigger>
           <TabsTrigger value="security" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Security</TabsTrigger>
-          <TabsTrigger value="activity" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -288,39 +263,6 @@ export default function SeekerSettings() {
               </div>
             </CardContent>
           </DashboardSettingsSection>
-        </TabsContent>
-
-        <TabsContent value="activity">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Recent Activity</CardTitle></div>
-              <CardDescription>A summary of your recent activities on the platform</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoadingActivity ? (
-                <div className="flex items-center justify-center h-32">
-                  <InlineSpinner variant="solid" />
-                </div>
-              ) : activity.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground">No activity yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {activity.map((item, i) => (
-                    <div key={i} className="p-3 rounded-lg border border-border/60 bg-secondary/30">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-foreground">
-                          {resourceTypeNames[item.resource_type || "user"] || "Activity"}
-                        </p>
-                        <span className="text-xs text-muted-foreground">{formatRelativeTime(item.timestamp)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
       <ChangePasswordDialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen} />

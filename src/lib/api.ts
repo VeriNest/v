@@ -330,8 +330,16 @@ export const authApi = {
   },
   changePassword: (payload: { old_password: string; new_password: string; new_password_confirm: string }) =>
     apiRequest<void>("/users/password", { method: "PUT", body: JSON.stringify(payload) }),
+  sendPasswordOtp: () =>
+    apiRequest<{ ok: boolean; expires_in_seconds: number; code_length: number }>("/users/password/send-otp", { method: "POST" }),
+  changePasswordWithOtp: (payload: { code: string; new_password: string; new_password_confirm: string }) =>
+    apiRequest<void>("/users/password/verify-otp", { method: "PUT", body: JSON.stringify(payload) }),
   deleteAccount: () =>
     apiRequest<void>("/users/account", { method: "DELETE" }),
+  getActivity: (limit = 10) =>
+    apiRequest<Array<{ action: string; resource_type: string | null; method: string; timestamp: string }>>(`/auth/activity?limit=${limit}`),
+  updateAvatar: (avatarUrl: string) =>
+    apiRequest<AuthMeResponse>("/users/avatar", { method: "PATCH", body: JSON.stringify({ avatarUrl }) }),
 };
 
 export const onboardingApi = {
@@ -437,6 +445,11 @@ export const adminApi = {
   createAnnouncement: (payload: { title: string; body: string; audience: string }) => apiRequest<Record<string, unknown>>("/admin/announcements", { method: "POST", body: JSON.stringify(payload) }),
   verifications: () => apiRequest<Array<Record<string, unknown>>>("/admin/verifications"),
   verificationDetail: (id: string) => apiRequest<Record<string, unknown>>(`/admin/verifications/${id}/detail`),
+  moderateReport: (id: string, payload: { status: "upheld" | "dismissed"; reviewNotes: string; propertyAction?: "hide" | "suspend" }) =>
+    apiRequest<Record<string, unknown>>(`/admin/reports/${id}/decision`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
   updateVerification: (id: string, payload: { status: string; rejectionReason?: string; notes?: string }) =>
     apiRequest<Record<string, unknown>>(`/admin/verifications/${id}`, {
       method: "PATCH",
@@ -445,6 +458,8 @@ export const adminApi = {
         verification_notes: payload.rejectionReason ?? payload.notes,
       }),
     }),
+  suspendUser: (userId: string) => apiRequest<Record<string, unknown>>(`/admin/users/${userId}/suspend`, { method: "POST", body: JSON.stringify({}) }),
+  unsuspendUser: (userId: string) => apiRequest<Record<string, unknown>>(`/admin/users/${userId}/unsuspend`, { method: "POST", body: JSON.stringify({}) }),
 };
 
 export const usersApi = {
@@ -455,6 +470,22 @@ export const usersApi = {
 export const reviewsApi = {
   create: (payload: { revieweeId: string; propertyId?: string; rating: number; comment: string }) =>
     apiRequest<Record<string, unknown>>("/reviews", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+};
+
+export const reportsApi = {
+  create: (payload: {
+    reportedUserId?: string;
+    propertyId?: string;
+    postId?: string;
+    responseId?: string;
+    violationType: string;
+    reason: string;
+    details: string;
+  }) =>
+    apiRequest<Record<string, unknown>>("/reports", {
       method: "POST",
       body: JSON.stringify(payload),
     }),

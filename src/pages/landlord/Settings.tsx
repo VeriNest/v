@@ -1,62 +1,32 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Building2, Camera, CreditCard, FileText, Shield, User, Wrench, Activity, Clock, ReceiptText, KeyRound, Trash2 } from "lucide-react";
+import { Bell, Building2, Camera, CreditCard, FileText, Shield, User, Wrench, Clock, ReceiptText, KeyRound, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAvatar } from "@/contexts/AvatarContext";
+import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 import { InlineSpinner } from "@/components/Loaders";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardSettingsSection, DashboardSettingsRow } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { authApi, clearStoredSession } from "@/lib/api";
 
-// Map resource types to user-friendly names
-const resourceTypeNames: Record<string, string> = {
-  "need_post": "Posted a need",
-  "offer": "Received an offer",
-  "booking": "Made a booking",
-  "review": "Left a review",
-  "profile": "Updated profile",
-  "property": "Viewed a property",
-  "saved_property": "Saved a property",
-  "user": "Account activity",
-};
-
-function formatRelativeTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
-  if (seconds < 60) return "just now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
-  
-  return date.toLocaleDateString();
-}
-
 export default function LandlordSettings() {
   const navigate = useNavigate();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deletingAccount, setDeletingAccount] = useState(false);
-
-  const { data: activity = [], isLoading: isLoadingActivity } = useQuery({
-    queryKey: ["/auth/activity"],
-    queryFn: () => authApi.getActivity(10),
-  });
+  const avatarUploadMutation = useAvatarUpload();
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setAvatarUrl(url);
+      avatarUploadMutation.mutate(file);
     }
   };
 
@@ -92,10 +62,18 @@ export default function LandlordSettings() {
             <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-primary/20">
               {avatarUrl ? <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" /> : <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">LO</AvatarFallback>}
             </Avatar>
-            <button onClick={() => fileInputRef.current?.click()} className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 cursor-pointer">
-              <Camera className="h-4 w-4 text-background" />
+            <button 
+              onClick={() => fileInputRef.current?.click()} 
+              disabled={avatarUploadMutation.isPending}
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 cursor-pointer hover:bg-foreground/60 transition-colors disabled:opacity-50"
+            >
+              {avatarUploadMutation.isPending ? (
+                <div className="h-4 w-4 rounded-full border-2 border-background border-t-transparent animate-spin" />
+              ) : (
+                <Camera className="h-4 w-4 text-background" />
+              )}
             </button>
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={avatarUploadMutation.isPending} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-foreground truncate">Landlord Account</p>
@@ -116,7 +94,6 @@ export default function LandlordSettings() {
           <TabsTrigger value="alerts" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Alerts</TabsTrigger>
           <TabsTrigger value="documents" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Documents</TabsTrigger>
           <TabsTrigger value="security" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Security</TabsTrigger>
-          <TabsTrigger value="activity" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -286,39 +263,6 @@ export default function LandlordSettings() {
               control={<Button variant="destructive" size="sm" className="shrink-0" onClick={handleDeleteAccount} disabled={deletingAccount}>{deletingAccount ? <><InlineSpinner variant="solid" /> Deleting...</> : "Delete Account"}</Button>}
             />
           </DashboardSettingsSection>
-        </TabsContent>
-
-        <TabsContent value="activity">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Recent Activity</CardTitle></div>
-              <CardDescription>A summary of your recent activities on the platform</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoadingActivity ? (
-                <div className="flex items-center justify-center h-32">
-                  <InlineSpinner variant="solid" />
-                </div>
-              ) : activity.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground">No activity yet</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {activity.map((item, i) => (
-                    <div key={i} className="p-3 rounded-lg border border-border/60 bg-secondary/30">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-foreground">
-                          {resourceTypeNames[item.resource_type || "user"] || "Activity"}
-                        </p>
-                        <span className="text-xs text-muted-foreground">{formatRelativeTime(item.timestamp)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>

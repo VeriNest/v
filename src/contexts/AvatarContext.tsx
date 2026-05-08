@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { authApi } from "@/lib/api";
 
 type AvatarContextType = {
   avatarUrl: string | null;
@@ -12,13 +14,29 @@ const AvatarContext = createContext<AvatarContextType>({ avatarUrl: null, setAva
 export function AvatarProvider({ children }: { children: React.ReactNode }) {
   const [avatarUrl, setAvatarUrlState] = useState<string | null>(null);
 
+  // Fetch user data to get avatar from backend
+  const { data: meData } = useQuery({
+    queryKey: ["/auth/me"],
+    queryFn: () => authApi.me(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: false,
+  });
+
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(AVATAR_KEY);
-    if (stored) {
-      setAvatarUrlState(stored);
+    
+    // First check if we have avatar from backend /me endpoint
+    if (meData?.profile?.avatarUrl) {
+      setAvatarUrlState(meData.profile.avatarUrl);
+      window.localStorage.setItem(AVATAR_KEY, meData.profile.avatarUrl);
+    } else {
+      // Fall back to stored avatar
+      const stored = window.localStorage.getItem(AVATAR_KEY);
+      if (stored) {
+        setAvatarUrlState(stored);
+      }
     }
-  }, []);
+  }, [meData?.profile?.avatarUrl]);
 
   const setAvatarUrl = (url: string | null) => {
     setAvatarUrlState(url);

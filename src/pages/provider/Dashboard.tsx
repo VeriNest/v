@@ -163,6 +163,19 @@ export default function ProviderDashboard() {
             {topListings.map((listing) => (
               <Link key={listing.id} to={`/provider/listings/${listing.id}`} data-search-id={`provider-top-${toSearchId(listing.name)}`}>
                 <DashboardRecordItem
+                  leading={
+                    listing.image ? (
+                      <img
+                        src={listing.image}
+                        alt={listing.name}
+                        className="h-12 w-12 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
+                        <Building2 className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )
+                  }
                   title={listing.name}
                   meta={
                     <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
