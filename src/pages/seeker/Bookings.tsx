@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -9,6 +9,9 @@ import {
   Search,
   ShieldCheck,
   Wallet,
+  Phone,
+  Mail,
+  X,
 } from "lucide-react";
 
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
@@ -18,9 +21,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { useSearchFocus } from "@/hooks/use-search-focus";
-import { formatCompactCurrency, seekerApi } from "@/lib/api";
+import { formatCompactCurrency, reportsApi, seekerApi } from "@/lib/api";
+import { toast } from "sonner";
+import { InlineSpinner } from "@/components/Loaders";
 
 function titleForStatus(value?: string) {
   if (!value) return "Pending";
@@ -30,6 +37,12 @@ function titleForStatus(value?: string) {
 function titleForBookingType(value?: string) {
   if (!value) return "Booking";
   return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function isBookingPassed(scheduledDate: Date | null): boolean {
+  if (!scheduledDate) return false;
+  const now = new Date();
+  return scheduledDate < now;
 }
 
 const bookingStatusStyles: Record<string, string> = {
@@ -65,14 +78,89 @@ function StatusTabs({
 
 export default function SeekerBookings() {
   useSearchFocus();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [bookingFilter, setBookingFilter] = useState<"all" | "active" | "pending">("all");
+  const [selectedAgentBookingId, setSelectedAgentBookingId] = useState<string | null>(null);
+  const [reportingBookingId, setReportingBookingId] = useState<string | null>(null);
+  const [reportType, setReportType] = useState<"no-show" | "issue" | null>(null);
+  const [reportNotes, setReportNotes] = useState("");
+  
   const { data = [] } = useQuery({
     queryKey: ["/seeker/bookings"],
     queryFn: () => seekerApi.listBookings(),
   });
+
+  const confirmBookingMutation = useMutation({
+    mutationFn: (bookingId: string) => seekerApi.updateOffer(bookingId, { status: "confirmed" }),
+    onSuccess: () => {
+      toast.success("Booking confirmed successfully");
+      queryClient.invalidateQueries({ queryKey: ["/seeker/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/seeker/offers"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to confirm booking";
+      toast.error(message);
+    },
+  });
+
+  const reportNoShowMutation = useMutation({
+    mutationFn: (bookingId: string) => seekerApi.updateBooking(bookingId, { status: "no_show", notes: `No show report: ${reportNotes}` }),
+    onSuccess: () => {
+      toast.success("No show reported. Booking moved to history.");
+      setReportingBookingId(null);
+      setReportType(null);
+      setReportNotes("");
+      queryClient.invalidateQueries({ queryKey: ["/seeker/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/seeker/offers"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to report no show";
+      toast.error(message);
+    },
+  });
+
+  const reportPropertyIssueMutation = useMutation({
+    mutationFn: (data: { propertyId?: string; providerUserId?: string }) =>
+      reportsApi.create({
+        propertyId: data.propertyId,
+        reportedUserId: data.providerUserId,
+        violationType: "quality",
+        reason: "Property issue reported after booking",
+        details: reportNotes,
+      }),
+    onSuccess: () => {
+      toast.success("Property issue reported. Our team will review it.");
+      setReportingBookingId(null);
+      setReportType(null);
+      setReportNotes("");
+      queryClient.invalidateQueries({ queryKey: ["/seeker/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/admin/reports"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to report property issue";
+      toast.error(message);
+    },
+  });
+
+  const rescheduleBookingMutation = useMutation({
+    mutationFn: (bookingId: string) => seekerApi.updateBooking(bookingId, { notes: `Reschedule request: ${reportNotes || "Please reschedule this booking."}` }),
+    onSuccess: () => {
+      toast.success("Reschedule request sent. The host will contact you.");
+      setReportNotes("");
+      setReportingBookingId(null);
+      queryClient.invalidateQueries({ queryKey: ["/seeker/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/seeker/offers"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to request reschedule";
+      toast.error(message);
+    },
+  });
   const bookings = useMemo(() => data.map((item: any, index: number) => ({
     id: item.id ?? `BK-${index + 1}`,
+    propertyId: item.propertyId ?? item.property_id,
+    providerUserId: item.providerUserId ?? item.provider_user_id,
     property: item.propertyTitle ?? "Property booking",
     location: item.propertyLocation ?? "Unknown location",
     host: item.providerName ?? "Provider",
@@ -82,6 +170,7 @@ export default function SeekerBookings() {
     paymentStatus: titleForStatus(item.status),
     status: titleForStatus(item.status),
     dateLabel: item.scheduledFor ? new Date(item.scheduledFor).toLocaleString() : "Schedule pending",
+    scheduledDate: item.scheduledFor ? new Date(item.scheduledFor) : null,
     detail: titleForBookingType(item.bookingType),
     initials: String(item.providerName ?? "PR").split(" ").map((part: string) => part[0]).join("").slice(0, 2) || "PR",
   })), [data]);
@@ -213,19 +302,245 @@ export default function SeekerBookings() {
               </div>
 
               <div className="flex flex-col gap-2 border-t border-border/50 pt-3 sm:flex-row sm:items-center sm:justify-between">
-                <Button variant="outline" size="sm" className="h-8 rounded-lg px-3 text-xs">
-                  Open booking
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 rounded-lg px-3 text-xs" asChild>
-                  <Link to="/seeker/offers">
-                    Review offer <ArrowRight className="ml-1 h-3 w-3" />
-                  </Link>
-                </Button>
+                {isBookingPassed(item.scheduledDate) ? (
+                  <>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8 rounded-lg px-3 text-xs"
+                        onClick={() => {
+                          setReportingBookingId(item.id);
+                          setReportType("no-show");
+                        }}
+                      >
+                        Report No Show
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8 rounded-lg px-3 text-xs"
+                        onClick={() => {
+                          setReportingBookingId(item.id);
+                          setReportType("issue");
+                        }}
+                      >
+                        Report Property Issue
+                      </Button>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 rounded-lg px-3 text-xs"
+                      onClick={() => {
+                        setReportingBookingId(item.id);
+                        setReportType(null);
+                        setReportNotes("");
+                      }}
+                    >
+                      Reschedule
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {item.status !== "Confirmed" ? (
+                      <Button 
+                        size="sm" 
+                        className="h-8 rounded-lg px-3 text-xs"
+                        onClick={() => confirmBookingMutation.mutate(item.id)}
+                        disabled={confirmBookingMutation.isPending}
+                      >
+                        {confirmBookingMutation.isPending ? <InlineSpinner variant="solid" /> : "Confirm visit"}
+                      </Button>
+                    ) : null}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 rounded-lg px-3 text-xs"
+                      onClick={() => setSelectedAgentBookingId(item.id)}
+                    >
+                      Contact host
+                    </Button>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {/* Report/Reschedule Modal */}
+      {reportingBookingId && (() => {
+        const booking = bookings.find((b) => b.id === reportingBookingId);
+        const isNoShow = reportType === "no-show";
+        const isPropertyIssue = reportType === "issue";
+        const isReschedule = reportType === null;
+        const isSubmitting = isNoShow ? reportNoShowMutation.isPending : isPropertyIssue ? reportPropertyIssueMutation.isPending : rescheduleBookingMutation.isPending;
+        
+        return (
+          <Dialog open={!!reportingBookingId} onOpenChange={(open) => !open && setReportingBookingId(null)}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>
+                  {isNoShow ? "Report No Show" : isPropertyIssue ? "Report Property Issue" : "Reschedule Booking"}
+                </DialogTitle>
+                <DialogDescription>
+                  {isNoShow 
+                    ? "Let us know that the host did not show up for this booking"
+                    : isPropertyIssue
+                    ? "Describe any issues you experienced with the property"
+                    : "Request to reschedule this booking"}
+                </DialogDescription>
+              </DialogHeader>
+              
+              {booking && (
+                <div className="space-y-4">
+                  {/* Booking Info */}
+                  <div className="rounded-lg border border-border/50 bg-secondary/15 p-3">
+                    <p className="text-xs text-muted-foreground">Booking</p>
+                    <p className="mt-1 font-medium">{booking.property}</p>
+                    <p className="text-xs text-muted-foreground">{booking.dateLabel}</p>
+                  </div>
+
+                  {/* Notes */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      {isNoShow ? "What Happened" : isPropertyIssue ? "Issue Details" : "Reschedule Reason"}
+                    </label>
+                    <Textarea 
+                      placeholder={isNoShow ? "Describe what happened..." : isPropertyIssue ? "Describe the issue..." : "Why do you need to reschedule? (optional)"}
+                      value={reportNotes}
+                      onChange={(e) => setReportNotes(e.target.value)}
+                      className="min-h-24"
+                    />
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        setReportingBookingId(null);
+                        setReportType(null);
+                        setReportNotes("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      className="flex-1"
+                      onClick={() => {
+                        if (isNoShow) {
+                          reportNoShowMutation.mutate(reportingBookingId);
+                        } else if (isPropertyIssue) {
+                          const booking = bookings.find((b) => b.id === reportingBookingId);
+                          reportPropertyIssueMutation.mutate({ 
+                            propertyId: booking?.propertyId,
+                            providerUserId: booking?.providerUserId,
+                          });
+                        } else {
+                          rescheduleBookingMutation.mutate(reportingBookingId);
+                        }
+                      }}
+                      disabled={isSubmitting || (isNoShow || isPropertyIssue ? !reportNotes.trim() : false)}
+                    >
+                      {isSubmitting ? <InlineSpinner variant="solid" /> : isReschedule ? "Send Reschedule Request" : "Submit Report"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
+
+      {/* Agent Details Modal */}
+      {selectedAgentBookingId && (() => {
+        const booking = bookings.find((b) => b.id === selectedAgentBookingId);
+        return (
+          <Dialog open={!!selectedAgentBookingId} onOpenChange={(open) => !open && setSelectedAgentBookingId(null)}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Host Details</DialogTitle>
+                <DialogDescription>Get in touch with your host</DialogDescription>
+              </DialogHeader>
+              
+              {booking && (
+                <div className="space-y-6">
+                  {/* Host Info */}
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                      {booking.hostAvatarUrl ? (
+                        <img src={booking.hostAvatarUrl} alt={booking.host} className="h-full w-full object-cover" />
+                      ) : (
+                        <AvatarFallback>{booking.initials}</AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{booking.host}</h3>
+                      <p className="text-sm text-muted-foreground">{booking.property}</p>
+                    </div>
+                  </div>
+
+                  {/* Contact Options */}
+                  <div className="space-y-3 border-t border-border/50 pt-4">
+                    {booking.hostPhone && (
+                      <a
+                        href={`tel:${booking.hostPhone}`}
+                        className="flex items-center gap-3 rounded-lg border border-border/50 p-3 transition-colors hover:bg-accent"
+                      >
+                        <Phone className="h-4 w-4 text-primary" />
+                        <div className="flex-1">
+                          <p className="text-xs text-muted-foreground">Call</p>
+                          <p className="text-sm font-medium">{booking.hostPhone}</p>
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                      </a>
+                    )}
+                    
+                    <button
+                      onClick={() => {
+                        setSelectedAgentBookingId(null);
+                        toast.info("Message feature coming soon");
+                      }}
+                      className="flex items-center gap-3 rounded-lg border border-border/50 p-3 transition-colors hover:bg-accent w-full"
+                    >
+                      <Mail className="h-4 w-4 text-primary" />
+                      <div className="flex-1 text-left">
+                        <p className="text-xs text-muted-foreground">Send Message</p>
+                        <p className="text-sm font-medium">Message your host</p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  </div>
+
+                  {/* Booking Details */}
+                  <div className="space-y-2 border-t border-border/50 pt-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Booking Date</span>
+                      <span className="font-medium">{booking.dateLabel}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Status</span>
+                      <Badge variant="outline" className={bookingStatusStyles[booking.status] || ""}>{booking.status}</Badge>
+                    </div>
+                  </div>
+
+                  {/* Close Button */}
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setSelectedAgentBookingId(null)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
     </div>
   );
 }

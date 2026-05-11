@@ -23,6 +23,12 @@ function isSameDay(left: Date, right: Date) {
   return left.getFullYear() === right.getFullYear() && left.getMonth() === right.getMonth() && left.getDate() === right.getDate();
 }
 
+function isBookingPassed(scheduledAt: Date | null): boolean {
+  if (!scheduledAt) return false;
+  const now = new Date();
+  return scheduledAt < now;
+}
+
 export default function ProviderCalendar() {
   useSearchFocus();
   const queryClient = useQueryClient();
@@ -249,35 +255,57 @@ export default function ProviderCalendar() {
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
-                      {booking.status !== "Confirmed" ? (
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            updateBookingMutation.mutate({
-                              id: booking.id,
-                              status: "confirmed",
-                            })
-                          }
-                          disabled={updateBookingMutation.isPending}
-                        >
-                          Accept visit
-                        </Button>
-                      ) : null}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingBookingId(booking.id);
-                          setScheduledFor(
-                            booking.scheduledAt
-                              ? new Date(booking.scheduledAt.getTime() - booking.scheduledAt.getTimezoneOffset() * 60_000).toISOString().slice(0, 16)
-                              : "",
-                          );
-                          setComment("");
-                        }}
-                      >
-                        Reschedule / add meetup note
-                      </Button>
+                      {isBookingPassed(booking.scheduledAt) ? (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingBookingId(booking.id);
+                              setScheduledFor(
+                                booking.scheduledAt
+                                  ? new Date(booking.scheduledAt.getTime() - booking.scheduledAt.getTimezoneOffset() * 60_000).toISOString().slice(0, 16)
+                                  : "",
+                              );
+                              setComment("");
+                            }}
+                          >
+                            Reschedule
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          {booking.status !== "Confirmed" ? (
+                            <Button
+                              size="sm"
+                              onClick={() =>
+                                updateBookingMutation.mutate({
+                                  id: booking.id,
+                                  status: "confirmed",
+                                })
+                              }
+                              disabled={updateBookingMutation.isPending}
+                            >
+                              Accept visit
+                            </Button>
+                          ) : null}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setEditingBookingId(booking.id);
+                              setScheduledFor(
+                                booking.scheduledAt
+                                  ? new Date(booking.scheduledAt.getTime() - booking.scheduledAt.getTimezoneOffset() * 60_000).toISOString().slice(0, 16)
+                                  : "",
+                              );
+                              setComment("");
+                            }}
+                          >
+                            Reschedule / add meetup note
+                          </Button>
+                        </>
+                      )}
                     </div>
                   )}
                 </CardContent>

@@ -40,7 +40,6 @@ import { KycAlertBanner } from "@/components/KycAlertBanner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useDashboardLayout, type DashboardWidgetSize } from "@/hooks/use-dashboard-layout";
-import { useDashboardLoadingSnapshot } from "@/hooks/use-dashboard-loading-snapshot";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { toSearchId } from "@/lib/search-id";
 import { agentApi, formatCompactCurrency, getPendingPropertyRating, getPropertyImage } from "@/lib/api";
@@ -57,10 +56,11 @@ type WidgetDefinition = {
 export default function ProviderDashboard() {
   useSearchFocus();
   const [editing, setEditing] = useState(false);
-  const loading = useDashboardLoadingSnapshot();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ["/agent/dashboard/overview"],
     queryFn: () => agentApi.dashboard(),
+    staleTime: 60_000,
+    refetchOnMount: false,
   });
   const earningsData = data?.earningsSeries?.length ? data.earningsSeries as Array<{ month: string; earnings: number }> : [{ month: "Now", earnings: Number(data?.stats.payoutTotal ?? 0) / 1000000 }];
   const stats = [
@@ -163,6 +163,19 @@ export default function ProviderDashboard() {
             {topListings.map((listing) => (
               <Link key={listing.id} to={`/provider/listings/${listing.id}`} data-search-id={`provider-top-${toSearchId(listing.name)}`}>
                 <DashboardRecordItem
+                  leading={
+                    listing.image ? (
+                      <img
+                        src={listing.image}
+                        alt={listing.name}
+                        className="h-12 w-12 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
+                        <Building2 className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )
+                  }
                   title={listing.name}
                   meta={
                     <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
@@ -262,7 +275,7 @@ export default function ProviderDashboard() {
       : [];
   });
 
-  if (loading || isLoading) {
+  if (isLoading && !data) {
     return <BackendLoadingIndicator label="Loading dashboard..." fullscreen />;
   }
 
@@ -275,6 +288,7 @@ export default function ProviderDashboard() {
         description="Manage your leads, listings, and payouts."
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            {isFetching ? <DashboardStatusBadge tone="info">Updating</DashboardStatusBadge> : null}
             {!editing ? (
               <DashboardCustomizerToolbar
                 editing={editing}

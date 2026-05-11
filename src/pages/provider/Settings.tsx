@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Activity, Camera } from "lucide-react";
-import { InlineSpinner, OrbitLoader } from "@/components/Loaders";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Camera } from "lucide-react";
+import { InlineSpinner } from "@/components/Loaders";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -15,27 +15,13 @@ import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardSettingsRow, DashboardSettingsSection } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { ChangePasswordDialog } from "@/components/settings/ChangePasswordDialog";
 import { agentSettingsApi, authApi, onboardingApi, clearStoredSession } from "@/lib/api";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
-const activityLog = [
-  { action: "Sent offer for 3 Bed in Lekki", time: "1 hour ago", type: "Offer" },
-  { action: "Published listing: Studio, Wuse 2", time: "3 hours ago", type: "Listing" },
-  { action: "Received payout PO-301: ₦2.3M", time: "1 day ago", type: "Payout" },
-  { action: "Responded to lead from Anonymous Tenant", time: "1 day ago", type: "Lead" },
-  { action: "Updated calendar availability", time: "2 days ago", type: "Calendar" },
-];
-
-const typeStyles: Record<string, string> = {
-  Offer: "bg-primary/10 text-primary border-primary/20",
-  Listing: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  Payout: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-  Lead: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  Calendar: "bg-muted text-muted-foreground border-border",
-};
-
 export default function ProviderSettings() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -50,6 +36,7 @@ export default function ProviderSettings() {
   const [operatingCity, setOperatingCity] = useState("");
   const [operatingState, setOperatingState] = useState("");
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
 
   const { data: me } = useQuery({
     queryKey: ["/auth/me"],
@@ -102,12 +89,16 @@ export default function ProviderSettings() {
         phone,
         city,
         operatingState,
-        avatar_url: uploaded.secureUrl,
+        avatarUrl: uploaded.secureUrl,
         companyName,
         experienceRange,
         specializations: Array.isArray(me.roleProfile?.specializations_json) ? me.roleProfile.specializations_json : [],
         bio,
       });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/auth/me"] }),
+        queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] }),
+      ]);
       toast.success("Profile image updated");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to update profile image";
@@ -127,12 +118,16 @@ export default function ProviderSettings() {
         phone,
         city,
         operatingState,
-        avatar_url: avatarUrl,
+        avatarUrl: avatarUrl,
         companyName,
         experienceRange,
         specializations: Array.isArray(me.roleProfile?.specializations_json) ? me.roleProfile.specializations_json : [],
         bio,
       });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/auth/me"] }),
+        queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] }),
+      ]);
       toast.success("Profile updated");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to save profile";
@@ -201,7 +196,7 @@ export default function ProviderSettings() {
               disabled={uploadingAvatar}
               className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 cursor-pointer"
             >
-              {uploadingAvatar ? <OrbitLoader size="sm" /> : <Camera className="h-4 w-4 text-background" />}
+              {uploadingAvatar ? <InlineSpinner variant="solid" /> : <Camera className="h-4 w-4 text-background" />}
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
@@ -224,7 +219,6 @@ export default function ProviderSettings() {
           <TabsTrigger value="business" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Business</TabsTrigger>
           <TabsTrigger value="notifications" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Alerts</TabsTrigger>
           <TabsTrigger value="security" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Security</TabsTrigger>
-          <TabsTrigger value="activity" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -287,7 +281,7 @@ export default function ProviderSettings() {
             <DashboardSettingsRow
               label="Change Password"
               description="Use your account security flow to update your password."
-              control={<Button variant="outline" size="sm">Update</Button>}
+              control={<Button variant="outline" size="sm" onClick={() => setPasswordDialogOpen(true)}>Update</Button>}
             />
           </DashboardSettingsSection>
 
@@ -300,29 +294,8 @@ export default function ProviderSettings() {
             </CardContent>
           </DashboardSettingsSection>
         </TabsContent>
-
-        <TabsContent value="activity">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Recent Activity</CardTitle></div>
-              <CardDescription>Your recent actions on the platform</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {activityLog.map((item, i) => (
-                  <div key={i} className="p-3 rounded-lg border border-border/60 bg-secondary/30 space-y-2">
-                    <p className="text-sm font-medium text-foreground">{item.action}</p>
-                    <div className="flex items-center justify-between">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${typeStyles[item.type]}`}>{item.type}</span>
-                      <span className="text-xs text-muted-foreground">{item.time}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
+      <ChangePasswordDialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen} />
     </div>
   );
 }

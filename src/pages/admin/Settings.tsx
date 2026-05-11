@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -29,23 +30,30 @@ import {
   Users,
 } from "lucide-react";
 
-const activityLog = [
-  { action: "Approved property listing P-003", time: "2 hours ago", type: "Property" },
-  { action: "Suspended user U-104 for fraud", time: "5 hours ago", type: "Moderation" },
-  { action: "Resolved dispute D-102", time: "1 day ago", type: "Dispute" },
-  { action: "Updated platform commission to 5%", time: "2 days ago", type: "Settings" },
-  { action: "Exported transaction report", time: "3 days ago", type: "Report" },
-  { action: "Approved KYC for V-398", time: "3 days ago", type: "Property" },
-  { action: "Updated escrow settlement rules", time: "4 days ago", type: "Settings" },
-];
-
-const typeTone: Record<string, "info" | "danger" | "warning" | "success" | "neutral"> = {
-  Property: "info",
-  Moderation: "danger",
-  Dispute: "warning",
-  Settings: "neutral",
-  Report: "success",
+// Map resource types to user-friendly names
+const resourceTypeNames: Record<string, string> = {
+  "need_post": "Posted a need",
+  "offer": "Received an offer",
+  "booking": "Made a booking",
+  "review": "Left a review",
+  "profile": "Updated profile",
+  "property": "Viewed a property",
+  "saved_property": "Saved a property",
+  "user": "Account activity",
 };
+
+function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (seconds < 60) return "just now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+  
+  return date.toLocaleDateString();
+}
 
 const adminTeam = [
   { name: "Admin User", email: "admin@verinest.ng", role: "Super Admin", status: "Active", initials: "AD" },
@@ -64,6 +72,11 @@ export default function AdminSettings() {
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deletingAccount, setDeletingAccount] = useState(false);
+
+  const { data: activity = [], isLoading: isLoadingActivity } = useQuery({
+    queryKey: ["/auth/activity"],
+    queryFn: () => authApi.getActivity(10),
+  });
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -512,54 +525,32 @@ export default function AdminSettings() {
         <TabsContent value="activity">
           <Card className="border border-border/60 shadow-sm">
             <CardHeader className="pb-4">
-              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-muted-foreground" />
-                    <CardTitle className="text-base">Recent Activity</CardTitle>
-                  </div>
-                  <CardDescription>Your recent actions on the platform.</CardDescription>
-                </div>
-                <Button variant="outline" size="sm" className="w-full gap-1 text-xs sm:w-auto">
-                  <FileText className="h-3 w-3" /> Export Log
-                </Button>
-              </div>
+              <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Recent Activity</CardTitle></div>
+              <CardDescription>A summary of your recent activities on the platform</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3 sm:hidden">
-                {activityLog.map((item) => (
-                  <div key={`${item.action}-${item.time}`} className="space-y-2 rounded-lg border border-border/60 bg-secondary/30 p-3">
-                    <p className="text-sm font-medium text-foreground">{item.action}</p>
-                    <div className="flex items-center justify-between gap-2">
-                      <DashboardStatusBadge tone={typeTone[item.type]}>{item.type}</DashboardStatusBadge>
-                      <span className="text-xs text-muted-foreground">{item.time}</span>
+              {isLoadingActivity ? (
+                <div className="flex items-center justify-center h-32">
+                  <InlineSpinner variant="solid" />
+                </div>
+              ) : activity.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">No activity yet</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {activity.map((item, i) => (
+                    <div key={i} className="p-3 rounded-lg border border-border/60 bg-secondary/30">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-foreground">
+                          {resourceTypeNames[item.resource_type || "user"] || "Activity"}
+                        </p>
+                        <span className="text-xs text-muted-foreground">{formatRelativeTime(item.timestamp)}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="hidden sm:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Action</TableHead>
-                      <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Type</TableHead>
-                      <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Time</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activityLog.map((item) => (
-                      <TableRow key={`${item.action}-${item.time}`}>
-                        <TableCell className="text-sm font-medium text-foreground">{item.action}</TableCell>
-                        <TableCell>
-                          <DashboardStatusBadge tone={typeTone[item.type]}>{item.type}</DashboardStatusBadge>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{item.time}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

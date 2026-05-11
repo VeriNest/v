@@ -1,46 +1,32 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Building2, Camera, CreditCard, FileText, Shield, User, Wrench, Activity, Clock, ReceiptText, KeyRound, Trash2 } from "lucide-react";
+import { Bell, Building2, Camera, CreditCard, FileText, Shield, User, Wrench, Clock, ReceiptText, KeyRound, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAvatar } from "@/contexts/AvatarContext";
+import { useAvatarUpload } from "@/hooks/use-avatar-upload";
 import { InlineSpinner } from "@/components/Loaders";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardSettingsSection, DashboardSettingsRow } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { authApi, clearStoredSession } from "@/lib/api";
 
-const activityLog = [
-  { action: "Recorded rent payment for Palm Residence A1", time: "1 hour ago", type: "Collection" },
-  { action: "Marked Lekki Court B2 as vacant-ready", time: "4 hours ago", type: "Portfolio" },
-  { action: "Uploaded updated ownership file", time: "Yesterday", type: "Document" },
-  { action: "Escalated water heater replacement", time: "Yesterday", type: "Maintenance" },
-  { action: "Sent overdue reminder to Admiralty Suites 5B", time: "2 days ago", type: "Collection" },
-];
-
-const activityStyles: Record<string, string> = {
-  Collection: "bg-primary/10 text-primary border-primary/20",
-  Portfolio: "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/30",
-  Document: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
-  Maintenance: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30",
-};
-
 export default function LandlordSettings() {
   const navigate = useNavigate();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const avatarUploadMutation = useAvatarUpload();
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setAvatarUrl(url);
+      avatarUploadMutation.mutate(file);
     }
   };
 
@@ -76,10 +62,18 @@ export default function LandlordSettings() {
             <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-primary/20">
               {avatarUrl ? <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" /> : <AvatarFallback className="text-lg bg-primary/10 text-primary font-semibold">LO</AvatarFallback>}
             </Avatar>
-            <button onClick={() => fileInputRef.current?.click()} className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 cursor-pointer">
-              <Camera className="h-4 w-4 text-background" />
+            <button 
+              onClick={() => fileInputRef.current?.click()} 
+              disabled={avatarUploadMutation.isPending}
+              className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/50 cursor-pointer hover:bg-foreground/60 transition-colors disabled:opacity-50"
+            >
+              {avatarUploadMutation.isPending ? (
+                <div className="h-4 w-4 rounded-full border-2 border-background border-t-transparent animate-spin" />
+              ) : (
+                <Camera className="h-4 w-4 text-background" />
+              )}
             </button>
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={avatarUploadMutation.isPending} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-foreground truncate">Landlord Account</p>
@@ -100,7 +94,6 @@ export default function LandlordSettings() {
           <TabsTrigger value="alerts" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Alerts</TabsTrigger>
           <TabsTrigger value="documents" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Documents</TabsTrigger>
           <TabsTrigger value="security" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Security</TabsTrigger>
-          <TabsTrigger value="activity" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -270,51 +263,6 @@ export default function LandlordSettings() {
               control={<Button variant="destructive" size="sm" className="shrink-0" onClick={handleDeleteAccount} disabled={deletingAccount}>{deletingAccount ? <><InlineSpinner variant="solid" /> Deleting...</> : "Delete Account"}</Button>}
             />
           </DashboardSettingsSection>
-        </TabsContent>
-
-        <TabsContent value="activity">
-          <div className="space-y-4">
-            <Card className="border border-border/60 shadow-sm">
-              <CardHeader className="pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-muted-foreground" />
-                      <CardTitle className="text-base">Recent Activity</CardTitle>
-                    </div>
-                    <CardDescription>Track recent collection, portfolio, maintenance, and document actions.</CardDescription>
-                  </div>
-                  <Button variant="outline" size="sm" className="gap-1.5 w-full sm:w-auto">
-                    <ReceiptText className="h-3.5 w-3.5" /> Export Log
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3 pt-0">
-                {activityLog.map((item) => (
-                  <div key={`${item.type}-${item.action}`} className="rounded-xl border border-border/60 bg-secondary/30 p-3 sm:p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground">{item.action}</p>
-                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 font-medium ${activityStyles[item.type]}`}>
-                            {item.type}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {item.time}
-                          </span>
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="sm" className="justify-start sm:justify-center">
-                        View
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-          </div>
         </TabsContent>
       </Tabs>
     </div>

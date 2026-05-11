@@ -113,23 +113,40 @@ export function DashboardNotifications({ role }: { role: DashboardRole }) {
   };
 
   const markAllAsRead = async () => {
-    await notificationsApi.readAll();
-    await refresh();
+    try {
+      await notificationsApi.readAll();
+      await refresh();
+      toast.success("All notifications marked as read");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to mark notifications as read";
+      toast.error(message);
+    }
   };
 
   const dismissNotification = async (id: string) => {
-    await notificationsApi.deleteOne(id);
-    if (swipedId === id) {
-      setSwipedId(null);
-      setDragX(0);
-      setTouchStartX(null);
+    try {
+      await notificationsApi.deleteOne(id);
+      if (swipedId === id) {
+        setSwipedId(null);
+        setDragX(0);
+        setTouchStartX(null);
+      }
+      await refresh();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to delete notification";
+      toast.error(message);
     }
-    await refresh();
   };
 
   const clearAllNotifications = async () => {
-    await Promise.all(visibleItems.map((item) => notificationsApi.deleteOne(item.id)));
-    await refresh();
+    try {
+      await Promise.all(visibleItems.map((item) => notificationsApi.deleteOne(item.id)));
+      await refresh();
+      toast.success("All notifications cleared");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to clear notifications";
+      toast.error(message);
+    }
   };
 
   const openSettings = () => {
@@ -138,16 +155,21 @@ export function DashboardNotifications({ role }: { role: DashboardRole }) {
   };
 
   const openNotification = async (item: NotificationItem & { time: string; tone: string }) => {
-    if (!item.readAt) {
-      await notificationsApi.readOne(item.id);
-      await refresh();
-     }
-    if (item.actionUrl === "/onboarding") {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["/auth/me"] }),
-        queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] }),
-        queryClient.invalidateQueries({ queryKey: ["/auth/me", "onboarding"] }),
-      ]);
+    try {
+      if (!item.readAt) {
+        await notificationsApi.readOne(item.id);
+        await refresh();
+      }
+      if (item.actionUrl === "/onboarding") {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["/auth/me"] }),
+          queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] }),
+          queryClient.invalidateQueries({ queryKey: ["/auth/me", "onboarding"] }),
+        ]);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to mark notification as read";
+      toast.error(message);
     }
     setOpen(false);
     navigate(item.actionUrl || roleSettingsPath[role]);

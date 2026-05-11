@@ -7,17 +7,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ShieldCheck, Clock, ArrowUpRight, Search, MapPin, CalendarDays, XCircle } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
+import { PropertyImageHero } from "@/components/seeker/PropertyImageHero";
+import { PropertyImageGallery } from "@/components/seeker/PropertyImageGallery";
 import { seekerApi, titleCase } from "@/lib/api";
 
 export const offers = [] as any[];
 
 const matchColor = (m: number) => (m >= 90 ? "text-emerald-600" : m >= 80 ? "text-blue-600" : "text-amber-600");
+
+// Filter out videos and keep only image files
+const filterImages = (urls: string[] | undefined): string[] => {
+  if (!Array.isArray(urls)) return [];
+  return urls.filter((url) => {
+    const lower = url.toLowerCase();
+    // Keep only common image extensions
+    return /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?|$)/i.test(lower);
+  });
+};
 
 function toLocalDateTimeInput(value: Date) {
   const offset = value.getTimezoneOffset();
@@ -82,6 +94,8 @@ export default function Offers() {
         property: offer.propertyTitle ?? "Property offer",
         location: offer.propertyLocation ?? "Unknown location",
         provider: offer.providerName ?? titleCase(offer.providerRole),
+        providerPhone: offer.providerPhone ?? "",
+        providerImageUrl: offer.providerImageUrl ?? "",
         role: titleCase(offer.providerRole ?? "agent"),
         price: `${offer.offerPriceCurrency ?? "NGN"} ${Number(offer.offerPriceAmount ?? 0).toLocaleString("en-NG")}/${offer.offerPricePeriod ?? "year"}`,
         trust: "Verified",
@@ -96,6 +110,7 @@ export default function Offers() {
         message: String(offer.message ?? ""),
         moveInDate: offer.moveInDate ? new Date(offer.moveInDate).toLocaleDateString() : "Flexible",
         customTerms: offer.customTerms ? String(offer.customTerms) : "",
+        propertyImages: filterImages(offer.propertyImages),
       })),
     [data],
   );
@@ -235,10 +250,22 @@ function OfferCard({
 
   return (
     <Card data-search-id={`seeker-offer-${offer.id}`} className="overflow-hidden border border-border/60 shadow-sm">
+      {/* Property Image Hero */}
+      {offer.propertyImages && offer.propertyImages.length > 0 && (
+        <PropertyImageHero
+          images={offer.propertyImages}
+          propertyId={offer.propertyId}
+          matchScore={offer.match}
+          title={offer.property}
+          location={offer.location}
+        />
+      )}
+
       <CardContent className="space-y-4 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 gap-3">
             <Avatar className="h-10 w-10 shrink-0 border border-border/60">
+              <AvatarImage src={offer.providerImageUrl} alt={offer.provider} />
               <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">{offer.initials}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 space-y-1.5">
@@ -250,6 +277,11 @@ function OfferCard({
                 <span className="font-medium">{offer.provider}</span>
                 <DashboardStatusBadge tone={offer.role === "Agent" ? "info" : "neutral"}>{offer.role}</DashboardStatusBadge>
               </div>
+              {offer.providerPhone ? (
+                <div className="text-xs text-muted-foreground">
+                  {offer.providerPhone}
+                </div>
+              ) : null}
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3" />
                 <span>{offer.location}</span>
@@ -263,6 +295,11 @@ function OfferCard({
             </p>
           </div>
         </div>
+
+        {/* Property Image Gallery */}
+        {offer.propertyImages && offer.propertyImages.length > 0 && (
+          <PropertyImageGallery images={offer.propertyImages} propertyId={offer.propertyId} title={offer.property} />
+        )}
 
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-xl border border-border/60 bg-muted/30 px-3 py-2">

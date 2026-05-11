@@ -13,6 +13,7 @@ import { adminApi, getPropertyListingType } from "@/lib/api";
 
 const statusStyles: Record<string, { color: string; bg: string; dot: string }> = {
   Published: { color: "text-emerald-700 dark:text-emerald-300", bg: "bg-emerald-500/10 border-emerald-500/20 dark:bg-emerald-500/15 dark:border-emerald-500/30", dot: "bg-emerald-500" },
+  Hidden: { color: "text-muted-foreground", bg: "bg-muted border-border", dot: "bg-muted-foreground" },
   PendingVerification: { color: "text-amber-700 dark:text-amber-300", bg: "bg-amber-500/10 border-amber-500/20 dark:bg-amber-500/15 dark:border-amber-500/30", dot: "bg-amber-500" },
   Pending: { color: "text-amber-700 dark:text-amber-300", bg: "bg-amber-500/10 border-amber-500/20 dark:bg-amber-500/15 dark:border-amber-500/30", dot: "bg-amber-500" },
   Rejected: { color: "text-destructive", bg: "bg-destructive/5 border-destructive/20", dot: "bg-destructive" },
@@ -52,6 +53,8 @@ export default function Properties() {
     price: priceLabel(property),
     location: property.location ?? "Unknown location",
     status: statusLabel(property.status),
+    reportCount: Number(property.report_count ?? property.reportCount ?? 0),
+    openReportCount: Number(property.open_report_count ?? property.openReportCount ?? 0),
     date: property.created_at || property.createdAt ? new Date(String(property.created_at ?? property.createdAt)).toLocaleDateString() : "",
     type: getPropertyListingType(property) === "sale" ? "Sale" : getPropertyListingType(property) === "shortlet" ? "Short-let" : "Rent",
   })), [data]);
@@ -135,6 +138,11 @@ export default function Properties() {
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm text-foreground leading-tight">{property.title}</p>
                               <p className="text-xs text-muted-foreground mt-0.5">{property.agent} • {property.type}</p>
+                              {property.reportCount > 0 ? (
+                                <p className="mt-1 text-[11px] text-destructive">
+                                  {property.openReportCount > 0 ? `${property.openReportCount} open report(s)` : `${property.reportCount} total report(s)`}
+                                </p>
+                              ) : null}
                             </div>
                             <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button>
                           </div>
@@ -174,7 +182,14 @@ export default function Properties() {
                               <td className="py-3 px-4">
                                 <div className="flex items-center gap-2.5">
                                   <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center shrink-0"><Building2 className="h-4 w-4 text-primary" /></div>
-                                  <span className="font-medium text-sm text-foreground max-w-[220px] truncate">{property.title}</span>
+                                  <div className="min-w-0">
+                                    <span className="block font-medium text-sm text-foreground max-w-[220px] truncate">{property.title}</span>
+                                    {property.reportCount > 0 ? (
+                                      <span className="text-[11px] text-destructive">
+                                        {property.openReportCount > 0 ? `${property.openReportCount} open report(s)` : `${property.reportCount} total report(s)`}
+                                      </span>
+                                    ) : null}
+                                  </div>
                                 </div>
                               </td>
                               <td className="text-sm text-foreground py-3 px-4">{property.agent}</td>

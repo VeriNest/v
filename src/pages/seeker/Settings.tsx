@@ -1,40 +1,26 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { InlineSpinner, OrbitLoader } from "@/components/Loaders";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { InlineSpinner } from "@/components/Loaders";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity, Camera } from "lucide-react";
+import { Camera } from "lucide-react";
 import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardSettingsRow, DashboardSettingsSection } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { ChangePasswordDialog } from "@/components/settings/ChangePasswordDialog";
 import { authApi, onboardingApi, clearStoredSession } from "@/lib/api";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
-const activityLog = [
-  { action: "Posted need: 3 Bed in Lekki", time: "2 hours ago", type: "Post" },
-  { action: "Viewed offer from Adebayo Johnson", time: "4 hours ago", type: "Offer" },
-  { action: "Scheduled viewing for Studio, Wuse 2", time: "1 day ago", type: "Viewing" },
-  { action: "Saved property: 2 Bed Serviced, VI", time: "2 days ago", type: "Save" },
-  { action: "Completed booking BK-003", time: "3 days ago", type: "Booking" },
-];
-
-const typeStyles: Record<string, string> = {
-  Post: "bg-primary/10 text-primary border-primary/20",
-  Offer: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  Viewing: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  Save: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-  Booking: "bg-muted text-muted-foreground border-border",
-};
-
 export default function SeekerSettings() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fullName, setFullName] = useState("");
@@ -44,6 +30,7 @@ export default function SeekerSettings() {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
 
   const { data: me } = useQuery({
     queryKey: ["/auth/me"],
@@ -88,12 +75,16 @@ export default function SeekerSettings() {
         role: "seeker",
         phone,
         city: me?.profile?.city ?? preferredLocation,
-        avatar_url: uploaded.secureUrl,
+        avatarUrl: uploaded.secureUrl,
         preferredCity: preferredLocation,
         preferredAccommodationType: me?.roleProfile?.preferred_accommodation_type ?? undefined,
         preferredBudgetLabel: me?.roleProfile?.preferred_budget_label ?? undefined,
         moveInTimeline: me?.roleProfile?.move_in_timeline ?? undefined,
       });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/auth/me"] }),
+        queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] }),
+      ]);
       toast.success("Profile image updated");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to upload profile image";
@@ -111,12 +102,16 @@ export default function SeekerSettings() {
         role: "seeker",
         phone,
         city: me?.profile?.city ?? preferredLocation,
-        avatar_url: avatarUrl,
+        avatarUrl: avatarUrl,
         preferredCity: preferredLocation,
         preferredAccommodationType: me?.roleProfile?.preferred_accommodation_type ?? undefined,
         preferredBudgetLabel: me?.roleProfile?.preferred_budget_label ?? undefined,
         moveInTimeline: me?.roleProfile?.move_in_timeline ?? undefined,
       });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/auth/me"] }),
+        queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] }),
+      ]);
       toast.success("Settings updated");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to save settings";
@@ -168,7 +163,7 @@ export default function SeekerSettings() {
               type="button"
               disabled={uploadingAvatar}
             >
-              {uploadingAvatar ? <OrbitLoader size="sm" /> : <Camera className="h-4 w-4 text-background" />}
+              {uploadingAvatar ? <InlineSpinner variant="solid" /> : <Camera className="h-4 w-4 text-background" />}
             </button>
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
@@ -188,7 +183,6 @@ export default function SeekerSettings() {
           <TabsTrigger value="preferences" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Preferences</TabsTrigger>
           <TabsTrigger value="notifications" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Alerts</TabsTrigger>
           <TabsTrigger value="security" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Security</TabsTrigger>
-          <TabsTrigger value="activity" className="text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow-sm">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -252,7 +246,7 @@ export default function SeekerSettings() {
             <DashboardSettingsRow
               label="Change Password"
               description="Use your account security flow to update your password."
-              control={<Button variant="outline" size="sm">Update</Button>}
+              control={<Button variant="outline" size="sm" onClick={() => setPasswordDialogOpen(true)}>Update</Button>}
             />
             <DashboardSettingsRow
               label="Two-Factor Auth"
@@ -270,29 +264,8 @@ export default function SeekerSettings() {
             </CardContent>
           </DashboardSettingsSection>
         </TabsContent>
-
-        <TabsContent value="activity">
-          <Card className="border border-border/60 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-muted-foreground" /><CardTitle className="text-base">Recent Activity</CardTitle></div>
-              <CardDescription>Your recent actions on the platform</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {activityLog.map((item, i) => (
-                  <div key={i} className="p-3 rounded-lg border border-border/60 bg-secondary/30 space-y-2">
-                    <p className="text-sm font-medium text-foreground">{item.action}</p>
-                    <div className="flex items-center justify-between">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${typeStyles[item.type]}`}>{item.type}</span>
-                      <span className="text-xs text-muted-foreground">{item.time}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
+      <ChangePasswordDialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen} />
     </div>
   );
 }

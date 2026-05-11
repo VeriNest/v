@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Search, MoreHorizontal, ShieldCheck, Clock, ShieldX, UserPlus, Filter } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Search, ShieldCheck, Clock, ShieldX, UserPlus, Filter, Ban, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { useSearchFocus } from "@/hooks/use-search-focus";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { adminApi, titleCase } from "@/lib/api";
+import { toast } from "sonner";
 
 export const users = [] as any[];
 
@@ -60,8 +61,37 @@ function avatarColorFor(value: string) {
 
 export default function UsersPage() {
   useSearchFocus();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [suspendingUserId, setSuspendingUserId] = useState<string | null>(null);
+  
   const { data = [] } = useQuery({ queryKey: ["/admin/users"], queryFn: () => adminApi.users() });
+
+  const suspendUserMutation = useMutation({
+    mutationFn: (userId: string) => adminApi.suspendUser(userId),
+    onSuccess: () => {
+      toast.success("User account suspended successfully");
+      setSuspendingUserId(null);
+      queryClient.invalidateQueries({ queryKey: ["/admin/users"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to suspend user";
+      toast.error(message);
+    },
+  });
+
+  const unsuspendUserMutation = useMutation({
+    mutationFn: (userId: string) => adminApi.unsuspendUser(userId),
+    onSuccess: () => {
+      toast.success("User account unsuspended successfully");
+      setSuspendingUserId(null);
+      queryClient.invalidateQueries({ queryKey: ["/admin/users"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to unsuspend user";
+      toast.error(message);
+    },
+  });
   const users = useMemo(() => data.map((u: any) => {
     const role = normalizeRole(u.role);
     return {
@@ -172,7 +202,31 @@ export default function UsersPage() {
                               <span className={`text-[10px] ${u.activity === "Active now" ? "text-emerald-600 font-medium" : "text-muted-foreground"}`}>{u.activity}</span>
                             </div>
                           </div>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {u.activity === "Active now" ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => suspendUserMutation.mutate(u.id)}
+                                disabled={suspendUserMutation.isPending}
+                              >
+                                <Ban className="h-3.5 w-3.5 mr-1" />
+                                Suspend
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 text-xs text-emerald-600 hover:text-emerald-600 hover:bg-emerald-500/10"
+                                onClick={() => unsuspendUserMutation.mutate(u.id)}
+                                disabled={unsuspendUserMutation.isPending}
+                              >
+                                <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                                Unsuspend
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -229,7 +283,31 @@ export default function UsersPage() {
                                 <span className={`text-sm ${u.activity === "Active now" ? "text-emerald-600 font-medium" : "text-muted-foreground"}`}>{u.activity}</span>
                               </td>
                               <td className="text-muted-foreground text-sm py-3 px-4">{u.joined}</td>
-                              <td className="py-3 px-4"><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></td>
+                              <td className="py-3 px-4">
+                                {u.activity === "Active now" ? (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => suspendUserMutation.mutate(u.id)}
+                                    disabled={suspendUserMutation.isPending}
+                                  >
+                                    <Ban className="h-3.5 w-3.5 mr-1" />
+                                    Suspend
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-xs text-emerald-600 hover:text-emerald-600 hover:bg-emerald-500/10"
+                                    onClick={() => unsuspendUserMutation.mutate(u.id)}
+                                    disabled={unsuspendUserMutation.isPending}
+                                  >
+                                    <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                                    Unsuspend
+                                  </Button>
+                                )}
+                              </td>
                             </tr>
                           );
                         })}
