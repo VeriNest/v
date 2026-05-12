@@ -18,7 +18,7 @@ import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader"
 import { DashboardSectionCard } from "@/components/dashboard/DashboardSectionCard";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { Button } from "@/components/ui/button";
-import { getPropertyImage, propertiesApi, titleCase } from "@/lib/api";
+import { getPropertyImage, propertiesApi, titleCase, maskPhoneNumber } from "@/lib/api";
 
 const videoExtensions = [".mp4", ".mov", ".webm", ".ogg", ".m4v", ".avi", ".mkv"];
 
@@ -276,7 +276,7 @@ export default function ListingDetail() {
               <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Contact phone</p>
               <div className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
                 <Phone className="h-4 w-4 text-primary" />
-                {String(data.contact_phone ?? "-")}
+                {maskPhoneNumber(String(data.contact_phone ?? "-"))}
               </div>
             </div>
           </DashboardSectionCard>

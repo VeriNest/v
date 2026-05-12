@@ -66,7 +66,7 @@ export type NotificationItem = {
   createdAt: string;
 };
 
-const API_ROOT = (import.meta.env.VITE_API_BASE_URL ?? "verinest.up.railway.app").replace(/\/$/, "");
+const API_ROOT = (import.meta.env.VITE_API_BASE_URL ?? "https://verinest.up.railway.app").replace(/\/$/, "");
 const API_PREFIX = `${API_ROOT}/api/v1`;
 const SESSION_KEY = "verinest_session";
 const KYC_STATUS_KEY = "verinest_kyc_status";
@@ -563,4 +563,13 @@ export function getPendingPropertyRating(property?: Record<string, unknown> | nu
     default:
       return 4.1;
   }
+}
+
+export function maskPhoneNumber(phone?: string | null) {
+  if (!phone) return "-";
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 4) return phone;
+  // Show first part, hide last 2 digits with asterisks
+  const visible = digits.slice(0, -2);
+  return `${visible}**`;
 }
