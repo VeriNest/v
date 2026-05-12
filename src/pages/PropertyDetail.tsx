@@ -145,7 +145,7 @@ export default function PropertyDetailPage() {
                   <h2 className="text-lg font-semibold text-foreground">Listing Details</h2>
                   <div className="mt-4 space-y-3 text-sm">
                     <div className="flex items-center justify-between"><span className="text-muted-foreground">Owner</span><span className="font-medium text-foreground">{String(data.owner_name ?? data.ownerName ?? "-")}</span></div>
-                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Agent</span><span className="font-medium text-foreground">{String(data.agent_name ?? data.agentName ?? "-")}</span></div>
+                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Agent</span><span className="font-medium text-foreground">{String(data.company_name ?? data.companyName ?? data.agent_name ?? data.agentName ?? "-")}</span></div>
                     <div className="flex items-center justify-between"><span className="text-muted-foreground">Created</span><span className="font-medium text-foreground">{data.created_at || data.createdAt ? new Date(String(data.created_at ?? data.createdAt)).toLocaleDateString() : "-"}</span></div>
                     <div className="flex items-center justify-between"><span className="text-muted-foreground">Listing type</span><span className="font-medium text-foreground">{typeLabel}</span></div>
                     <div className="flex items-center justify-between"><span className="text-muted-foreground">Verification</span><span className="inline-flex items-center gap-1 font-medium text-foreground"><ShieldCheck className="h-4 w-4 text-emerald-600" /> {String(data.status ?? "published")}</span></div>

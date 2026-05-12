@@ -103,9 +103,9 @@ export default function ConfirmEmail() {
       <div className="hidden lg:flex lg:w-1/2 items-center justify-center bg-primary/5 p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary)/0.08),transparent_60%)]" />
         <div className="relative z-10 max-w-md">
-          <Link to="/" className="flex items-center gap-2.5 mb-8">
-            <MarketingLogo textClassName="text-2xl" iconBoxClassName="h-10 w-10 rounded-xl" iconClassName="h-5 w-5" />
-          </Link>
+          <div className="flex items-center gap-2.5 mb-8">
+            <MarketingLogo to="/" textClassName="text-2xl" iconBoxClassName="h-10 w-10 rounded-xl" iconClassName="h-5 w-5" />
+          </div>
           <h2 className="text-3xl font-bold text-foreground leading-tight">
             Confirm your email<br />
             <span className="text-primary">before setup.</span>
