@@ -8,19 +8,19 @@ const testimonials = [
     text: "I posted my budget and preferred area once, and serious options started coming in the same day.",
     name: "Tolu A.",
     location: "Lekki renter",
-    avatar: 15,
+    avatar: "/testimonials/testimonial-2.jpg",
   },
   {
     text: "The pricing breakdown helped me filter out listings that were not actually within my range.",
     name: "Adaeze N.",
     location: "Abuja seeker",
-    avatar: 32,
+    avatar: "/testimonials/testimonial-1.jpg",
   },
   {
     text: "As a provider, I get clearer requests and spend less time filtering casual inquiries before sending offers.",
     name: "Ibrahim S.",
     location: "Lagos agent",
-    avatar: 44,
+    avatar: "/testimonials/testimonial-3.jpg",
   },
 ];
 
@@ -44,7 +44,9 @@ const Newsletter = () => {
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed mb-6">&quot;{t.text}&quot;</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-muted" />
+                  <div className="w-10 h-10 rounded-full border-2 border-border/50 overflow-hidden flex-shrink-0">
+                    <img src={t.avatar} alt={t.name} className="w-full h-full object-cover" />
+                  </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">{t.name}</p>
                     <p className="text-xs text-muted-foreground">{t.location}</p>

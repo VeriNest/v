@@ -45,9 +45,13 @@ const Hero = () => {
 
             <div className="flex items-center gap-3">
               <div className="flex -space-x-2.5">
-                {[11, 12, 13].map((i) => (
+                {[
+                  "/testimonials/testimonial-1.jpg",
+                  "/testimonials/testimonial-2.jpg",
+                  "/testimonials/testimonial-3.jpg",
+                ].map((avatar, i) => (
                   <div key={i} className="w-9 h-9 rounded-full border-[2.5px] border-background overflow-hidden">
-                    <img src={`https://i.pravatar.cc/36?img=${i}`} alt="" className="w-full h-full object-cover" />
+                    <img src={avatar} alt="" className="w-full h-full object-cover" />
                   </div>
                 ))}
                 <div className="w-9 h-9 rounded-full border-[2.5px] border-background bg-primary flex items-center justify-center text-[10px] font-semibold text-primary-foreground">

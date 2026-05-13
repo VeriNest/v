@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -21,6 +23,7 @@ import { DashboardHistoryRow } from "@/components/dashboard/DashboardHistoryRow"
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { announcements } from "./Announcements";
+import { adminApi } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,6 +64,23 @@ export default function NewAnnouncement() {
   const [delivery, setDelivery] = useState("in-app");
   const [pushEnabled, setPushEnabled] = useState(true);
   const [schedule, setSchedule] = useState("");
+
+  const publishMutation = useMutation({
+    mutationFn: () =>
+      adminApi.createAnnouncement({
+        title,
+        body: message,
+        audience,
+      }),
+    onSuccess: () => {
+      toast.success("Announcement published successfully");
+      setSubmitted(true);
+    },
+    onError: (error) => {
+      const errorMsg = error instanceof Error ? error.message : "Failed to publish announcement";
+      toast.error(errorMsg);
+    },
+  });
 
   const progress = (currentStep / steps.length) * 100;
   const selectedAudience = audienceOptions.find((item) => item.value === audience) ?? audienceOptions[0];
@@ -365,8 +385,23 @@ export default function NewAnnouncement() {
                       Continue <ChevronRight className="h-3.5 w-3.5" />
                     </Button>
                   ) : (
-                    <Button type="button" size="sm" className="gap-1.5" onClick={() => setSubmitted(true)}>
-                      <Send className="h-3.5 w-3.5" /> Publish
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => publishMutation.mutate()}
+                      disabled={publishMutation.isPending}
+                    >
+                      {publishMutation.isPending ? (
+                        <>
+                          <div className="h-3.5 w-3.5 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                          Publishing...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-3.5 w-3.5" /> Publish
+                        </>
+                      )}
                     </Button>
                   )}
                 </div>
