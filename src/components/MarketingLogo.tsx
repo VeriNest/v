@@ -45,7 +45,7 @@ export default function MarketingLogo({
           textClassName,
         )}
       >
-        Veri<em className="italic text-[#c4714a]">nest</em>
+        Veri<em className="italic text-[#c4714a]">Nest</em>
       </span>
     </Link>
   );
