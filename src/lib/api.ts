@@ -506,6 +506,8 @@ export const seekerApi = {
   updateBooking: (id: string, payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>(`/bookings/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   confirmBookingOutcome: (id: string, payload: { outcome: "completed" | "not_completed"; note?: string }) =>
     apiRequest<Record<string, unknown>>(`/bookings/${id}/outcome/seeker`, { method: "POST", body: JSON.stringify(payload) }),
+  createBookingDispute: (id: string, payload: { disputeType: string; title: string; description: string; priority?: string }) =>
+    apiRequest<Record<string, unknown>>(`/bookings/${id}/dispute`, { method: "POST", body: JSON.stringify(payload) }),
 };
 
 export const agentApi = {
@@ -524,6 +526,8 @@ export const agentApi = {
   updateBooking: (id: string, payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>(`/bookings/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   confirmBookingOutcome: (id: string, payload: { outcome: "completed" | "not_completed"; note?: string }) =>
     apiRequest<Record<string, unknown>>(`/bookings/${id}/outcome/provider`, { method: "POST", body: JSON.stringify(payload) }),
+  createBookingDispute: (id: string, payload: { disputeType: string; title: string; description: string; priority?: string }) =>
+    apiRequest<Record<string, unknown>>(`/bookings/${id}/dispute`, { method: "POST", body: JSON.stringify(payload) }),
   createOffer: (payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>("/offers", { method: "POST", body: JSON.stringify(payload) }),
 };
 
