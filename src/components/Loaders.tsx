@@ -288,7 +288,7 @@ export function FullscreenLoader({
         </div>
 
         <div className="font-cormorant text-2xl font-semibold text-cream tracking-wide mb-2 z-10">
-          Veri<span className="italic text-amber-600">nest</span>
+          Veri<span className="italic text-amber-600">Nest</span>
         </div>
         <div className="fs-status text-xs font-dm-sans letter-spacing tracking-widest text-amber-600/70 mb-6 z-10">
           {status}
