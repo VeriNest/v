@@ -1,18 +1,35 @@
 import { Bed, Bath, Search, MapPin, Home, DollarSign, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { KeyboardEvent, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import MarketingShell from "@/components/layout/MarketingShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [propertyType, setPropertyType] = useState("");
   const [budget, setBudget] = useState("");
 
   const handleSearch = () => {
-    console.log("Search:", { searchQuery, propertyType, budget });
+    const params = new URLSearchParams();
+    if (searchQuery) {
+      params.append("q", searchQuery);
+      params.append("location", searchQuery);
+    }
+    if (propertyType) params.append("type", propertyType);
+    if (budget) params.append("budget", budget);
+    navigate(`/properties?${params.toString()}`);
+  };
+
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleSearch();
+    }
   };
 
   return (
@@ -35,11 +52,15 @@ const Hero = () => {
             </p>
 
             <div className="flex flex-wrap items-center gap-4 mb-8">
-              <Button className="rounded-lg px-7 py-6 text-sm font-medium gap-2">
-                Post a Need <ArrowRight className="w-4 h-4" />
+              <Button className="rounded-lg px-7 py-6 text-sm font-medium gap-2" asChild>
+                <Link to="/seeker/post">
+                  Post a Need <ArrowRight className="w-4 h-4" />
+                </Link>
               </Button>
-              <Button variant="outline" className="rounded-lg px-7 py-6 text-sm font-medium border-border text-foreground hover:bg-accent gap-2">
-                Browse Verified Homes
+              <Button variant="outline" className="rounded-lg px-7 py-6 text-sm font-medium border-border text-foreground hover:bg-accent gap-2" asChild>
+                <Link to="/properties">
+                  Browse Verified Homes
+                </Link>
               </Button>
             </div>
 
@@ -104,6 +125,7 @@ const Hero = () => {
                   placeholder="Where do you want to live?"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="pl-9 border-0 bg-secondary/50 focus-visible:ring-1 h-12 text-sm w-full"
                 />
               </div>

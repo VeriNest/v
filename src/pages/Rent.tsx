@@ -421,7 +421,7 @@ const Rent = () => {
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Button
                 variant="outline"
-                className="rounded-lg border-primary-foreground/20 px-8 py-6 text-sm font-medium text-primary-foreground hover:bg-primary-foreground/5"
+                className="rounded-lg border-primary-foreground/20 px-8 py-6 text-sm font-medium text-primary-foreground text-black hover:text-white hover:bg-primary-foreground/5"
                 asChild
               >
                 <Link to="/signup">Post a Need</Link>

@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   MapPin, Calendar, Bed, CheckCircle2, ShieldCheck, FileText, Plus, ChevronRight,
   ChevronLeft, Zap, Clock, Eye, Rocket, ArrowRight, Home, Sparkles, AlertCircle
@@ -106,6 +106,7 @@ export default function PostNeed() {
   const shortletBudgetMax = 500000;
   const shortletBudgetStep = 5000;
   const navigate = useNavigate();
+  const locationState = useLocation();
   const queryClient = useQueryClient();
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -125,6 +126,39 @@ export default function PostNeed() {
   const budgetMin = isShortlet ? shortletBudgetMin : annualBudgetMin;
   const budgetMax = isShortlet ? shortletBudgetMax : annualBudgetMax;
   const budgetStep = isShortlet ? shortletBudgetStep : annualBudgetStep;
+
+  // Prefill from property details if passed via location state
+  useEffect(() => {
+    const prefilled = (locationState.state as any)?.prefilled;
+    if (prefilled) {
+      if (prefilled.propertyType) {
+        setPropertyType(prefilled.propertyType);
+      }
+      if (prefilled.bedrooms) {
+        setBedrooms(prefilled.bedrooms);
+      }
+      if (prefilled.location) {
+        setLocation(prefilled.location);
+        // Try to extract state from location if it contains a comma
+        const parts = prefilled.location.split(",");
+        if (parts.length > 1) {
+          setSelectedState(parts[parts.length - 1].trim());
+        }
+      }
+      // Set budget range if preselected
+      if (prefilled.preselectedBudget && Array.isArray(prefilled.preselectedBudget)) {
+        setBudgetRange([prefilled.preselectedBudget[0], prefilled.preselectedBudget[1]]);
+      }
+      
+      // Store target agent ID for later
+      if (prefilled.targetAgentId) {
+        sessionStorage.setItem("postNeedTargetAgentId", prefilled.targetAgentId);
+      }
+      if (prefilled.targetAgentName) {
+        sessionStorage.setItem("postNeedTargetAgentName", prefilled.targetAgentName);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     setBudgetRange((current) => {
@@ -191,7 +225,12 @@ export default function PostNeed() {
 
     try {
       setSubmitting(true);
-      await seekerApi.createNeed({
+      
+      // Get target agent ID from session storage if it was set from prefilled data
+      const targetAgentId = sessionStorage.getItem("postNeedTargetAgentId");
+      const targetAgentName = sessionStorage.getItem("postNeedTargetAgentName");
+      
+      const payload: any = {
         request_title: requestTitle(),
         area,
         city,
@@ -205,7 +244,15 @@ export default function PostNeed() {
         description:
           notes.trim() ||
           `Urgency: ${urgency}. Move-in date: ${moveInDate || "Flexible"}. Boost requested: ${boost ? "Yes" : "No"}.`,
-      });
+      };
+      
+      // Add target agent ID if this need is for a specific property
+      if (targetAgentId) {
+        payload.target_agent_id = targetAgentId;
+      }
+      
+      await seekerApi.createNeed(payload);
+      
       queryClient.setQueryData<NeedRow[]>(["/seeker/needs"], (current = []) => [
         {
           id: `temp-${Date.now()}`,
@@ -232,8 +279,13 @@ export default function PostNeed() {
         queryClient.invalidateQueries({ queryKey: ["/seeker/needs"] }),
         queryClient.invalidateQueries({ queryKey: ["/seeker/dashboard/overview"] }),
       ]);
+      
+      // Clear session storage after successful submission
+      sessionStorage.removeItem("postNeedTargetAgentId");
+      sessionStorage.removeItem("postNeedTargetAgentName");
+      
       setSubmitted(true);
-      toast.success("Need published successfully");
+      toast.success(`Need published successfully${targetAgentName ? ` and sent to ${targetAgentName}` : ""}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to publish need";
       toast.error(message);

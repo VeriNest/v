@@ -66,11 +66,108 @@ export type NotificationItem = {
   createdAt: string;
 };
 
+export type CommentAuthor = {
+  author_name: string;
+  author_role: string;
+  author_avatar: string | null;
+};
+
+export type CommentReply = CommentAuthor & {
+  reply: {
+    id: string;
+    comment_id: string;
+    user_id: string;
+    content: string;
+    created_at: string;
+    updated_at: string;
+  };
+};
+
+export type PropertyComment = CommentAuthor & {
+  comment: {
+    id: string;
+    property_id: string;
+    user_id: string;
+    content: string;
+    created_at: string;
+    updated_at: string;
+  };
+  replies: CommentReply[];
+};
+
+export type CommentsResponse = {
+  comments: PropertyComment[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export type PaginatedResponse<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  perPage: number;
+};
+
+function normalizeCommentReply(raw: Record<string, unknown>): CommentReply {
+  const reply = (raw.reply ?? {}) as Record<string, unknown>;
+  return {
+    author_name: String(raw.author_name ?? ""),
+    author_role: String(raw.author_role ?? ""),
+    author_avatar: typeof raw.author_avatar === "string" ? raw.author_avatar : null,
+    reply: {
+      id: String(reply.id ?? ""),
+      comment_id: String(reply.comment_id ?? ""),
+      user_id: String(reply.user_id ?? ""),
+      content: String(reply.content ?? ""),
+      created_at: String(reply.created_at ?? ""),
+      updated_at: String(reply.updated_at ?? ""),
+    },
+  };
+}
+
+function normalizePropertyComment(raw: Record<string, unknown>): PropertyComment {
+  const wrappedComment = (raw.comment ?? {}) as Record<string, unknown>;
+  const comment = ((wrappedComment.comment ?? wrappedComment) ?? {}) as Record<string, unknown>;
+  const replies = Array.isArray(raw.replies) ? raw.replies : [];
+
+  return {
+    author_name: String(wrappedComment.author_name ?? raw.author_name ?? ""),
+    author_role: String(wrappedComment.author_role ?? raw.author_role ?? ""),
+    author_avatar:
+      typeof wrappedComment.author_avatar === "string"
+        ? wrappedComment.author_avatar
+        : typeof raw.author_avatar === "string"
+          ? raw.author_avatar
+          : null,
+    comment: {
+      id: String(comment.id ?? ""),
+      property_id: String(comment.property_id ?? ""),
+      user_id: String(comment.user_id ?? ""),
+      content: String(comment.content ?? ""),
+      created_at: String(comment.created_at ?? ""),
+      updated_at: String(comment.updated_at ?? ""),
+    },
+    replies: replies.map((reply) => normalizeCommentReply((reply ?? {}) as Record<string, unknown>)),
+  };
+}
+
+function normalizePaginatedResponse<T>(raw: Record<string, unknown>, fallbackItems: T[] = []): PaginatedResponse<T> {
+  const items = Array.isArray(raw.items) ? (raw.items as T[]) : fallbackItems;
+  return {
+    items,
+    total: Number(raw.total ?? items.length),
+    page: Number(raw.page ?? 1),
+    perPage: Number(raw.perPage ?? raw.per_page ?? (items.length || 20)),
+  };
+}
+
 const API_ROOT = (import.meta.env.VITE_API_BASE_URL ?? "https://verinest.up.railway.app").replace(/\/$/, "");
 const API_PREFIX = `${API_ROOT}/api/v1`;
 const SESSION_KEY = "verinest_session";
 const KYC_STATUS_KEY = "verinest_kyc_status";
 const ROLE_KEY = "verinest_role";
+//"http://localhost:3001"
 
 let refreshPromise: Promise<AuthPayload | null> | null = null;
 
@@ -359,7 +456,7 @@ export const verificationApi = {
 };
 
 export const propertiesApi = {
-  listPublic: (params?: Record<string, string | number | undefined>) => apiRequest<Array<Record<string, unknown>>>(`/properties${buildQuery(params)}` , undefined, false),
+  listPublic: (params?: Record<string, string | number | undefined>) => apiRequest<{ items: Array<Record<string, unknown>>; total: number; page: number; per_page: number } | Array<Record<string, unknown>>>(`/properties${buildQuery(params)}` , undefined, false),
   getById: (id: string) => apiRequest<Record<string, unknown>>(`/properties/${id}`, undefined, false),
   reviews: (id: string) => apiRequest<Array<Record<string, unknown>>>(`/properties/${id}/reviews`, undefined, false),
   listAgent: () => apiRequest<Array<Record<string, unknown>>>("/agent/properties"),
@@ -367,6 +464,26 @@ export const propertiesApi = {
   updateAgent: (id: string, payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>(`/agent/properties/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   listLandlord: () => apiRequest<Array<Record<string, unknown>>>("/landlord/properties"),
   createLandlord: (payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>("/landlord/properties", { method: "POST", body: JSON.stringify(payload) }),
+  comments: {
+    list: async (propertyId: string, limit = 20, offset = 0) => {
+      const response = await apiRequest<{
+        comments?: Array<Record<string, unknown>>;
+        total?: number;
+        limit?: number;
+        offset?: number;
+      }>(`/properties/${propertyId}/comments?limit=${limit}&offset=${offset}`, undefined, false);
+
+      return {
+        comments: Array.isArray(response.comments) ? response.comments.map((item) => normalizePropertyComment(item)) : [],
+        total: Number(response.total ?? 0),
+        limit: Number(response.limit ?? limit),
+        offset: Number(response.offset ?? offset),
+      } satisfies CommentsResponse;
+    },
+    create: (propertyId: string, content: string) => apiRequest<PropertyComment>(`/properties/${propertyId}/comments`, { method: "POST", body: JSON.stringify({ content }) }),
+    reply: (commentId: string, content: string) =>
+      apiRequest<CommentReply>(`/comments/${commentId}/replies`, { method: "POST", body: JSON.stringify({ content }) }),
+  },
 };
 
 export const seekerApi = {
@@ -387,6 +504,8 @@ export const seekerApi = {
   listBookings: () => apiRequest<Array<Record<string, unknown>>>("/seeker/bookings"),
   createBooking: (payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>("/bookings", { method: "POST", body: JSON.stringify(payload) }),
   updateBooking: (id: string, payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>(`/bookings/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  confirmBookingOutcome: (id: string, payload: { outcome: "completed" | "not_completed"; note?: string }) =>
+    apiRequest<Record<string, unknown>>(`/bookings/${id}/outcome/seeker`, { method: "POST", body: JSON.stringify(payload) }),
 };
 
 export const agentApi = {
@@ -403,6 +522,8 @@ export const agentApi = {
   listCalendar: () => apiRequest<Array<Record<string, unknown>>>("/agent/calendar"),
   listBookings: () => apiRequest<Array<Record<string, unknown>>>("/agent/bookings"),
   updateBooking: (id: string, payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>(`/bookings/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  confirmBookingOutcome: (id: string, payload: { outcome: "completed" | "not_completed"; note?: string }) =>
+    apiRequest<Record<string, unknown>>(`/bookings/${id}/outcome/provider`, { method: "POST", body: JSON.stringify(payload) }),
   createOffer: (payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>("/offers", { method: "POST", body: JSON.stringify(payload) }),
 };
 
@@ -436,14 +557,21 @@ export const landlordApi = {
 
 export const adminApi = {
   overview: () => apiRequest<Record<string, unknown>>("/admin/metrics/overview"),
-  users: () => apiRequest<Array<Record<string, unknown>>>("/admin/users"),
-  properties: () => apiRequest<Array<Record<string, unknown>>>("/admin/properties"),
-  transactions: () => apiRequest<Array<Record<string, unknown>>>("/admin/transactions"),
-  disputes: () => apiRequest<Array<Record<string, unknown>>>("/admin/disputes"),
-  reports: () => apiRequest<Array<Record<string, unknown>>>("/admin/reports"),
-  announcements: () => apiRequest<Array<Record<string, unknown>>>("/admin/announcements"),
+  users: async (params?: { page?: number; per_page?: number }) =>
+    normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/users${buildQuery({ page: 1, per_page: 100, ...params })}`)),
+  properties: async (params?: { page?: number; per_page?: number }) =>
+    normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/properties${buildQuery({ page: 1, per_page: 100, ...params })}`)),
+  transactions: async (params?: { page?: number; per_page?: number }) =>
+    normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/transactions${buildQuery({ page: 1, per_page: 100, ...params })}`)),
+  disputes: async (params?: { page?: number; per_page?: number }) =>
+    normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/disputes${buildQuery({ page: 1, per_page: 100, ...params })}`)),
+  reports: async (params?: { page?: number; per_page?: number }) =>
+    normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/reports${buildQuery({ page: 1, per_page: 100, ...params })}`)),
+  announcements: async (params?: { page?: number; per_page?: number }) =>
+    normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/announcements${buildQuery({ page: 1, per_page: 100, ...params })}`)),
   createAnnouncement: (payload: { title: string; body: string; audience: string }) => apiRequest<Record<string, unknown>>("/admin/announcements", { method: "POST", body: JSON.stringify(payload) }),
-  verifications: () => apiRequest<Array<Record<string, unknown>>>("/admin/verifications"),
+  verifications: async (params?: { page?: number; per_page?: number }) =>
+    normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/verifications${buildQuery({ page: 1, per_page: 100, ...params })}`)),
   verificationDetail: (id: string) => apiRequest<Record<string, unknown>>(`/admin/verifications/${id}/detail`),
   moderateReport: (id: string, payload: { status: "upheld" | "dismissed"; reviewNotes: string; propertyAction?: "hide" | "suspend" }) =>
     apiRequest<Record<string, unknown>>(`/admin/reports/${id}/decision`, {
@@ -492,7 +620,8 @@ export const reportsApi = {
 };
 
 export const notificationsApi = {
-  list: () => apiRequest<NotificationItem[]>("/notifications"),
+  list: async (params?: { page?: number; per_page?: number }) =>
+    normalizePaginatedResponse<NotificationItem>(await apiRequest<Record<string, unknown>>(`/notifications${buildQuery({ page: 1, per_page: 25, ...params })}`)),
   readAll: () => apiRequest<{ ok: boolean }>("/notifications/read-all", { method: "PATCH" }),
   readOne: (id: string) => apiRequest<{ ok: boolean }>(`/notifications/${id}/read`, { method: "PATCH" }),
   deleteOne: (id: string) => apiRequest<void>(`/notifications/${id}`, { method: "DELETE" }),

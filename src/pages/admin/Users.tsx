@@ -65,7 +65,8 @@ export default function UsersPage() {
   const [search, setSearch] = useState("");
   const [suspendingUserId, setSuspendingUserId] = useState<string | null>(null);
   
-  const { data = [] } = useQuery({ queryKey: ["/admin/users"], queryFn: () => adminApi.users() });
+  const { data } = useQuery({ queryKey: ["/admin/users"], queryFn: () => adminApi.users() });
+  const rows = data?.items ?? [];
 
   const suspendUserMutation = useMutation({
     mutationFn: (userId: string) => adminApi.suspendUser(userId),
@@ -92,7 +93,7 @@ export default function UsersPage() {
       toast.error(message);
     },
   });
-  const users = useMemo(() => data.map((u: any) => {
+  const users = useMemo(() => rows.map((u: any) => {
     const role = normalizeRole(u.role);
     return {
       id: u.id,
@@ -104,7 +105,7 @@ export default function UsersPage() {
       joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : "",
       activity: u.is_banned ? "Suspended" : "Active now",
     };
-  }), [data]);
+  }), [rows]);
   const stats = useMemo(() => ({
     total: users.length,
     verified: users.filter((item) => item.verification === "Verified").length,

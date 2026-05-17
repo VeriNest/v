@@ -96,24 +96,26 @@ export default function AdminVerifications() {
   const queryClient = useQueryClient();
   const [selectedVerificationId, setSelectedVerificationId] = useState<string | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
-  const { data: verifications = [], isLoading, error: verError } = useQuery({
+  const { data: verificationsData, isLoading, error: verError } = useQuery({
     queryKey: ["/admin/verifications"],
     queryFn: () => adminApi.verifications().catch((err) => {
       console.error("Failed to fetch verifications:", err);
-      return [];
+      return { items: [], total: 0, page: 1, perPage: 20 };
     }),
     retry: 1,
   });
-  const { data: properties = [], error: propError } = useQuery({
+  const { data: propertiesData, error: propError } = useQuery({
     queryKey: ["/admin/properties"],
     queryFn: () => adminApi.properties().catch((err) => {
       console.error("Failed to fetch properties:", err);
-      return [];
+      return { items: [], total: 0, page: 1, perPage: 20 };
     }),
     retry: 1,
   });
+  const verifications = verificationsData?.items ?? [];
+  const properties = propertiesData?.items ?? [];
 
-  const normalizedVerifications = (Array.isArray(verifications) ? verifications : []).map((item: any) => {
+  const normalizedVerifications = verifications.map((item: any) => {
     const type = normalizeType(item.userRole ?? item.user_role);
     const risk = riskFor(item.status);
     const docs = Array.isArray(item.documentTypes ?? item.document_types)
@@ -150,7 +152,7 @@ export default function AdminVerifications() {
     };
   });
 
-  const normalizedProperties = (Array.isArray(properties) ? properties : []).map((item: any) => ({
+  const normalizedProperties = properties.map((item: any) => ({
     id: String(item.id),
     title: item.title ?? "Untitled Property",
     location: item.location ?? "Unknown location",

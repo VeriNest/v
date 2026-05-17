@@ -30,7 +30,6 @@ const agentDocs = [
 ];
 
 const landlordDocs = [
-  { label: "National ID (NIN)", desc: "Government-issued NIN slip or national ID card", icon: FileText },
   { label: "Property Deed / C of O", desc: "Certificate of occupancy or property ownership document", icon: FileText },
 ];
 
@@ -75,6 +74,7 @@ export default function Onboarding() {
   const [facialVerificationComplete, setFacialVerificationComplete] = useState(false);
   const [verificationPhotoUrl, setVerificationPhotoUrl] = useState<string | null>(null);
   const [isRetakingRejectedVerification, setIsRetakingRejectedVerification] = useState(false);
+  const [showLandlordFacialVerification, setShowLandlordFacialVerification] = useState(false);
   const { data: me, isLoading } = useQuery({
     queryKey: ["/auth/me", "onboarding"],
     queryFn: () => authApi.me(),
@@ -99,10 +99,18 @@ export default function Onboarding() {
       return;
     }
 
-    // For agents and landlords: require both document upload and facial verification
-    if ((role === "agent" || role === "landlord") && (!uploadedDocFiles["National ID (NIN)"] || !facialVerificationComplete)) {
+    // Agents require NIN plus liveness.
+    if (role === "agent" && (!uploadedDocFiles["National ID (NIN)"] || !facialVerificationComplete)) {
       toast.error("Please complete document upload and facial verification before continuing", {
         description: "Both NIN document and liveness check are required",
+      });
+      return;
+    }
+
+    // Landlords require ownership document plus the NIN/liveness submission.
+    if (role === "landlord" && (!uploadedDocFiles["Property Deed / C of O"] || !uploadedDocFiles["National ID (NIN)"] || !facialVerificationComplete)) {
+      toast.error("Please complete ownership document upload and facial verification before continuing", {
+        description: "C of O, NIN, and liveness check are required",
       });
       return;
     }
@@ -411,6 +419,7 @@ export default function Onboarding() {
 
   const docs = role === "agent" ? agentDocs : landlordDocs;
   const uploadedCount = docs.filter(d => uploadedDocs[d.label]).length;
+  const landlordOwnershipDoc = uploadedDocFiles["Property Deed / C of O"];
 
   if (isLoading || (session?.token && !me)) {
     return <FullscreenLoader status="Loading onboarding" />;
@@ -517,6 +526,64 @@ export default function Onboarding() {
             setTimeout(() => setStep(4), 1500);
           }}
           onCancel={() => setStep(2)}
+        />
+      </div>
+    );
+  }
+
+  if (step === 3 && role === "landlord" && showLandlordFacialVerification) {
+    return (
+      <div className="min-h-screen bg-[#f0ebe3]">
+        <FacialVerification
+          userRole="landlord"
+          onSuccess={async (photoUrl, providerDocumentUrl) => {
+            try {
+              setVerificationPhotoUrl(photoUrl);
+              setFacialVerificationComplete(true);
+              if (providerDocumentUrl) {
+                setUploadedDocs((current) => ({ ...current, ["National ID (NIN)"]: true }));
+                setUploadedDocFiles((current) => ({
+                  ...current,
+                  ["National ID (NIN)"]: {
+                    fileUrl: providerDocumentUrl,
+                    fileKey: "submitted-via-liveness",
+                    mimeType: "application/octet-stream",
+                  },
+                }));
+              }
+
+              const verificationState = await verificationApi.me();
+              const verificationId = String(verificationState.verification?.id ?? "");
+              if (!verificationId) {
+                throw new Error("Unable to find the submitted verification record");
+              }
+
+              if (!landlordOwnershipDoc) {
+                throw new Error("Property ownership document is required before liveness submission");
+              }
+
+              await verificationApi.addDocument(verificationId, {
+                documentType: "property_deed_or_cofo",
+                fileUrl: landlordOwnershipDoc.fileUrl,
+                fileKey: landlordOwnershipDoc.fileKey,
+                mimeType: landlordOwnershipDoc.mimeType,
+              });
+
+              setStoredKycStatus("submitted");
+              await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ["/auth/me"] }),
+                queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] }),
+                queryClient.invalidateQueries({ queryKey: ["/auth/me", "onboarding"] }),
+              ]);
+              setShowLandlordFacialVerification(false);
+              setTimeout(() => setStep(4), 1200);
+            } catch (error) {
+              const message = error instanceof Error ? error.message : "Unable to complete landlord verification";
+              toast.error(message);
+              setShowLandlordFacialVerification(false);
+            }
+          }}
+          onCancel={() => setShowLandlordFacialVerification(false)}
         />
       </div>
     );
@@ -1018,11 +1085,11 @@ export default function Onboarding() {
 
             <div className="space-y-3 pb-4">
               <Button
-                onClick={handleSubmitKyc}
-                disabled={uploadedCount === 0}
+                onClick={() => setShowLandlordFacialVerification(true)}
+                disabled={!landlordOwnershipDoc}
                 className="w-full h-12 rounded-xl text-sm font-semibold gap-2"
               >
-                Submit for Verification <ArrowRight className="h-4 w-4" />
+                Continue to Liveness Check <ArrowRight className="h-4 w-4" />
               </Button>
               <button onClick={handleSkipKyc} className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors py-1">
                 Skip for now — you can verify later in settings

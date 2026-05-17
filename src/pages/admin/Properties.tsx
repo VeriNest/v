@@ -40,13 +40,14 @@ export default function Properties() {
   useSearchFocus();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
-  const { data = [] } = useQuery({ queryKey: ["/admin/properties"], queryFn: () => adminApi.properties() });
+  const { data } = useQuery({ queryKey: ["/admin/properties"], queryFn: () => adminApi.properties() });
+  const rows = data?.items ?? [];
 
   useEffect(() => {
     setSearch(searchParams.get("q") ?? "");
   }, [searchParams]);
 
-  const properties = useMemo(() => data.map((property: any) => ({
+  const properties = useMemo(() => rows.map((property: any) => ({
     id: property.id,
     title: property.title ?? "Property",
     agent: property.agent_name ?? property.agentName ?? property.owner_name ?? property.ownerName ?? "Unassigned",
@@ -57,7 +58,7 @@ export default function Properties() {
     openReportCount: Number(property.open_report_count ?? property.openReportCount ?? 0),
     date: property.created_at || property.createdAt ? new Date(String(property.created_at ?? property.createdAt)).toLocaleDateString() : "",
     type: getPropertyListingType(property) === "sale" ? "Sale" : getPropertyListingType(property) === "shortlet" ? "Short-let" : "Rent",
-  })), [data]);
+  })), [rows]);
 
   const filtered = properties.filter((property) =>
     property.title.toLowerCase().includes(search.toLowerCase()) ||

@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Clock,
   DollarSign,
+  ExternalLink,
   Filter,
   Home,
   MapPin,
@@ -32,7 +33,7 @@ import { DashboardStatCard } from "@/components/dashboard/DashboardStatCard";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import { useSearchFocus } from "@/hooks/use-search-focus";
-import { agentApi, titleCase } from "@/lib/api";
+import { agentApi, getPropertyImage, titleCase } from "@/lib/api";
 
 const getUrgencyTone = (urgency: string) => {
   if (urgency === "High") return "danger";
@@ -69,6 +70,12 @@ export default function LeadInbox() {
     description: lead.requestTitle ?? "Need details unavailable",
     urgency: titleCase(lead.urgency ?? "standard"),
     needPostId: String(lead.needPostId ?? ""),
+    leadMatchId: typeof lead.id === "string" ? lead.id : "",
+    targetPropertyId: typeof lead.targetPropertyId === "string" ? lead.targetPropertyId : null,
+    targetPropertyTitle: typeof lead.targetPropertyTitle === "string" ? lead.targetPropertyTitle : null,
+    targetPropertyImageUrl: getPropertyImage(lead.targetPropertyImageUrl ? [String(lead.targetPropertyImageUrl)] : [], 0),
+    targetPropertyLocation: typeof lead.targetPropertyLocation === "string" ? lead.targetPropertyLocation : null,
+    isTargeted: Boolean(lead.targetPropertyId),
   })), [data]);
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -231,6 +238,27 @@ export default function LeadInbox() {
                                   {lead.sla > 0 ? `${lead.sla} min left` : "Handled"}
                                 </span>
                               </div>
+                              {lead.isTargeted ? (
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    navigate(`/provider/listings/${lead.targetPropertyId}`);
+                                  }}
+                                  className="flex w-full items-center gap-2 rounded-xl border border-[#ead9c7] bg-[#fcf7f0] p-2 text-left transition hover:border-primary/40"
+                                >
+                                  <img
+                                    src={lead.targetPropertyImageUrl}
+                                    alt={lead.targetPropertyTitle ?? "Target property"}
+                                    className="h-12 w-12 rounded-lg object-cover"
+                                  />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="truncate text-xs font-semibold text-foreground">{lead.targetPropertyTitle ?? "Targeted property"}</p>
+                                    <p className="truncate text-[11px] text-muted-foreground">{lead.targetPropertyLocation ?? lead.location}</p>
+                                  </div>
+                                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                                </button>
+                              ) : null}
                             </div>
                           </div>
                         </button>
@@ -249,7 +277,9 @@ export default function LeadInbox() {
                               size="sm"
                               className="gap-1.5"
                               onClick={() =>
-                                navigate(`/provider/inbox/${selectedLead.id}/offer?need=${encodeURIComponent(selectedLead.need)}&id=${selectedLead.needPostId}`)
+                                navigate(
+                                  `/provider/inbox/${selectedLead.id}/offer?need=${encodeURIComponent(selectedLead.need)}&needPostId=${selectedLead.needPostId}&leadMatchId=${selectedLead.leadMatchId}`,
+                                )
                               }
                             >
                               <Send className="h-3.5 w-3.5" /> Send Offer
@@ -284,6 +314,28 @@ export default function LeadInbox() {
                             </div>
                           ))}
                         </div>
+
+                        {selectedLead.isTargeted ? (
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/provider/listings/${selectedLead.targetPropertyId}`)}
+                            className="flex w-full items-center gap-3 rounded-2xl border border-[#ead9c7] bg-[#fcf7f0] p-3 text-left transition hover:border-primary/40"
+                          >
+                            <img
+                              src={selectedLead.targetPropertyImageUrl}
+                              alt={selectedLead.targetPropertyTitle ?? "Target property"}
+                              className="h-16 w-16 rounded-xl object-cover"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Requested listing</p>
+                              <p className="truncate text-sm font-semibold text-foreground">{selectedLead.targetPropertyTitle ?? "Targeted property"}</p>
+                              <p className="truncate text-xs text-muted-foreground">{selectedLead.targetPropertyLocation ?? selectedLead.location}</p>
+                            </div>
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                              Open listing <ExternalLink className="h-3.5 w-3.5" />
+                            </span>
+                          </button>
+                        ) : null}
 
                         <div className="rounded-xl border border-border/60 bg-muted/20 p-4">
                           <div className="flex items-start justify-between gap-3">
@@ -386,6 +438,24 @@ export default function LeadInbox() {
                         </DashboardStatusBadge>
                         <span className="text-xs text-muted-foreground">{lead.posted}</span>
                       </div>
+                      {lead.isTargeted ? (
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/provider/listings/${lead.targetPropertyId}`)}
+                          className="flex w-full items-center gap-2 rounded-xl border border-[#ead9c7] bg-[#fcf7f0] p-2 text-left transition hover:border-primary/40"
+                        >
+                          <img
+                            src={lead.targetPropertyImageUrl}
+                            alt={lead.targetPropertyTitle ?? "Target property"}
+                            className="h-12 w-12 rounded-lg object-cover"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-semibold text-foreground">{lead.targetPropertyTitle ?? "Targeted property"}</p>
+                            <p className="truncate text-[11px] text-muted-foreground">{lead.targetPropertyLocation ?? lead.location}</p>
+                          </div>
+                          <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                        </button>
+                      ) : null}
                       <p className="text-sm leading-6 text-muted-foreground">{lead.description}</p>
                       <div className="flex flex-wrap gap-2">
                         {lead.features.map((feature) => (
@@ -399,7 +469,11 @@ export default function LeadInbox() {
                           <Button
                             size="sm"
                             className="gap-1.5"
-                            onClick={() => navigate(`/provider/inbox/${lead.id}/offer?need=${encodeURIComponent(lead.need)}&id=${lead.needPostId}`)}
+                            onClick={() =>
+                              navigate(
+                                `/provider/inbox/${lead.id}/offer?need=${encodeURIComponent(lead.need)}&needPostId=${lead.needPostId}&leadMatchId=${lead.leadMatchId}`,
+                              )
+                            }
                           >
                             <Send className="h-3.5 w-3.5" /> Send Offer
                           </Button>

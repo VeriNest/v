@@ -1,4 +1,5 @@
 import { UserCheck, Search, Eye, FileCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import MarketingShell from "@/components/layout/MarketingShell";
 import { Button } from "@/components/ui/button";
@@ -44,8 +45,10 @@ const ValueProposition = () => {
             <p className="text-muted-foreground text-[15px] leading-relaxed mb-8">
               A simpler rental workflow for seekers, agents, and landlords.
             </p>
-            <Button className="rounded-lg px-7 py-6 bg-foreground text-background hover:bg-foreground/90 text-sm font-medium">
-              Post a Need
+            <Button className="rounded-lg px-7 py-6 bg-foreground text-background hover:bg-foreground/90 text-sm font-medium" asChild>
+              <Link to="/seeker/post">
+                Post a Need
+              </Link>
             </Button>
           </div>
 

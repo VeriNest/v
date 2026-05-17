@@ -51,7 +51,8 @@ export default function SendOffer() {
   const { id: leadId } = useParams();
   const [searchParams] = useSearchParams();
   const leadNeed = searchParams.get("need") || "Tenant Request";
-  const needPostIdFromQuery = searchParams.get("id") || "";
+  const needPostIdFromQuery = searchParams.get("needPostId") || searchParams.get("id") || "";
+  const leadMatchIdFromQuery = searchParams.get("leadMatchId") || "";
 
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -59,7 +60,7 @@ export default function SendOffer() {
   const { data: leadData } = useQuery({
     queryKey: ["/agent/leads", leadId, "offer-context"],
     queryFn: () => agentApi.getLead(leadId!),
-    enabled: Boolean(leadId) && !needPostIdFromQuery,
+    enabled: Boolean(leadId),
   });
   const listings = useMemo(
     () =>
@@ -71,6 +72,7 @@ export default function SendOffer() {
         location: listing.location ?? "Unknown",
         bedrooms: String((listing.title ?? "").match(/(\d+)/)?.[1] ?? 2),
         media: Array.isArray(listing.images) ? listing.images.filter((value: unknown) => typeof value === "string") : [],
+        listingType: String(listing.listing_type ?? (listing.is_service_apartment ? "shortlet" : "rent")).toLowerCase(),
       })),
     [data],
   );
@@ -83,10 +85,17 @@ export default function SendOffer() {
   const [message, setMessage] = useState("");
 
   const needPostId = needPostIdFromQuery || String((leadData as any)?.lead?.needPostId ?? "");
+  const leadMatchId = leadMatchIdFromQuery || String((leadData as any)?.lead?.id ?? "");
   const resolvedLeadNeed = String((leadData as any)?.lead?.requestTitle ?? leadNeed);
   const selectedListingData = listings.find((listing) => listing.id === selectedListing);
   const selectedListingMedia = selectedListingData?.media ?? [];
   const progress = (currentStep / steps.length) * 100;
+  const offerPricePeriod =
+    selectedListingData?.listingType === "sale"
+      ? "total"
+      : selectedListingData?.listingType === "shortlet"
+        ? "day"
+        : "year";
 
   const canAdvance = () => {
     if (currentStep === 1) return selectedListing.length > 0;
@@ -426,7 +435,7 @@ export default function SendOffer() {
                   </div>
                 ) : null}
 
-                <Button onClick={async () => { try { setSubmitting(true); await agentApi.createOffer({ needPostId, propertyId: selectedListing, offerPriceAmount: Number(String(offerPrice).replace(/[^0-9]/g, "")) || Number(selectedListingData?.rawPrice ?? 0), offerPriceCurrency: "NGN", offerPricePeriod: "year", moveInDate: moveInDate || undefined, customTerms, message: message.trim(), prioritySend }); setSubmitted(true); } catch (error) { const message = error instanceof Error ? error.message : "Unable to send offer"; toast.error(message); } finally { setSubmitting(false); } }} disabled={submitting || !selectedListing || !needPostId || message.trim().length === 0} className="h-11 w-full gap-2 text-sm font-medium">
+                <Button onClick={async () => { try { setSubmitting(true); await agentApi.createOffer({ needPostId, propertyId: selectedListing, leadMatchId: leadMatchId || undefined, offerPriceAmount: Number(String(offerPrice).replace(/[^0-9]/g, "")) || Number(selectedListingData?.rawPrice ?? 0), offerPriceCurrency: "NGN", offerPricePeriod, moveInDate: moveInDate || undefined, customTerms, message: message.trim(), prioritySend }); setSubmitted(true); } catch (error) { const message = error instanceof Error ? error.message : "Unable to send offer"; toast.error(message); } finally { setSubmitting(false); } }} disabled={submitting || !selectedListing || !needPostId || message.trim().length === 0} className="h-11 w-full gap-2 text-sm font-medium">
                   {submitting ? <InlineSpinner variant="solid" /> : <Send className="h-4 w-4" />}
                   {submitting ? "Sending Offer..." : "Send Offer"}
                 </Button>

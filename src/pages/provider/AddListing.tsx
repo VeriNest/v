@@ -81,6 +81,7 @@ export default function AddListing() {
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const isLandlordFlow = locationState.pathname.startsWith("/landlord");
 
@@ -90,6 +91,7 @@ export default function AddListing() {
   const handleSubmitListing = async () => {
     try {
       setSubmitting(true);
+      setSaveSuccess(false);
       const payload = {
         title,
         price: Number(String(price).replace(/[^0-9]/g, "")) || 0,
@@ -107,10 +109,12 @@ export default function AddListing() {
       } else {
         await propertiesApi.createAgent(payload);
       }
-      setSubmitted(true);
+      setSaveSuccess(true);
+      setTimeout(() => setSubmitted(true), 1000);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to save listing";
       toast.error(message);
+      setSaveSuccess(false);
     } finally {
       setSubmitting(false);
     }
@@ -563,8 +567,15 @@ export default function AddListing() {
                       disabled={submitting || !isVerified} 
                       className="w-full h-11 text-sm font-medium gap-2"
                     >
-                      {submitting ? <InlineSpinner variant="solid" /> : <CheckCircle2 className="h-4 w-4" />}
-                      {submitting ? "Publishing..." : !isVerified ? "Verification Required" : "Publish Listing"}
+                      {submitting ? (
+                        <><InlineSpinner variant="solid" /> Publishing...</>
+                      ) : saveSuccess ? (
+                        <><CheckCircle2 className="h-4 w-4" /> Saved</>
+                      ) : !isVerified ? (
+                        <><CheckCircle2 className="h-4 w-4" /> Verification Required</>
+                      ) : (
+                        <><CheckCircle2 className="h-4 w-4" /> Publish Listing</>
+                      )}
                     </Button>
                   </CardContent>
                 </Card>

@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Clock,
   DollarSign,
+  ExternalLink,
   Home,
   MapPin,
   Send,
@@ -18,7 +19,7 @@ import { DashboardSectionCard } from "@/components/dashboard/DashboardSectionCar
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { agentApi, formatCompactCurrency, titleCase } from "@/lib/api";
+import { agentApi, formatCompactCurrency, getPropertyImage, titleCase } from "@/lib/api";
 
 const getUrgencyTone = (urgency: string) => {
   if (urgency === "High") return "danger";
@@ -58,6 +59,13 @@ export default function LeadDetail() {
   const location = String(lead.location ?? seekerNeed.location ?? "Unknown location");
   const budget = `${formatCompactCurrency(Number(seekerNeed.min_budget ?? 0))} - ${formatCompactCurrency(Number(seekerNeed.max_budget ?? 0))}`;
   const features = Array.isArray(seekerNeed.desired_features) ? seekerNeed.desired_features : [];
+  const targetPropertyId = typeof lead.targetPropertyId === "string" ? lead.targetPropertyId : typeof seekerNeed.target_property_id === "string" ? seekerNeed.target_property_id : null;
+  const targetPropertyTitle = typeof lead.targetPropertyTitle === "string" ? lead.targetPropertyTitle : typeof seekerNeed.target_property_title === "string" ? seekerNeed.target_property_title : null;
+  const targetPropertyLocation = typeof lead.targetPropertyLocation === "string" ? lead.targetPropertyLocation : typeof seekerNeed.target_property_location === "string" ? seekerNeed.target_property_location : null;
+  const targetPropertyImageUrl = getPropertyImage(
+    [String(lead.targetPropertyImageUrl ?? seekerNeed.target_property_image_url ?? "")].filter(Boolean),
+    0,
+  );
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -75,7 +83,11 @@ export default function LeadDetail() {
               <Button
                 size="sm"
                 className="gap-1.5"
-                onClick={() => navigate(`/provider/inbox/${id}/offer?need=${encodeURIComponent(needTitle)}&id=${lead.needPostId}`)}
+                onClick={() =>
+                  navigate(
+                    `/provider/inbox/${id}/offer?need=${encodeURIComponent(needTitle)}&needPostId=${lead.needPostId}&leadMatchId=${lead.id}`,
+                  )
+                }
               >
                 <Send className="h-3.5 w-3.5" /> Send Offer
               </Button>
@@ -114,6 +126,28 @@ export default function LeadDetail() {
               </div>
             ))}
           </div>
+
+          {targetPropertyId ? (
+            <button
+              type="button"
+              onClick={() => navigate(`/provider/listings/${targetPropertyId}`)}
+              className="flex w-full items-center gap-3 rounded-2xl border border-[#ead9c7] bg-[#fcf7f0] p-3 text-left transition hover:border-primary/40"
+            >
+              <img
+                src={targetPropertyImageUrl}
+                alt={targetPropertyTitle ?? "Target property"}
+                className="h-16 w-16 rounded-xl object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">Requested listing</p>
+                <p className="truncate text-sm font-semibold text-foreground">{targetPropertyTitle ?? "Targeted property"}</p>
+                <p className="truncate text-xs text-muted-foreground">{targetPropertyLocation ?? location}</p>
+              </div>
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+                Open listing <ExternalLink className="h-3.5 w-3.5" />
+              </span>
+            </button>
+          ) : null}
 
           <p className="text-sm leading-6 text-muted-foreground">{String(seekerNeed.description ?? "No description provided.")}</p>
 
@@ -176,7 +210,11 @@ export default function LeadDetail() {
             {!existingOffer ? (
               <Button
                 className="mt-2 w-full gap-1.5"
-                onClick={() => navigate(`/provider/inbox/${id}/offer?need=${encodeURIComponent(needTitle)}&id=${lead.needPostId}`)}
+                onClick={() =>
+                  navigate(
+                    `/provider/inbox/${id}/offer?need=${encodeURIComponent(needTitle)}&needPostId=${lead.needPostId}&leadMatchId=${lead.id}`,
+                  )
+                }
               >
                 <Zap className="h-3.5 w-3.5" /> Respond to Lead
               </Button>
