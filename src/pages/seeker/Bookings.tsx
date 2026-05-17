@@ -45,6 +45,11 @@ function isBookingPassed(scheduledDate: Date | null): boolean {
   return scheduledDate < now;
 }
 
+function isBookingOneHourPast(scheduledDate: Date | null): boolean {
+  if (!scheduledDate) return false;
+  return Date.now() >= scheduledDate.getTime() + 60 * 60 * 1000;
+}
+
 const bookingStatusStyles: Record<string, string> = {
   Confirmed: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
   Pending: "bg-primary/10 text-primary border-primary/20",
@@ -88,6 +93,10 @@ export default function SeekerBookings() {
   const [outcomeBookingId, setOutcomeBookingId] = useState<string | null>(null);
   const [outcomeValue, setOutcomeValue] = useState<"completed" | "not_completed">("completed");
   const [outcomeNote, setOutcomeNote] = useState("");
+  const [disputeBookingId, setDisputeBookingId] = useState<string | null>(null);
+  const [disputeType, setDisputeType] = useState<"quality" | "fraud" | "cancellation" | "payment" | "listing_misrepresentation">("quality");
+  const [disputeTitle, setDisputeTitle] = useState("");
+  const [disputeDescription, setDisputeDescription] = useState("");
   
   const { data = [] } = useQuery({
     queryKey: ["/seeker/bookings"],
@@ -172,6 +181,26 @@ export default function SeekerBookings() {
     },
     onError: (error) => {
       const message = error instanceof Error ? error.message : "Unable to confirm outcome";
+      toast.error(message);
+    },
+  });
+  const createDisputeMutation = useMutation({
+    mutationFn: (payload: { id: string; disputeType: string; title: string; description: string }) =>
+      seekerApi.createBookingDispute(payload.id, {
+        disputeType: payload.disputeType,
+        title: payload.title,
+        description: payload.description,
+      }),
+    onSuccess: () => {
+      toast.success("Dispute submitted. Admin will be able to review it.");
+      setDisputeBookingId(null);
+      setDisputeTitle("");
+      setDisputeDescription("");
+      queryClient.invalidateQueries({ queryKey: ["/seeker/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/admin/disputes"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to raise dispute";
       toast.error(message);
     },
   });
@@ -343,7 +372,7 @@ export default function SeekerBookings() {
                 {isBookingPassed(item.scheduledDate) ? (
                   <>
                     <div className="flex flex-col gap-2 sm:flex-row">
-                      {item.status === "Confirmed" && !item.seekerOutcome ? (
+                      {item.status === "Confirmed" && isBookingOneHourPast(item.scheduledDate) && !item.seekerOutcome ? (
                         <Button
                           size="sm"
                           className="h-8 rounded-lg px-3 text-xs"
@@ -354,6 +383,21 @@ export default function SeekerBookings() {
                           }}
                         >
                           Confirm Outcome
+                        </Button>
+                      ) : null}
+                      {item.status === "Confirmed" && isBookingOneHourPast(item.scheduledDate) ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 rounded-lg px-3 text-xs"
+                          onClick={() => {
+                            setDisputeBookingId(item.id);
+                            setDisputeType("quality");
+                            setDisputeTitle(`Dispute for ${item.property}`);
+                            setDisputeDescription("");
+                          }}
+                        >
+                          Raise Dispute
                         </Button>
                       ) : null}
                       <Button 
@@ -379,18 +423,24 @@ export default function SeekerBookings() {
                         Report Property Issue
                       </Button>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-8 rounded-lg px-3 text-xs"
-                      onClick={() => {
-                        setReportingBookingId(item.id);
-                        setReportType(null);
-                        setReportNotes("");
-                      }}
-                    >
-                      Reschedule
-                    </Button>
+                    {item.status === "Confirmed" && !isBookingOneHourPast(item.scheduledDate) ? (
+                      <div className="text-xs text-muted-foreground">
+                        Outcome and dispute actions appear one hour after the scheduled visit time.
+                      </div>
+                    ) : (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 rounded-lg px-3 text-xs"
+                        onClick={() => {
+                          setReportingBookingId(item.id);
+                          setReportType(null);
+                          setReportNotes("");
+                        }}
+                      >
+                        Reschedule
+                      </Button>
+                    )}
                   </>
                 ) : (
                   <>
@@ -469,6 +519,71 @@ export default function SeekerBookings() {
                       onClick={() => confirmOutcomeMutation.mutate({ id: outcomeBookingId, outcome: outcomeValue, note: outcomeNote.trim() || undefined })}
                     >
                       {confirmOutcomeMutation.isPending ? <InlineSpinner variant="solid" /> : "Submit Outcome"}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
+
+      {disputeBookingId && (() => {
+        const booking = bookings.find((b) => b.id === disputeBookingId);
+        return (
+          <Dialog open={!!disputeBookingId} onOpenChange={(open) => !open && setDisputeBookingId(null)}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Raise Dispute</DialogTitle>
+                <DialogDescription>
+                  Open a dispute against the other party for this confirmed visit. Admin will review the case.
+                </DialogDescription>
+              </DialogHeader>
+              {booking ? (
+                <div className="space-y-4">
+                  <div className="rounded-lg border border-border/50 bg-secondary/15 p-3">
+                    <p className="text-xs text-muted-foreground">Booking</p>
+                    <p className="mt-1 font-medium">{booking.property}</p>
+                    <p className="text-xs text-muted-foreground">{booking.host} · {booking.dateLabel}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      ["quality", "Quality"],
+                      ["fraud", "Fraud"],
+                      ["cancellation", "Cancellation"],
+                      ["payment", "Payment"],
+                      ["listing_misrepresentation", "Misrepresentation"],
+                    ].map(([value, label]) => (
+                      <Button key={value} variant={disputeType === value ? "default" : "outline"} onClick={() => setDisputeType(value as typeof disputeType)}>
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Title</label>
+                    <Textarea value={disputeTitle} onChange={(e) => setDisputeTitle(e.target.value)} className="min-h-16" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Description</label>
+                    <Textarea value={disputeDescription} onChange={(e) => setDisputeDescription(e.target.value)} className="min-h-28" placeholder="Explain what happened during or after the confirmed visit." />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="flex-1" onClick={() => setDisputeBookingId(null)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      disabled={createDisputeMutation.isPending || !disputeTitle.trim() || !disputeDescription.trim()}
+                      onClick={() =>
+                        createDisputeMutation.mutate({
+                          id: disputeBookingId,
+                          disputeType,
+                          title: disputeTitle.trim(),
+                          description: disputeDescription.trim(),
+                        })
+                      }
+                    >
+                      {createDisputeMutation.isPending ? <InlineSpinner variant="solid" /> : "Submit Dispute"}
                     </Button>
                   </div>
                 </div>
