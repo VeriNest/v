@@ -32,9 +32,10 @@ export const announcements = [] as any[];
 
 export default function AdminAnnouncements() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const { data = [] } = useQuery({ queryKey: ["/admin/announcements"], queryFn: () => adminApi.announcements() });
+  const { data } = useQuery({ queryKey: ["/admin/announcements"], queryFn: () => adminApi.announcements() });
+  const rows = data?.items ?? [];
 
-  const announcements = useMemo(() => data.map((item: any) => ({
+  const announcements = useMemo(() => rows.map((item: any) => ({
     id: String(item.id),
     title: item.title ?? "Announcement",
     message: item.body ?? "",
@@ -42,7 +43,7 @@ export default function AdminAnnouncements() {
     type: String(item.type ?? "info").toLowerCase(),
     status: String(item.status ?? "published").toLowerCase(),
     date: item.created_at || item.createdAt ? new Date(String(item.created_at ?? item.createdAt)).toLocaleDateString() : "",
-  })), [data]);
+  })), [rows]);
 
   const stats = [
     { label: "Total Sent", value: String(announcements.length), icon: Send, iconBg: "bg-primary/10", accent: "text-primary" },

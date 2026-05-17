@@ -81,15 +81,16 @@ export function DashboardNotifications({ role }: { role: DashboardRole }) {
   const seenNotificationIds = useRef<Set<string>>(new Set());
   const hydratedNotifications = useRef(false);
 
-  const { data = [] } = useQuery({
+  const { data } = useQuery({
     queryKey: ["/notifications"],
     queryFn: () => notificationsApi.list(),
     refetchInterval: 60_000,
   });
+  const items = data?.items ?? [];
 
   const visibleItems = useMemo(
-    () => data.map((item) => ({ ...item, time: timeAgo(item.createdAt), tone: toneFromKind(item.kind) })),
-    [data],
+    () => items.map((item) => ({ ...item, time: timeAgo(item.createdAt), tone: toneFromKind(item.kind) })),
+    [items],
   );
 
   const unreadCount = useMemo(

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 
 import MarketingShell from "@/components/layout/MarketingShell";
 import { cn } from "@/lib/utils";
+import palmResidenceImage from "../../images/wmremove-transformed (3).jpeg";
+import admiraltySuitesImage from "../../images/wmremove-transformed (4).jpeg";
 
 type ListingTile = {
   title: string;
@@ -23,9 +25,8 @@ const topListings: ListingTile[] = [
     title: "Palm Residence",
     location: "Lekki Phase 1, Lagos",
     price: "NGN 12.5M / year",
-    image:
-      "https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1400&q=80",
-    alt: "Modern luxury home glowing at night beside a reflective pool",
+    image: palmResidenceImage,
+    alt: "Modern multi-storey residence with black and white facade",
     beds: "6 Beds",
     area: "8,200 sqft",
     featured: true,
@@ -49,9 +50,8 @@ const bottomListings: ListingTile[] = [
     title: "Admiralty Suites",
     location: "Ikoyi, Lagos",
     price: "NGN 3.2M / year",
-    image:
-      "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80",
-    alt: "Warm modern home in a serene dry landscape at sunset",
+    image: admiraltySuitesImage,
+    alt: "Contemporary white residence with palm tree in the courtyard",
     heightClass: "h-[260px] md:h-[280px] lg:h-[230px]",
     variant: "small",
   },

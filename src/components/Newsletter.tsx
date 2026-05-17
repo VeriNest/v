@@ -1,4 +1,5 @@
 import { Star } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import MarketingShell from "@/components/layout/MarketingShell";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ const testimonials = [
   {
     text: "As a provider, I get clearer requests and spend less time filtering casual inquiries before sending offers.",
     name: "Ibrahim S.",
-    location: "Lagos agent",
+    location: "Kaduna agent",
     avatar: "/testimonials/testimonial-3.jpg",
   },
 ];
@@ -68,11 +69,15 @@ const Newsletter = () => {
               Post your need, browse verified homes, or join Verinest as an agent or landlord.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button variant="outline" className="rounded-lg px-8 py-6 text-sm font-medium border-white/20 text-white hover:bg-white/5 gap-2">
-                Browse Homes
+              <Button variant="outline" className="rounded-lg px-8 py-6 text-sm font-medium border-white/20 text-black hover:text-white hover:bg-white/5 gap-2" asChild>
+                <Link to="/properties">
+                  Browse Homes
+                </Link>
               </Button>
-              <Button className="rounded-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium gap-2">
-                Post a Need
+              <Button className="rounded-lg px-8 py-6 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium gap-2" asChild>
+                <Link to="/seeker/post">
+                  Post a Need
+                </Link>
               </Button>
             </div>
           </div>

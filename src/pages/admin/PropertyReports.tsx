@@ -44,14 +44,15 @@ export default function PropertyReports() {
   const [decision, setDecision] = useState<"dismissed" | "upheld">("upheld");
   const [propertyAction, setPropertyAction] = useState<"" | "hide" | "suspend">("hide");
 
-  const { data = [], isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["/admin/reports"],
     queryFn: () => adminApi.reports(),
   });
+  const rows = data?.items ?? [];
 
   const propertyReports = useMemo(
-    () => (Array.isArray(data) ? data : []).filter((report: any) => report.property_id || report.propertyId),
-    [data],
+    () => rows.filter((report: any) => report.property_id || report.propertyId),
+    [rows],
   );
 
   const filteredReports = useMemo(() => {

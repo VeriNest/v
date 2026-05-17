@@ -1,5 +1,7 @@
 import { Facebook, Instagram, Twitter, Linkedin, Youtube, MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { toast } from "sonner";
 
 import MarketingShell from "@/components/layout/MarketingShell";
 import MarketingLogo from "@/components/MarketingLogo";
@@ -31,6 +33,28 @@ const legalLinks = [
 ];
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !email.includes("@")) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Store email subscription (backend will implement actual functionality)
+      // For now, just show success message
+      toast.success("Thanks for subscribing! Check your email for updates.");
+      setEmail("");
+    } catch (error) {
+      toast.error("Failed to subscribe. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <footer className="px-6 lg:px-16 xl:px-20 pt-16 pb-8 bg-[hsl(var(--dark-bg))]">
       <MarketingShell>
@@ -76,7 +100,7 @@ const Footer = () => {
             <div className="space-y-4">
               <div className="flex gap-3">
                 <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                <p className="text-sm text-white/35 leading-relaxed">502, Devpath Building,<br />Near Torrent Lab,<br />Ashram Road, Lagos</p>
+                <p className="text-sm text-white/35 leading-relaxed">No 72 picca close,<br />Kaduna</p>
               </div>
               <div className="flex gap-3 items-center">
                 <Phone className="w-4 h-4 text-primary shrink-0" />
@@ -86,8 +110,8 @@ const Footer = () => {
               </div>
               <div className="flex gap-3 items-center">
                 <Mail className="w-4 h-4 text-primary shrink-0" />
-                <a href="mailto:hello@verinest.com" className="text-sm text-white/35 hover:text-white/70 transition-colors">
-                  hello@verinest.com
+                <a href="mailto:hello@verinest.ng" className="text-sm text-white/35 hover:text-white/70 transition-colors">
+                  hello@verinest.ng
                 </a>
               </div>
             </div>
@@ -96,16 +120,22 @@ const Footer = () => {
           <div>
             <p className="font-serif text-base text-white mb-5">Stay Updated</p>
             <p className="text-sm text-white/35 leading-relaxed mb-4">Get product updates, market signals, and new verified listing alerts.</p>
-            <div className="space-y-3">
+            <form onSubmit={handleSubscribe} className="space-y-3">
               <Input
                 type="email"
                 placeholder="Your email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="rounded-lg bg-white/[0.06] border-white/10 text-white placeholder:text-white/30 focus-visible:ring-primary h-11"
               />
-              <Button className="w-full rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 h-11 text-sm font-medium">
-                Subscribe
+              <Button 
+                type="submit"
+                disabled={isLoading}
+                className="w-full rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 h-11 text-sm font-medium"
+              >
+                {isLoading ? "Subscribing..." : "Subscribe"}
               </Button>
-            </div>
+            </form>
             <p className="text-[11px] text-white/25 mt-3">We respect your privacy. Unsubscribe anytime.</p>
           </div>
         </div>

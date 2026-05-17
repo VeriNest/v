@@ -8,13 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Mail, Phone, MapPin, Clock, Send, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const contactInfo = [
   {
     icon: Mail,
     label: "Email",
-    value: "hello@verinest.com",
-    href: "mailto:hello@verinest.com",
+    value: "hello@verinest.ng",
+    href: "mailto:hello@verinest.ng",
   },
   {
     icon: Phone,
@@ -25,7 +26,7 @@ const contactInfo = [
   {
     icon: MapPin,
     label: "Address",
-    value: "502, Devpath Building, Ashram Road, Lagos",
+    value: "No 72 picca close Kaduna",
   },
   {
     icon: Clock,
@@ -54,17 +55,49 @@ const faqs = [
 ];
 
 const Contact = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     subject: "",
     message: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    toast.success("Message sent. We'll get back to you within one business day.");
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/admin/contact-message", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
+
+      toast.success("Message sent successfully! We'll get back to you within one business day.");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      
+      // Redirect after 1.5 seconds
+      setTimeout(() => {
+        navigate("/");
+      }, 1500);
+    } catch (error) {
+      toast.error("Failed to send message. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -187,9 +220,10 @@ const Contact = () => {
                   </div>
                   <Button
                     type="submit"
+                    disabled={isLoading}
                     className="w-full gap-2 rounded-lg px-7 py-6 text-sm font-medium sm:w-auto"
                   >
-                    Send Message <ArrowRight className="h-4 w-4" />
+                    {isLoading ? "Sending..." : "Send Message"} <ArrowRight className="h-4 w-4" />
                   </Button>
                 </form>
               </div>
@@ -279,7 +313,7 @@ const Contact = () => {
               className="gap-2 rounded-lg bg-primary px-8 py-6 text-sm font-medium text-primary-foreground hover:bg-primary/90"
               asChild
             >
-              <a href="mailto:hello@verinest.com">
+              <a href="mailto:hello@verinest.ng">
                 Email Support <ArrowRight className="h-4 w-4" />
               </a>
             </Button>

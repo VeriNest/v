@@ -85,6 +85,9 @@ export default function SeekerBookings() {
   const [reportingBookingId, setReportingBookingId] = useState<string | null>(null);
   const [reportType, setReportType] = useState<"no-show" | "issue" | null>(null);
   const [reportNotes, setReportNotes] = useState("");
+  const [outcomeBookingId, setOutcomeBookingId] = useState<string | null>(null);
+  const [outcomeValue, setOutcomeValue] = useState<"completed" | "not_completed">("completed");
+  const [outcomeNote, setOutcomeNote] = useState("");
   
   const { data = [] } = useQuery({
     queryKey: ["/seeker/bookings"],
@@ -157,6 +160,21 @@ export default function SeekerBookings() {
       toast.error(message);
     },
   });
+  const confirmOutcomeMutation = useMutation({
+    mutationFn: (payload: { id: string; outcome: "completed" | "not_completed"; note?: string }) =>
+      seekerApi.confirmBookingOutcome(payload.id, { outcome: payload.outcome, note: payload.note }),
+    onSuccess: () => {
+      toast.success("Outcome confirmed. The provider will be prompted to confirm too.");
+      setOutcomeBookingId(null);
+      setOutcomeNote("");
+      queryClient.invalidateQueries({ queryKey: ["/seeker/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/agent/bookings"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to confirm outcome";
+      toast.error(message);
+    },
+  });
   const bookings = useMemo(() => data.map((item: any, index: number) => ({
     id: item.id ?? `BK-${index + 1}`,
     propertyId: item.propertyId ?? item.property_id,
@@ -173,6 +191,12 @@ export default function SeekerBookings() {
     scheduledDate: item.scheduledFor ? new Date(item.scheduledFor) : null,
     detail: titleForBookingType(item.bookingType),
     initials: String(item.providerName ?? "PR").split(" ").map((part: string) => part[0]).join("").slice(0, 2) || "PR",
+    listingType: String(item.propertyListingType ?? item.property_listing_type ?? "rent"),
+    seekerOutcome: item.seekerOutcome ?? item.seeker_outcome ?? null,
+    providerOutcome: item.providerOutcome ?? item.provider_outcome ?? null,
+    outcomeResolution: item.outcomeResolution ?? item.outcome_resolution ?? null,
+    outcomeFollowUpRequired: Boolean(item.outcomeFollowUpRequired ?? item.outcome_follow_up_required ?? false),
+    listingOutcomeApplied: Boolean(item.listingOutcomeApplied ?? item.listing_outcome_applied ?? false),
   })), [data]);
   const viewings = bookings.filter((item) => item.detail.toLowerCase().includes("viewing") || item.status.toLowerCase().includes("awaiting") || item.status.toLowerCase().includes("confirmed"));
 
@@ -301,10 +325,37 @@ export default function SeekerBookings() {
                 {item.detail}
               </div>
 
+              {item.outcomeResolution ? (
+                <div className={`rounded-xl border px-3 py-2.5 text-xs ${
+                  item.outcomeResolution === "conflict"
+                    ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
+                    : "border-emerald-500/20 bg-emerald-500/10 text-emerald-700"
+                }`}>
+                  {item.outcomeResolution === "conflict"
+                    ? "Outcome conflict flagged for follow-up."
+                    : item.listingOutcomeApplied
+                      ? "Both sides confirmed. Listing availability has been updated."
+                      : "Both sides confirmed the visit outcome."}
+                </div>
+              ) : null}
+
               <div className="flex flex-col gap-2 border-t border-border/50 pt-3 sm:flex-row sm:items-center sm:justify-between">
                 {isBookingPassed(item.scheduledDate) ? (
                   <>
                     <div className="flex flex-col gap-2 sm:flex-row">
+                      {item.status === "Confirmed" && !item.seekerOutcome ? (
+                        <Button
+                          size="sm"
+                          className="h-8 rounded-lg px-3 text-xs"
+                          onClick={() => {
+                            setOutcomeBookingId(item.id);
+                            setOutcomeValue("completed");
+                            setOutcomeNote("");
+                          }}
+                        >
+                          Confirm Outcome
+                        </Button>
+                      ) : null}
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -368,6 +419,64 @@ export default function SeekerBookings() {
           </Card>
         ))}
       </div>
+
+      {/* Report/Reschedule Modal */}
+      {outcomeBookingId && (() => {
+        const booking = bookings.find((b) => b.id === outcomeBookingId);
+        return (
+          <Dialog open={!!outcomeBookingId} onOpenChange={(open) => !open && setOutcomeBookingId(null)}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Confirm Booking Outcome</DialogTitle>
+                <DialogDescription>
+                  Tell us whether this visit ended with a successful property take-up. The provider will be asked to confirm too.
+                </DialogDescription>
+              </DialogHeader>
+              {booking ? (
+                <div className="space-y-4">
+                  <div className="rounded-lg border border-border/50 bg-secondary/15 p-3">
+                    <p className="text-xs text-muted-foreground">Booking</p>
+                    <p className="mt-1 font-medium">{booking.property}</p>
+                    <p className="text-xs text-muted-foreground">{booking.dateLabel}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant={outcomeValue === "completed" ? "default" : "outline"} onClick={() => setOutcomeValue("completed")}>
+                      Yes, it worked out
+                    </Button>
+                    <Button variant={outcomeValue === "not_completed" ? "default" : "outline"} onClick={() => setOutcomeValue("not_completed")}>
+                      No, not taken
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Note (optional)</label>
+                    <Textarea
+                      value={outcomeNote}
+                      onChange={(e) => setOutcomeNote(e.target.value)}
+                      className="min-h-24"
+                      placeholder="Add any useful context for support or the provider."
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="flex-1" onClick={() => setOutcomeBookingId(null)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      disabled={confirmOutcomeMutation.isPending}
+                      onClick={() => confirmOutcomeMutation.mutate({ id: outcomeBookingId, outcome: outcomeValue, note: outcomeNote.trim() || undefined })}
+                    >
+                      {confirmOutcomeMutation.isPending ? <InlineSpinner variant="solid" /> : "Submit Outcome"}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+            </DialogContent>
+          </Dialog>
+        );
+      })()}
 
       {/* Report/Reschedule Modal */}
       {reportingBookingId && (() => {

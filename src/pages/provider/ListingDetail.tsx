@@ -17,6 +17,7 @@ import {
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardSectionCard } from "@/components/dashboard/DashboardSectionCard";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { CommentSection } from "@/components/CommentSection";
 import { Button } from "@/components/ui/button";
 import { getPropertyImage, propertiesApi, titleCase, maskPhoneNumber } from "@/lib/api";
 
@@ -147,7 +148,7 @@ export default function ListingDetail() {
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.8fr)]">
+      <div className="grid gap-4 xl:gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(320px,0.8fr)]">
         <div className="space-y-6">
           <section className="overflow-hidden rounded-[28px] border border-border/60 bg-card shadow-sm">
             <div className="border-b border-border/50 bg-gradient-to-br from-[#f4ede4] via-background to-[#f3f0ea] p-4 sm:p-5">
@@ -227,7 +228,7 @@ export default function ListingDetail() {
           <DashboardSectionCard
             title="Listing Description"
             description="The full property story and positioning seen in your inventory."
-            className="min-h-0"
+            className="h-auto min-h-0"
           >
             <div className="rounded-2xl border border-border/60 bg-secondary/15 p-4 sm:p-5">
               <p className="text-sm leading-7 text-muted-foreground">
@@ -235,14 +236,24 @@ export default function ListingDetail() {
               </p>
             </div>
           </DashboardSectionCard>
+
+          <DashboardSectionCard
+            title="Property Comments"
+            description="See seeker names and avatars, reply directly, and keep discussion on the listing."
+            className="h-auto min-h-0"
+          >
+            <div className="rounded-2xl border border-border/60 bg-background p-3 sm:p-5">
+              <CommentSection propertyId={id!} />
+            </div>
+          </DashboardSectionCard>
         </div>
 
-        <div className="space-y-6 xl:sticky xl:top-20 xl:self-start">
+        <div className="space-y-4 xl:space-y-6 xl:sticky xl:top-20 xl:self-start">
           <DashboardSectionCard
             title="Operational Snapshot"
             description="The key facts you check before editing, publishing, or following up."
             contentClassName="space-y-3"
-            className="min-h-0"
+            className="h-auto min-h-0"
           >
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
               {[
@@ -263,7 +274,7 @@ export default function ListingDetail() {
             title="Contact Record"
             description="The direct contact fields saved on this listing."
             contentClassName="space-y-3"
-            className="min-h-0"
+            className="h-auto min-h-0"
           >
             <div className="rounded-2xl border border-border/60 bg-background px-4 py-3">
               <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Contact name</p>

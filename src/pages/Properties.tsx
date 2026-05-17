@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
@@ -25,14 +26,16 @@ import {
   List,
   ArrowRight,
   Maximize,
+  Heart,
 } from "lucide-react";
-import { getPendingPropertyRating, getPropertyImage, propertiesApi } from "@/lib/api";
+import { getPendingPropertyRating, getPropertyImage, propertiesApi, seekerApi, getStoredSession } from "@/lib/api";
 
 type UiProperty = {
   id: string;
   title: string;
   location: string;
   price: string;
+  rawPrice: number;
   period: string;
   beds: number;
   baths: number;
@@ -41,7 +44,15 @@ type UiProperty = {
   views: number;
   match: number;
   type: string;
+  propertyType: string;
   image: string;
+};
+
+const BUDGET_RANGES: Record<string, { min?: number; max?: number }> = {
+  "under-1m": { max: 1_000_000 },
+  "1m-3m": { min: 1_000_000, max: 3_000_000 },
+  "3m-7m": { min: 3_000_000, max: 7_000_000 },
+  "7m-plus": { min: 7_000_000 },
 };
 
 function propertyListingType(property: Record<string, unknown>) {
@@ -60,26 +71,90 @@ function propertyPricePeriod(property: Record<string, unknown>) {
 
 const Properties = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const session = getStoredSession();
   const [searchParams] = useSearchParams();
-  const [search, setSearch] = useState(searchParams.get("q") ?? "");
-  const [typeFilter, setTypeFilter] = useState("all");
+  const [search, setSearch] = useState(searchParams.get("q") ?? searchParams.get("location") ?? "");
+  const [typeFilter, setTypeFilter] = useState(searchParams.get("type") ?? "all");
+  const [budgetFilter, setBudgetFilter] = useState(searchParams.get("budget") ?? "all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
 
   useEffect(() => {
-    setSearch(searchParams.get("q") ?? "");
+    setSearch(searchParams.get("q") ?? searchParams.get("location") ?? "");
+    setTypeFilter(searchParams.get("type") ?? "all");
+    setBudgetFilter(searchParams.get("budget") ?? "all");
+    setPage(1);
   }, [searchParams]);
 
-  const { data = [], isLoading } = useQuery({
-    queryKey: ["public-properties", search],
-    queryFn: () => propertiesApi.listPublic({ location: search || undefined }),
+  const { data, isLoading } = useQuery({
+    queryKey: ["public-properties", search, page],
+    queryFn: () => propertiesApi.listPublic({ 
+      location: search || undefined,
+      page: page,
+      per_page: pageSize
+    }),
   });
 
+  const { data: savedProperties = [] } = useQuery({
+    queryKey: ["/seeker/saved-properties"],
+    queryFn: () => seekerApi.listSaved(),
+    enabled: Boolean(session?.user.role === "seeker"),
+    staleTime: 0, // Always consider data stale so it refetches
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
+
+  const savePropertyMutation = useMutation({
+    mutationFn: (propertyId: string) => seekerApi.saveProperty(propertyId),
+    onSuccess: () => {
+      // Use different invalidation strategy for immediate refresh
+      queryClient.invalidateQueries({ queryKey: ["/seeker/saved-properties"] });
+      queryClient.refetchQueries({ queryKey: ["/seeker/saved-properties"] });
+      toast.success("Property saved");
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to save property";
+      toast.error(message);
+    },
+  });
+
+  const removePropertyMutation = useMutation({
+    mutationFn: (propertyId: string) => seekerApi.removeSavedProperty(propertyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/seeker/saved-properties"] });
+      queryClient.refetchQueries({ queryKey: ["/seeker/saved-properties"] });
+      toast.success("Property removed from saved");
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to remove property";
+      toast.error(message);
+    },
+  });
+
+  const handleSaveProperty = (e: React.MouseEvent, propertyId: string) => {
+    e.stopPropagation();
+    const isSaved = savedProperties.some((p: any) => p.id === propertyId || p.property_id === propertyId);
+    if (isSaved) {
+      removePropertyMutation.mutate(propertyId);
+    } else {
+      savePropertyMutation.mutate(propertyId);
+    }
+  };
+
+  // Handle both paginated and non-paginated responses
+  const propertiesData = Array.isArray(data) ? data : (data?.items ?? []);
+  const total = !Array.isArray(data) && data?.total ? data.total : propertiesData.length;
+  const totalPages = Math.ceil(total / pageSize);
+
   const allProperties = useMemo<UiProperty[]>(
-    () => data.map((property, index) => ({
+    () => propertiesData.map((property, index) => ({
       id: String(property.id),
       title: String(property.title ?? "Property"),
       location: String(property.location ?? "Unknown location"),
       price: `NGN ${Number(property.price ?? 0).toLocaleString("en-NG")}`,
+      rawPrice: Number(property.price ?? 0),
       period: propertyPricePeriod(property),
       beds: Number((property.title as string | undefined)?.match(/(\d+)/)?.[1] ?? 2),
       baths: Number((property.title as string | undefined)?.match(/(\d+)/)?.[1] ?? 2),
@@ -88,20 +163,36 @@ const Properties = () => {
       views: Number((property as any).viewCount ?? (property as any).view_count ?? 0),
       match: 80 + (index % 20),
       type: propertyListingType(property),
+      propertyType: String((property as any).propertyType ?? (property as any).property_type ?? property.title ?? "")
+        .toLowerCase()
+        .replace(/\s+/g, "-"),
       image: getPropertyImage(property.images, index),
     })),
-    [data],
+    [propertiesData],
   );
 
   const filtered = allProperties.filter((property) => {
-    const matchesSearch =
-      property.title.toLowerCase().includes(search.toLowerCase()) ||
-      property.location.toLowerCase().includes(search.toLowerCase());
-    const matchesType = typeFilter === "all" || property.type === typeFilter;
-    return matchesSearch && matchesType;
+    const normalizedListingType = property.type.toLowerCase().replace(/\s+/g, "-");
+    const matchesType =
+      typeFilter === "all" ||
+      normalizedListingType === typeFilter ||
+      property.propertyType.includes(typeFilter) ||
+      property.title.toLowerCase().includes(typeFilter.replace(/-/g, " "));
+
+    const range = BUDGET_RANGES[budgetFilter];
+    const matchesBudget = !range ||
+      ((range.min === undefined || property.rawPrice >= range.min) &&
+        (range.max === undefined || property.rawPrice < range.max));
+
+    return matchesType && matchesBudget;
   });
 
-  const typeOptions = Array.from(new Set(allProperties.map((property) => property.type)));
+  const typeOptions = Array.from(
+    new Set([
+      ...allProperties.map((property) => property.type),
+      ...(typeFilter !== "all" ? [typeFilter] : []),
+    ]),
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -137,6 +228,19 @@ const Properties = () => {
                       {typeOptions.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                  <Select value={budgetFilter} onValueChange={setBudgetFilter}>
+                    <SelectTrigger className="h-12 w-full border-0 bg-secondary/50 sm:w-[170px]">
+                      <span className="mr-1.5 text-base leading-none text-muted-foreground">₦</span>
+                      <SelectValue placeholder="Budget" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any Budget</SelectItem>
+                      <SelectItem value="under-1m">Under NGN 1M / year</SelectItem>
+                      <SelectItem value="1m-3m">NGN 1M - 3M / year</SelectItem>
+                      <SelectItem value="3m-7m">NGN 3M - 7M / year</SelectItem>
+                      <SelectItem value="7m-plus">NGN 7M+ / year</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <div className="flex gap-1 rounded-xl border border-border bg-secondary/50 p-1">
                     <Button variant={viewMode === "grid" ? "default" : "ghost"} size="icon" className="h-10 w-10 rounded-lg" onClick={() => setViewMode("grid")}>
                       <Grid3X3 className="h-4 w-4" />
@@ -157,7 +261,7 @@ const Properties = () => {
           <div className="mb-10 flex items-end justify-between">
             <div>
               <p className="mb-2 font-mono text-xs font-medium uppercase tracking-[0.2em] text-primary">Results</p>
-              <p className="text-sm text-muted-foreground">{filtered.length} properties found</p>
+              <p className="text-sm text-muted-foreground">{filtered.length} of {total} properties found</p>
             </div>
           </div>
 
@@ -195,7 +299,21 @@ const Properties = () => {
                         <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-primary text-primary" />{property.rating}</span>
                         <span className="flex items-center gap-1"><Eye className="h-4 w-4" />{property.views}</span>
                       </div>
-                      <Button size="sm" className="gap-1.5 rounded-full px-4" onClick={(event) => { event.stopPropagation(); navigate(`/properties/${property.id}`); }}>View <ArrowRight className="h-4 w-4" /></Button>
+                      <div className="flex items-center gap-2">
+                        {session?.user.role === "seeker" && (
+                          <Button 
+                            size="icon" 
+                            variant="ghost"
+                            className="h-8 w-8"
+                            onClick={(e) => handleSaveProperty(e, property.id)}
+                          >
+                            <Heart 
+                              className={`h-4 w-4 ${savedProperties.some((p: any) => p.id === property.id || p.property_id === property.id) ? "fill-red-500 text-red-500" : ""}`}
+                            />
+                          </Button>
+                        )}
+                        <Button size="sm" className="gap-1.5 rounded-full px-4" onClick={(event) => { event.stopPropagation(); navigate(`/properties/${property.id}`); }}>View <ArrowRight className="h-4 w-4" /></Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -232,12 +350,61 @@ const Properties = () => {
                           <span className="flex items-center gap-1"><Eye className="h-4 w-4" />{property.views} views</span>
                           <span className="rounded bg-primary px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-primary-foreground">{property.match}% match</span>
                         </div>
-                        <Button className="gap-2 rounded-full px-5" onClick={() => navigate(`/properties/${property.id}`)}>View Details <ArrowRight className="h-4 w-4" /></Button>
+                        <div className="flex items-center gap-2">
+                          {session?.user.role === "seeker" && (
+                            <Button 
+                              size="icon" 
+                              variant="ghost"
+                              className="h-8 w-8"
+                              onClick={(e) => handleSaveProperty(e, property.id)}
+                            >
+                              <Heart 
+                                className={`h-4 w-4 ${savedProperties.some((p: any) => p.id === property.id || p.property_id === property.id) ? "fill-red-500 text-red-500" : ""}`}
+                              />
+                            </Button>
+                          )}
+                          <Button className="gap-2 rounded-full px-5" onClick={() => navigate(`/properties/${property.id}`)}>View Details <ArrowRight className="h-4 w-4" /></Button>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+          
+          {totalPages > 1 && (
+            <div className="mt-12 flex items-center justify-center gap-2">
+              <Button
+                variant="outline"
+                disabled={page === 1}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+              >
+                Previous
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const pageNum = page > 3 ? page - 2 + i : i + 1;
+                  if (pageNum > totalPages) return null;
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={pageNum === page ? "default" : "outline"}
+                      onClick={() => setPage(pageNum)}
+                      className="h-10 w-10 rounded-lg p-0"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                disabled={page === totalPages}
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              >
+                Next
+              </Button>
             </div>
           )}
         </MarketingShell>
