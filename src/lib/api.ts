@@ -413,6 +413,13 @@ export const authApi = {
     }, false),
   verifyEmailCode: (payload: { email: string; code: string }) =>
     apiRequest<SessionUser>("/auth/verify-email-code", { method: "POST", body: JSON.stringify(payload) }, false),
+  sendPasswordReset: (payload: { email: string }) =>
+    apiRequest<{ ok: boolean; message: string }>("/auth/send-password-reset", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }, false),
+  resetPassword: (payload: { token: string; password: string }) =>
+    apiRequest<SessionUser>("/auth/reset-password", { method: "POST", body: JSON.stringify(payload) }, false),
   me: () => apiRequest<AuthMeResponse>("/auth/me"),
   refresh: (refreshToken: string) =>
     apiRequest<AuthPayload>("/auth/refresh", { method: "POST", body: JSON.stringify({ refreshToken }) }, false),

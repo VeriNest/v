@@ -93,6 +93,7 @@ export default function SeekerBookings() {
   const [outcomeBookingId, setOutcomeBookingId] = useState<string | null>(null);
   const [outcomeValue, setOutcomeValue] = useState<"completed" | "not_completed">("completed");
   const [outcomeNote, setOutcomeNote] = useState("");
+  const [outcomeDuration, setOutcomeDuration] = useState<number | null>(null);
   const [disputeBookingId, setDisputeBookingId] = useState<string | null>(null);
   const [disputeType, setDisputeType] = useState<"quality" | "fraud" | "cancellation" | "payment" | "listing_misrepresentation">("quality");
   const [disputeTitle, setDisputeTitle] = useState("");
@@ -468,9 +469,16 @@ export default function SeekerBookings() {
         ))}
       </div>
 
-      {/* Report/Reschedule Modal */}
+      {/* Confirm Booking Outcome Modal */}
       {outcomeBookingId && (() => {
         const booking = bookings.find((b) => b.id === outcomeBookingId);
+        const isRental = booking?.listingType === "Rent";
+        const isShortlet = booking?.listingType === "Short-let";
+        const rentalDurations = [6, 12, 24]; // months
+        const shortletDurations = [7, 14, 30, 60]; // days
+        const durationOptions = isRental ? rentalDurations : (isShortlet ? shortletDurations : []);
+        const durationLabel = isRental ? "months" : (isShortlet ? "days" : "");
+
         return (
           <Dialog open={!!outcomeBookingId} onOpenChange={(open) => !open && setOutcomeBookingId(null)}>
             <DialogContent className="sm:max-w-md">
@@ -497,6 +505,26 @@ export default function SeekerBookings() {
                     </Button>
                   </div>
 
+                  {outcomeValue === "completed" && durationOptions.length > 0 && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Expected duration ({durationLabel})
+                      </label>
+                      <div className="grid gap-2">
+                        {durationOptions.map((duration) => (
+                          <Button
+                            key={duration}
+                            variant={outcomeDuration === duration ? "default" : "outline"}
+                            onClick={() => setOutcomeDuration(duration)}
+                            className="justify-start"
+                          >
+                            {duration} {durationLabel}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Note (optional)</label>
                     <Textarea
@@ -513,7 +541,7 @@ export default function SeekerBookings() {
                     </Button>
                     <Button
                       className="flex-1"
-                      disabled={confirmOutcomeMutation.isPending}
+                      disabled={confirmOutcomeMutation.isPending || (outcomeValue === "completed" && !outcomeDuration)}
                       onClick={() => confirmOutcomeMutation.mutate({ id: outcomeBookingId, outcome: outcomeValue, note: outcomeNote.trim() || undefined })}
                     >
                       {confirmOutcomeMutation.isPending ? <InlineSpinner variant="solid" /> : "Submit Outcome"}

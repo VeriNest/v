@@ -51,6 +51,8 @@ import Viewings from "./pages/seeker/Viewings.tsx";
 import Saved from "./pages/seeker/Saved.tsx";
 import SeekerSettings from "./pages/seeker/Settings.tsx";
 import AgentProfile from "./pages/seeker/AgentProfile.tsx";
+import ForgotPassword from "./pages/ForgotPassword.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 
 // Provider
 import ProviderLayout from "./components/provider/ProviderLayout.tsx";
@@ -94,6 +96,8 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/confirm-email" element={<ConfirmEmail />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/about" element={<About />} />
