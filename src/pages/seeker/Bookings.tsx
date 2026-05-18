@@ -368,81 +368,79 @@ export default function SeekerBookings() {
                 </div>
               ) : null}
 
-              <div className="flex flex-col gap-2 border-t border-border/50 pt-3 sm:flex-row sm:items-center sm:justify-between">
-                {isBookingPassed(item.scheduledDate) ? (
-                  <>
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      {item.status === "Confirmed" && isBookingOneHourPast(item.scheduledDate) && !item.seekerOutcome ? (
-                        <Button
-                          size="sm"
-                          className="h-8 rounded-lg px-3 text-xs"
-                          onClick={() => {
-                            setOutcomeBookingId(item.id);
-                            setOutcomeValue("completed");
-                            setOutcomeNote("");
-                          }}
-                        >
-                          Confirm Outcome
-                        </Button>
-                      ) : null}
-                      {item.status === "Confirmed" && isBookingOneHourPast(item.scheduledDate) ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 rounded-lg px-3 text-xs"
-                          onClick={() => {
-                            setDisputeBookingId(item.id);
-                            setDisputeType("quality");
-                            setDisputeTitle(`Dispute for ${item.property}`);
-                            setDisputeDescription("");
-                          }}
-                        >
-                          Raise Dispute
-                        </Button>
-                      ) : null}
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+              <div className="flex flex-col gap-3 border-t border-border/50 pt-3">
+                {item.status === "Confirmed" && !isBookingOneHourPast(item.scheduledDate) && isBookingPassed(item.scheduledDate) ? (
+                  <div className="text-xs text-muted-foreground">
+                    Outcome and dispute actions appear one hour after the scheduled visit time.
+                  </div>
+                ) : null}
+
+                {item.status === "Confirmed" && isBookingOneHourPast(item.scheduledDate) ? (
+                  <div className="flex flex-wrap gap-2">
+                    {!item.seekerOutcome ? (
+                      <Button
+                        size="sm"
                         className="h-8 rounded-lg px-3 text-xs"
                         onClick={() => {
-                          setReportingBookingId(item.id);
-                          setReportType("no-show");
+                          setOutcomeBookingId(item.id);
+                          setOutcomeValue("completed");
+                          setOutcomeNote("");
                         }}
                       >
-                        Report No Show
+                        Confirm Outcome
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-8 rounded-lg px-3 text-xs"
-                        onClick={() => {
-                          setReportingBookingId(item.id);
-                          setReportType("issue");
-                        }}
-                      >
-                        Report Property Issue
-                      </Button>
-                    </div>
-                    {item.status === "Confirmed" && !isBookingOneHourPast(item.scheduledDate) ? (
-                      <div className="text-xs text-muted-foreground">
-                        Outcome and dispute actions appear one hour after the scheduled visit time.
-                      </div>
-                    ) : (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 rounded-lg px-3 text-xs"
-                        onClick={() => {
-                          setReportingBookingId(item.id);
-                          setReportType(null);
-                          setReportNotes("");
-                        }}
-                      >
-                        Reschedule
-                      </Button>
-                    )}
-                  </>
-                ) : (
+                    ) : null}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-lg px-3 text-xs"
+                      onClick={() => {
+                        setDisputeBookingId(item.id);
+                        setDisputeType("quality");
+                        setDisputeTitle(`Dispute for ${item.property}`);
+                        setDisputeDescription("");
+                      }}
+                    >
+                      Raise Dispute
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 rounded-lg px-3 text-xs"
+                      onClick={() => {
+                        setReportingBookingId(item.id);
+                        setReportType("no-show");
+                      }}
+                    >
+                      Report No Show
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 rounded-lg px-3 text-xs"
+                      onClick={() => {
+                        setReportingBookingId(item.id);
+                        setReportType("issue");
+                      }}
+                    >
+                      Report Property Issue
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 rounded-lg px-3 text-xs"
+                      onClick={() => {
+                        setReportingBookingId(item.id);
+                        setReportType(null);
+                        setReportNotes("");
+                      }}
+                    >
+                      Reschedule
+                    </Button>
+                  </div>
+                ) : null}
+
+                {!isBookingPassed(item.scheduledDate) ? (
                   <>
                     {item.status !== "Confirmed" ? (
                       <Button 
@@ -463,7 +461,7 @@ export default function SeekerBookings() {
                       Contact host
                     </Button>
                   </>
-                )}
+                ) : null}
               </div>
             </CardContent>
           </Card>
