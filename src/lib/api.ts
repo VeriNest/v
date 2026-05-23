@@ -527,6 +527,8 @@ export const agentApi = {
   listLeads: () => apiRequest<Array<Record<string, unknown>>>("/agent/leads"),
   listProperties: () => apiRequest<Array<Record<string, unknown>>>("/agent/properties"),
   getLead: (id: string) => apiRequest<Record<string, unknown>>(`/agent/leads/${id}`),
+  updateProperty: (id: string, payload: { status?: string; availableAt?: string; title?: string; description?: string; price?: number; [key: string]: unknown }) => 
+    apiRequest<Record<string, unknown>>(`/agent/properties/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   listPayouts: () => apiRequest<Array<Record<string, unknown>>>("/agent/payouts"),
   listCalendar: () => apiRequest<Array<Record<string, unknown>>>("/agent/calendar"),
   listBookings: () => apiRequest<Array<Record<string, unknown>>>("/agent/bookings"),

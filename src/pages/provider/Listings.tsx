@@ -11,6 +11,7 @@ import { useSearchFocus } from "@/hooks/use-search-focus";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
+import { PropertyStatusModal } from "@/components/PropertyStatusModal";
 import { agentApi, formatCompactCurrency, getPendingPropertyRating, getPropertyImage, titleCase } from "@/lib/api";
 
 export const initialListings = [] as any[];
@@ -56,6 +57,9 @@ export default function Listings() {
   })), [data]);
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [view, setView] = useState<"grid" | "table">("grid");
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
+  const [selectedListingStatus, setSelectedListingStatus] = useState<string>("");
 
   useEffect(() => {
     setSearch(searchParams.get("q") ?? "");
@@ -192,7 +196,10 @@ export default function Listings() {
                                 <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {listing.views} views</span>
                                 <span>{listing.offers} offers</span>
                               </div>
-                              <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button>
+                              <div className="flex gap-1">
+                                <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={(event) => { event.stopPropagation(); setSelectedListingId(listing.id); setSelectedListingStatus(listing.status.toLowerCase().replace(" ", "_")); setStatusModalOpen(true); }}>Change Status</Button>
+                                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button>
+                              </div>
                             </div>
                             
                             {/* Contact Info */}
@@ -278,7 +285,7 @@ export default function Listings() {
                                   )}
                                 </div>
                               </TableCell>
-                              <TableCell><Button variant="ghost" size="icon" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button></TableCell>
+                              <TableCell className="flex gap-2"><Button size="sm" variant="outline" onClick={(event) => { event.stopPropagation(); setSelectedListingId(listing.id); setSelectedListingStatus(listing.status.toLowerCase().replace(" ", "_")); setStatusModalOpen(true); }}>Change</Button><Button variant="ghost" size="icon" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button></TableCell>
                             </TableRow>
                           );
                         })}
@@ -291,6 +298,20 @@ export default function Listings() {
           );
         })}
       </Tabs>
+
+      {/* Status Change Modal */}
+      {selectedListingId && (
+        <PropertyStatusModal
+          open={statusModalOpen}
+          onOpenChange={setStatusModalOpen}
+          propertyId={selectedListingId}
+          currentStatus={selectedListingStatus}
+          onStatusUpdated={() => {
+            // Refetch listings after status update
+            window.location.reload();
+          }}
+        />
+      )}
     </div>
   );
 }
