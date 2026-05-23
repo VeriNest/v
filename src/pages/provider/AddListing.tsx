@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   MapPin, Calendar, CheckCircle2, ShieldCheck, FileText, Plus, ChevronRight,
   ChevronLeft, Eye, Rocket, ArrowRight, Building2, Sparkles, AlertCircle,
-  ImagePlus, Home, Bed, DollarSign, Tag, ShieldAlert
+  ImagePlus, Home, Bed, DollarSign, Tag, ShieldAlert, X
 } from "lucide-react";
 import { InlineSpinner, OrbitLoader } from "@/components/Loaders";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -22,12 +22,6 @@ import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader"
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { landlordApi, propertiesApi, authApi } from "@/lib/api";
 import { uploadToCloudinary } from "@/lib/cloudinary";
-
-const previousListings = [
-  { id: 1, title: "3 Bedroom Flat, Lekki Phase 1", price: "₦2.5M/yr", status: "Active", views: 45, date: "Mar 15, 2024", type: "Rent" },
-  { id: 2, title: "Studio Apartment, Wuse 2", price: "₦1.2M/yr", status: "Active", views: 32, date: "Feb 28, 2024", type: "Rent" },
-  { id: 3, title: "2 Bed Serviced Apartment, VI", price: "₦45K/night", status: "Draft", views: 0, date: "Mar 18, 2024", type: "Short-let" },
-];
 
 const amenities = ["24hr Power", "Security", "Water Supply", "Parking", "Gated Estate", "Pet Friendly", "Furnished", "Swimming Pool", "Gym", "Serviced", "Elevator", "Balcony"];
 
@@ -82,11 +76,40 @@ export default function AddListing() {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [previousListings, setPreviousListings] = useState<any[]>([]);
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const isLandlordFlow = locationState.pathname.startsWith("/landlord");
 
   // Check if user is verified (for agents)
   const isVerified = me?.user.verification_status === "verified" || isLandlordFlow;
+
+  // Fetch agent's actual listings
+  const { data: listingsData } = useQuery({
+    queryKey: [isLandlordFlow ? "landlord-properties" : "agent-listings"],
+    queryFn: async () => {
+      try {
+        const response = isLandlordFlow 
+          ? await landlordApi.listProperties()
+          : await propertiesApi.listAgent();
+        const listings = Array.isArray(response) ? response : response?.data || [];
+        setPreviousListings(
+          listings.slice(0, 10).map((prop: any) => ({
+            id: prop.id,
+            title: prop.title,
+            price: prop.price ? `₦${prop.price.toLocaleString()}${prop.listing_type === 'shortlet' ? '/night' : '/yr'}` : 'N/A',
+            status: prop.status || 'Draft',
+            views: prop.view_count || 0,
+            date: prop.created_at ? new Date(prop.created_at).toLocaleDateString() : 'N/A',
+            type: prop.listing_type === 'sale' ? 'Sale' : prop.is_service_apartment ? 'Short-let' : 'Rent',
+          }))
+        );
+        return listings;
+      } catch {
+        setPreviousListings([]);
+        return [];
+      }
+    },
+  });
 
   const handleSubmitListing = async () => {
     try {
@@ -140,6 +163,11 @@ export default function AddListing() {
         mediaInputRef.current.value = "";
       }
     }
+  };
+
+  const handleRemoveMedia = (urlToRemove: string) => {
+    setMediaUrls((prev) => prev.filter((url) => url !== urlToRemove));
+    toast.success("Image removed");
   };
 
   const progress = (currentStep / steps.length) * 100;
@@ -456,12 +484,20 @@ export default function AddListing() {
                           {mediaUrls.map((url) => {
                             const isVideo = /\.(mp4|mov|webm|m4v)(\?|$)/i.test(url);
                             return (
-                              <div key={url} className="overflow-hidden rounded-xl border border-border/60 bg-muted/20">
+                              <div key={url} className="group relative overflow-hidden rounded-xl border border-border/60 bg-muted/20">
                                 {isVideo ? (
                                   <video src={url} className="h-28 w-full object-cover" muted playsInline controls />
                                 ) : (
                                   <img src={url} alt="Property media" className="h-28 w-full object-cover" />
                                 )}
+                                <button
+                                  onClick={() => handleRemoveMedia(url)}
+                                  className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  type="button"
+                                  title="Remove image"
+                                >
+                                  <X className="w-4 h-4 text-white" />
+                                </button>
                               </div>
                             );
                           })}
