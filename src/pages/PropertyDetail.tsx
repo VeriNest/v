@@ -37,6 +37,19 @@ function listingPriceLabel(property: Record<string, unknown>) {
   return "per year";
 }
 
+function statusLabel(status: unknown) {
+  const statusStr = String(status ?? "published").toLowerCase();
+  const statusMap: Record<string, string> = {
+    published: "Published",
+    hidden: "Hidden",
+    pending: "Pending",
+    rejected: "Rejected",
+    archived: "Archived",
+    suspended: "Suspended",
+  };
+  return statusMap[statusStr] || "Published";
+}
+
 function parseLocationParts(location: string) {
   const parts = location
     .split(",")
@@ -205,7 +218,7 @@ export default function PropertyDetailPage() {
                 <div>
                   <div className="mb-3 flex flex-wrap items-center gap-2">
                     <Badge variant="outline">{typeLabel}</Badge>
-                    <Badge variant="outline">{String(data.status ?? "published")}</Badge>
+                    <Badge variant="outline">{statusLabel(data.status)}</Badge>
                     <Badge variant="outline">{Number(data.viewCount ?? data.view_count ?? 0)} views</Badge>
                     <Badge variant="outline">{Number(data.offerCount ?? data.offer_count ?? 0)} offers</Badge>
                   </div>
@@ -262,7 +275,7 @@ export default function PropertyDetailPage() {
                     <div className="flex items-center justify-between"><span className="text-muted-foreground">Agent</span><span className="font-medium text-foreground">{String(data.company_name ?? data.companyName ?? data.agent_name ?? data.agentName ?? "-")}</span></div>
                     <div className="flex items-center justify-between"><span className="text-muted-foreground">Created</span><span className="font-medium text-foreground">{data.created_at || data.createdAt ? new Date(String(data.created_at ?? data.createdAt)).toLocaleDateString() : "-"}</span></div>
                     <div className="flex items-center justify-between"><span className="text-muted-foreground">Listing type</span><span className="font-medium text-foreground">{typeLabel}</span></div>
-                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Verification</span><span className="inline-flex items-center gap-1 font-medium text-foreground"><ShieldCheck className="h-4 w-4 text-emerald-600" /> {String(data.status ?? "published")}</span></div>
+                    <div className="flex items-center justify-between"><span className="text-muted-foreground">Verification</span><span className="inline-flex items-center gap-1 font-medium text-foreground"><ShieldCheck className="h-4 w-4 text-emerald-600" /> {statusLabel(data.status)}</span></div>
                     <div className="flex items-center justify-between"><span className="text-muted-foreground">Updated</span><span className="inline-flex items-center gap-1 font-medium text-foreground"><CalendarDays className="h-4 w-4" /> {data.updated_at || data.updatedAt ? new Date(String(data.updated_at ?? data.updatedAt)).toLocaleDateString() : "-"}</span></div>
                   </div>
                 </div>

@@ -11,6 +11,7 @@ import { useSearchFocus } from "@/hooks/use-search-focus";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
+import { PropertyStatusModal } from "@/components/PropertyStatusModal";
 import { agentApi, formatCompactCurrency, getPendingPropertyRating, getPropertyImage, titleCase } from "@/lib/api";
 
 export const initialListings = [] as any[];
@@ -49,9 +50,16 @@ export default function Listings() {
     rating: getPendingPropertyRating(listing),
     match: 80 + (index % 20),
     image: getPropertyImage(listing.images, index),
+    ownerName: listing.owner_name,
+    ownerPhone: listing.owner_phone,
+    agentName: listing.agent_name,
+    agentPhone: listing.agent_phone,
   })), [data]);
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [view, setView] = useState<"grid" | "table">("grid");
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
+  const [selectedListingStatus, setSelectedListingStatus] = useState<string>("");
 
   useEffect(() => {
     setSearch(searchParams.get("q") ?? "");
@@ -176,18 +184,41 @@ export default function Listings() {
                             </div>
                           </div>
 
-                          <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-2.5">
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                              {listing.rating > 0 && (
-                                <span className="flex items-center gap-1">
-                                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                                  <span className="font-medium text-foreground">{listing.rating}</span>
-                                </span>
-                              )}
-                              <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {listing.views} views</span>
-                              <span>{listing.offers} offers</span>
+                          <div className="mt-3 flex flex-col gap-3 border-t border-border/40 pt-2.5">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                {listing.rating > 0 && (
+                                  <span className="flex items-center gap-1">
+                                    <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                                    <span className="font-medium text-foreground">{listing.rating}</span>
+                                  </span>
+                                )}
+                                <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {listing.views} views</span>
+                                <span>{listing.offers} offers</span>
+                              </div>
+                              <div className="flex gap-1">
+                                <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={(event) => { event.stopPropagation(); setSelectedListingId(listing.id); setSelectedListingStatus(listing.status.toLowerCase().replace(" ", "_")); setStatusModalOpen(true); }}>Change Status</Button>
+                                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button>
+                              </div>
                             </div>
-                            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button>
+                            
+                            {/* Contact Info */}
+                            <div className="space-y-2 border-t border-border/40 pt-2.5">
+                              {listing.ownerPhone && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-medium text-muted-foreground uppercase">Owner:</span>
+                                  <span className="text-xs font-semibold text-foreground">{listing.ownerName}</span>
+                                  <span className="text-xs text-muted-foreground">{listing.ownerPhone}</span>
+                                </div>
+                              )}
+                              {listing.agentPhone && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-medium text-muted-foreground uppercase">Agent:</span>
+                                  <span className="text-xs font-semibold text-foreground">{listing.agentName}</span>
+                                  <span className="text-xs text-muted-foreground">{listing.agentPhone}</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -213,6 +244,7 @@ export default function Listings() {
                           <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Status</TableHead>
                           <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Views</TableHead>
                           <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Offers</TableHead>
+                          <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70">Contact</TableHead>
                           <TableHead />
                         </TableRow>
                       </TableHeader>
@@ -237,7 +269,23 @@ export default function Listings() {
                               </TableCell>
                               <TableCell><div className="flex items-center gap-1 text-sm text-muted-foreground"><Eye className="h-3.5 w-3.5" />{listing.views}</div></TableCell>
                               <TableCell><span className={`text-sm font-medium ${listing.offers > 0 ? "text-primary" : "text-muted-foreground"}`}>{listing.offers}</span></TableCell>
-                              <TableCell><Button variant="ghost" size="icon" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button></TableCell>
+                              <TableCell>
+                                <div className="flex flex-col gap-1 text-xs">
+                                  {listing.ownerPhone && (
+                                    <div className="flex items-center gap-1">
+                                      <span className="font-medium text-muted-foreground">Owner:</span>
+                                      <span className="text-foreground">{listing.ownerPhone}</span>
+                                    </div>
+                                  )}
+                                  {listing.agentPhone && (
+                                    <div className="flex items-center gap-1">
+                                      <span className="font-medium text-muted-foreground">Agent:</span>
+                                      <span className="text-foreground">{listing.agentPhone}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="flex gap-2"><Button size="sm" variant="outline" onClick={(event) => { event.stopPropagation(); setSelectedListingId(listing.id); setSelectedListingStatus(listing.status.toLowerCase().replace(" ", "_")); setStatusModalOpen(true); }}>Change</Button><Button variant="ghost" size="icon" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button></TableCell>
                             </TableRow>
                           );
                         })}
@@ -250,6 +298,20 @@ export default function Listings() {
           );
         })}
       </Tabs>
+
+      {/* Status Change Modal */}
+      {selectedListingId && (
+        <PropertyStatusModal
+          open={statusModalOpen}
+          onOpenChange={setStatusModalOpen}
+          propertyId={selectedListingId}
+          currentStatus={selectedListingStatus}
+          onStatusUpdated={() => {
+            // Refetch listings after status update
+            window.location.reload();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -93,6 +93,7 @@ export default function SeekerBookings() {
   const [outcomeBookingId, setOutcomeBookingId] = useState<string | null>(null);
   const [outcomeValue, setOutcomeValue] = useState<"completed" | "not_completed">("completed");
   const [outcomeNote, setOutcomeNote] = useState("");
+  const [outcomeDuration, setOutcomeDuration] = useState<number | null>(null);
   const [disputeBookingId, setDisputeBookingId] = useState<string | null>(null);
   const [disputeType, setDisputeType] = useState<"quality" | "fraud" | "cancellation" | "payment" | "listing_misrepresentation">("quality");
   const [disputeTitle, setDisputeTitle] = useState("");
@@ -368,81 +369,79 @@ export default function SeekerBookings() {
                 </div>
               ) : null}
 
-              <div className="flex flex-col gap-2 border-t border-border/50 pt-3 sm:flex-row sm:items-center sm:justify-between">
-                {isBookingPassed(item.scheduledDate) ? (
-                  <>
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      {item.status === "Confirmed" && isBookingOneHourPast(item.scheduledDate) && !item.seekerOutcome ? (
-                        <Button
-                          size="sm"
-                          className="h-8 rounded-lg px-3 text-xs"
-                          onClick={() => {
-                            setOutcomeBookingId(item.id);
-                            setOutcomeValue("completed");
-                            setOutcomeNote("");
-                          }}
-                        >
-                          Confirm Outcome
-                        </Button>
-                      ) : null}
-                      {item.status === "Confirmed" && isBookingOneHourPast(item.scheduledDate) ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 rounded-lg px-3 text-xs"
-                          onClick={() => {
-                            setDisputeBookingId(item.id);
-                            setDisputeType("quality");
-                            setDisputeTitle(`Dispute for ${item.property}`);
-                            setDisputeDescription("");
-                          }}
-                        >
-                          Raise Dispute
-                        </Button>
-                      ) : null}
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+              <div className="flex flex-col gap-3 border-t border-border/50 pt-3">
+                {item.status === "Confirmed" && !isBookingOneHourPast(item.scheduledDate) && isBookingPassed(item.scheduledDate) ? (
+                  <div className="text-xs text-muted-foreground">
+                    Outcome and dispute actions appear one hour after the scheduled visit time.
+                  </div>
+                ) : null}
+
+                {item.status === "Confirmed" && isBookingOneHourPast(item.scheduledDate) ? (
+                  <div className="flex flex-wrap gap-2">
+                    {!item.seekerOutcome ? (
+                      <Button
+                        size="sm"
                         className="h-8 rounded-lg px-3 text-xs"
                         onClick={() => {
-                          setReportingBookingId(item.id);
-                          setReportType("no-show");
+                          setOutcomeBookingId(item.id);
+                          setOutcomeValue("completed");
+                          setOutcomeNote("");
                         }}
                       >
-                        Report No Show
+                        Confirm Outcome
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="h-8 rounded-lg px-3 text-xs"
-                        onClick={() => {
-                          setReportingBookingId(item.id);
-                          setReportType("issue");
-                        }}
-                      >
-                        Report Property Issue
-                      </Button>
-                    </div>
-                    {item.status === "Confirmed" && !isBookingOneHourPast(item.scheduledDate) ? (
-                      <div className="text-xs text-muted-foreground">
-                        Outcome and dispute actions appear one hour after the scheduled visit time.
-                      </div>
-                    ) : (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-8 rounded-lg px-3 text-xs"
-                        onClick={() => {
-                          setReportingBookingId(item.id);
-                          setReportType(null);
-                          setReportNotes("");
-                        }}
-                      >
-                        Reschedule
-                      </Button>
-                    )}
-                  </>
-                ) : (
+                    ) : null}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-lg px-3 text-xs"
+                      onClick={() => {
+                        setDisputeBookingId(item.id);
+                        setDisputeType("quality");
+                        setDisputeTitle(`Dispute for ${item.property}`);
+                        setDisputeDescription("");
+                      }}
+                    >
+                      Raise Dispute
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 rounded-lg px-3 text-xs"
+                      onClick={() => {
+                        setReportingBookingId(item.id);
+                        setReportType("no-show");
+                      }}
+                    >
+                      Report No Show
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 rounded-lg px-3 text-xs"
+                      onClick={() => {
+                        setReportingBookingId(item.id);
+                        setReportType("issue");
+                      }}
+                    >
+                      Report Property Issue
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 rounded-lg px-3 text-xs"
+                      onClick={() => {
+                        setReportingBookingId(item.id);
+                        setReportType(null);
+                        setReportNotes("");
+                      }}
+                    >
+                      Reschedule
+                    </Button>
+                  </div>
+                ) : null}
+
+                {!isBookingPassed(item.scheduledDate) ? (
                   <>
                     {item.status !== "Confirmed" ? (
                       <Button 
@@ -463,16 +462,23 @@ export default function SeekerBookings() {
                       Contact host
                     </Button>
                   </>
-                )}
+                ) : null}
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Report/Reschedule Modal */}
+      {/* Confirm Booking Outcome Modal */}
       {outcomeBookingId && (() => {
         const booking = bookings.find((b) => b.id === outcomeBookingId);
+        const isRental = booking?.listingType === "Rent";
+        const isShortlet = booking?.listingType === "Short-let";
+        const rentalDurations = [6, 12, 24]; // months
+        const shortletDurations = [7, 14, 30, 60]; // days
+        const durationOptions = isRental ? rentalDurations : (isShortlet ? shortletDurations : []);
+        const durationLabel = isRental ? "months" : (isShortlet ? "days" : "");
+
         return (
           <Dialog open={!!outcomeBookingId} onOpenChange={(open) => !open && setOutcomeBookingId(null)}>
             <DialogContent className="sm:max-w-md">
@@ -499,6 +505,26 @@ export default function SeekerBookings() {
                     </Button>
                   </div>
 
+                  {outcomeValue === "completed" && durationOptions.length > 0 && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        Expected duration ({durationLabel})
+                      </label>
+                      <div className="grid gap-2">
+                        {durationOptions.map((duration) => (
+                          <Button
+                            key={duration}
+                            variant={outcomeDuration === duration ? "default" : "outline"}
+                            onClick={() => setOutcomeDuration(duration)}
+                            className="justify-start"
+                          >
+                            {duration} {durationLabel}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Note (optional)</label>
                     <Textarea
@@ -515,7 +541,7 @@ export default function SeekerBookings() {
                     </Button>
                     <Button
                       className="flex-1"
-                      disabled={confirmOutcomeMutation.isPending}
+                      disabled={confirmOutcomeMutation.isPending || (outcomeValue === "completed" && !outcomeDuration)}
                       onClick={() => confirmOutcomeMutation.mutate({ id: outcomeBookingId, outcome: outcomeValue, note: outcomeNote.trim() || undefined })}
                     >
                       {confirmOutcomeMutation.isPending ? <InlineSpinner variant="solid" /> : "Submit Outcome"}
