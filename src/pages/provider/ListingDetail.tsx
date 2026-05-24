@@ -277,17 +277,17 @@ export default function ListingDetail() {
             className="h-auto min-h-0"
           >
             <div className="rounded-2xl border border-border/60 bg-background px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Contact name</p>
+              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Agent name</p>
               <div className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
                 <UserRound className="h-4 w-4 text-primary" />
-                {String(data.contact_name ?? "-")}
+                {String(data.agent_name ?? data.contact_name ?? "-")}
               </div>
             </div>
             <div className="rounded-2xl border border-border/60 bg-background px-4 py-3">
-              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Contact phone</p>
+              <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Agent phone</p>
               <div className="mt-2 flex items-center gap-2 text-sm font-medium text-foreground">
                 <Phone className="h-4 w-4 text-primary" />
-                {maskPhoneNumber(String(data.contact_phone ?? "-"))}
+                {maskPhoneNumber(String(data.agent_phone ?? data.contact_phone ?? "-"))}
               </div>
             </div>
           </DashboardSectionCard>

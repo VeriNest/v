@@ -201,24 +201,6 @@ export default function Listings() {
                                 <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button>
                               </div>
                             </div>
-                            
-                            {/* Contact Info */}
-                            <div className="space-y-2 border-t border-border/40 pt-2.5">
-                              {listing.ownerPhone && (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[10px] font-medium text-muted-foreground uppercase">Owner:</span>
-                                  <span className="text-xs font-semibold text-foreground">{listing.ownerName}</span>
-                                  <span className="text-xs text-muted-foreground">{listing.ownerPhone}</span>
-                                </div>
-                              )}
-                              {listing.agentPhone && (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[10px] font-medium text-muted-foreground uppercase">Agent:</span>
-                                  <span className="text-xs font-semibold text-foreground">{listing.agentName}</span>
-                                  <span className="text-xs text-muted-foreground">{listing.agentPhone}</span>
-                                </div>
-                              )}
-                            </div>
                           </div>
                         </div>
                       </div>
