@@ -54,6 +54,27 @@ export type AuthMeResponse = {
     createdAt: string;
   }>;
   livenessCompleted?: boolean;
+  policyMetadata?: {
+    termsVersion: string;
+    privacyVersion: string;
+    effectiveAt: string;
+    changeSummary: string;
+    updatedAt: string;
+  };
+  policyAcceptance?: {
+    termsVersionAccepted?: string | null;
+    privacyVersionAccepted?: string | null;
+    acceptedAt?: string | null;
+    requiresReacceptance: boolean;
+  };
+};
+
+export type PolicyMetadata = {
+  termsVersion: string;
+  privacyVersion: string;
+  effectiveAt: string;
+  changeSummary: string;
+  updatedAt: string;
 };
 
 export type NotificationItem = {
@@ -402,7 +423,7 @@ export async function queryRequest<T>({ queryKey }: QueryFunctionContext): Promi
 }
 
 export const authApi = {
-  register: (payload: { full_name: string; email: string; password: string; phone?: string; bio?: string }) =>
+  register: (payload: { full_name: string; email: string; password: string; phone?: string; bio?: string; accepted_terms_version: string; accepted_privacy_version: string }) =>
     apiRequest<AuthPayload>("/auth/register", { method: "POST", body: JSON.stringify(payload) }, false),
   login: (payload: { email: string; password: string }) =>
     apiRequest<AuthPayload>("/auth/login", { method: "POST", body: JSON.stringify(payload) }, false),
@@ -421,6 +442,8 @@ export const authApi = {
   resetPassword: (payload: { token: string; password: string }) =>
     apiRequest<SessionUser>("/auth/reset-password", { method: "POST", body: JSON.stringify(payload) }, false),
   me: () => apiRequest<AuthMeResponse>("/auth/me"),
+  getPolicyMetadata: () => apiRequest<PolicyMetadata>("/legal/policies/meta", undefined, false),
+  acceptCurrentPolicies: () => apiRequest<AuthMeResponse["policyAcceptance"]>("/auth/legal/accept-current", { method: "PATCH" }),
   refresh: (refreshToken: string) =>
     apiRequest<AuthPayload>("/auth/refresh", { method: "POST", body: JSON.stringify({ refreshToken }) }, false),
   logout: async (refreshToken: string) => {
@@ -511,6 +534,7 @@ export const seekerApi = {
   listBookings: () => apiRequest<Array<Record<string, unknown>>>("/seeker/bookings"),
   createBooking: (payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>("/bookings", { method: "POST", body: JSON.stringify(payload) }),
   updateBooking: (id: string, payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>(`/bookings/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  confirmBookingSchedule: (id: string) => apiRequest<Record<string, unknown>>(`/bookings/${id}/confirm`, { method: "POST" }),
   confirmBookingOutcome: (id: string, payload: { outcome: "completed" | "not_completed"; note?: string }) =>
     apiRequest<Record<string, unknown>>(`/bookings/${id}/outcome/seeker`, { method: "POST", body: JSON.stringify(payload) }),
   createBookingDispute: (id: string, payload: { disputeType: string; title: string; description: string; priority?: string }) =>
@@ -533,6 +557,7 @@ export const agentApi = {
   listCalendar: () => apiRequest<Array<Record<string, unknown>>>("/agent/calendar"),
   listBookings: () => apiRequest<Array<Record<string, unknown>>>("/agent/bookings"),
   updateBooking: (id: string, payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>(`/bookings/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  confirmBookingSchedule: (id: string) => apiRequest<Record<string, unknown>>(`/bookings/${id}/confirm`, { method: "POST" }),
   confirmBookingOutcome: (id: string, payload: { outcome: "completed" | "not_completed"; note?: string }) =>
     apiRequest<Record<string, unknown>>(`/bookings/${id}/outcome/provider`, { method: "POST", body: JSON.stringify(payload) }),
   createBookingDispute: (id: string, payload: { disputeType: string; title: string; description: string; priority?: string }) =>
@@ -601,6 +626,12 @@ export const adminApi = {
     }),
   suspendUser: (userId: string) => apiRequest<Record<string, unknown>>(`/admin/users/${userId}/suspend`, { method: "POST", body: JSON.stringify({}) }),
   unsuspendUser: (userId: string) => apiRequest<Record<string, unknown>>(`/admin/users/${userId}/unsuspend`, { method: "POST", body: JSON.stringify({}) }),
+  getPolicyMetadata: () => apiRequest<PolicyMetadata>("/admin/legal/policies/meta"),
+  updatePolicyMetadata: (payload: { termsVersion: string; privacyVersion: string; effectiveAt?: string; changeSummary: string }) =>
+    apiRequest<PolicyMetadata>("/admin/legal/policies/meta", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
 };
 
 export const usersApi = {

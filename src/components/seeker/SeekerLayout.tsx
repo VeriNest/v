@@ -8,14 +8,16 @@ import { useAvatar } from "@/contexts/AvatarContext";
 import { DashboardHeaderSearch } from "@/components/search/DashboardHeaderSearch";
 import { DashboardNotifications } from "@/components/dashboard/DashboardNotifications";
 import { DashboardThemeToggle } from "@/components/dashboard/DashboardThemeToggle";
+import { DashboardLegalFooter } from "@/components/dashboard/DashboardLegalFooter";
 import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import { useAuthAccess } from "@/hooks/use-auth-access";
 import { useBookingReminders } from "@/hooks/use-booking-reminders";
+import { PolicyUpdateDialog } from "@/components/legal/PolicyUpdateDialog";
 
 export default function SeekerLayout() {
   const { avatarUrl } = useAvatar();
   const kycStatus = localStorage.getItem("verinest_kyc_status");
-  const { isChecking } = useAuthAccess("seeker");
+  const { isChecking, me } = useAuthAccess("seeker");
   useBookingReminders("seeker");
 
   if (isChecking) {
@@ -63,8 +65,10 @@ export default function SeekerLayout() {
           <main className="flex-1 min-w-0 overflow-x-hidden overflow-y-auto p-3 pb-20 sm:p-6 md:pb-6">
             <Outlet />
           </main>
+          <DashboardLegalFooter />
         </div>
         <SeekerBottomNav />
+        <PolicyUpdateDialog me={me} />
       </div>
     </SidebarProvider>
   );

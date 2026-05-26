@@ -283,6 +283,12 @@ export default function SeekerBookings() {
         ))}
       </div>
 
+      <Card className="border border-amber-500/20 bg-amber-500/10 shadow-sm">
+        <CardContent className="p-4 text-sm leading-6 text-amber-900 dark:text-amber-200">
+          Use Verinest communication, scheduling, and dispute tools for your protection. Until in-app escrow and payments are live, off-platform transfers remain your responsibility and escrow protections do not apply.
+        </CardContent>
+      </Card>
+
       <Tabs value={bookingFilter} className="space-y-4">
         <DashboardControlRow
           left={<StatusTabs counts={bookingCounts} value={bookingFilter} onValueChange={setBookingFilter} />}

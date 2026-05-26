@@ -9,6 +9,7 @@ import { Mail, Phone, MapPin, Clock, Send, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { PageSeo } from "@/components/seo/PageSeo";
 
 const contactInfo = [
   {
@@ -20,7 +21,7 @@ const contactInfo = [
   {
     icon: Phone,
     label: "Phone",
-    value: "+234 98765 43210",
+    value: "+234 9138852657",
     href: "tel:+2349876543210",
   },
   {
@@ -102,6 +103,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageSeo
+        title="Contact Verinest"
+        description="Contact Verinest for help with listings, onboarding, verification, support, disputes, and platform questions."
+        canonicalPath="/contact"
+      />
       <Navbar />
 
       <section className="bg-secondary/30 px-6 pb-20 pt-28 lg:px-16 xl:px-20">

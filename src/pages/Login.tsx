@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import MarketingLogo from "@/components/MarketingLogo";
+import { PageSeo } from "@/components/seo/PageSeo";
 import { authApi, mapVerificationStatusToBanner, resolveAuthenticatedPath, setStoredKycStatus, setStoredSession } from "@/lib/api";
 
 export default function Login() {
@@ -39,6 +40,12 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex bg-secondary/30">
+      <PageSeo
+        title="Sign In"
+        description="Sign in to Verinest to manage listings, bookings, offers, and your verified property workflow."
+        canonicalPath="/login"
+        noIndex
+      />
       <div className="hidden lg:flex lg:w-1/2 bg-primary/5 items-center justify-center p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary)/0.08),transparent_60%)]" />
         <div className="relative z-10 max-w-md">
@@ -110,6 +117,12 @@ export default function Login() {
                 {submitting ? <><InlineSpinner variant="solid" /> Signing in...</> : <>Sign in <ArrowRight className="h-4 w-4" /></>}
               </Button>
             </form>
+            <p className="mt-4 text-center text-[11px] leading-5 text-muted-foreground">
+              By signing in, you remain subject to Verinest’s{" "}
+              <Link to="/terms" className="font-medium text-primary hover:underline">Terms</Link>
+              {" "}and{" "}
+              <Link to="/privacy" className="font-medium text-primary hover:underline">Privacy Policy</Link>.
+            </p>
             <p className="text-center text-sm text-muted-foreground mt-6">
               Don't have an account?{" "}
               <Link to="/signup" className="text-primary hover:underline font-medium">Sign up</Link>

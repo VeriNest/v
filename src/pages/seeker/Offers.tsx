@@ -15,6 +15,7 @@ import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader"
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { PropertyImageHero } from "@/components/seeker/PropertyImageHero";
 import { PropertyImageGallery } from "@/components/seeker/PropertyImageGallery";
+import { SeekerSafetyDisclaimerBanner } from "@/components/seeker/SeekerSafetyDisclaimerBanner";
 import { seekerApi, titleCase } from "@/lib/api";
 
 export const offers = [] as any[];
@@ -126,6 +127,8 @@ export default function Offers() {
   return (
     <div className="space-y-6">
       <DashboardPageHeader title="My Offers" description="Offers matched to your posted needs, with actions to request a viewing or decline." />
+
+      <SeekerSafetyDisclaimerBanner />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
@@ -277,14 +280,12 @@ function OfferCard({
                 <span className="font-medium">{offer.provider}</span>
                 <DashboardStatusBadge tone={offer.role === "Agent" ? "info" : "neutral"}>{offer.role}</DashboardStatusBadge>
               </div>
-              {offer.providerPhone ? (
-                <div className="text-xs text-muted-foreground">
-                  {offer.providerPhone}
-                </div>
-              ) : null}
+              <div className="text-xs text-muted-foreground italic">
+                🔒 Contact details visible after agent confirms
+              </div>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3" />
-                <span>{offer.location}</span>
+                <span className="italic">📍 Location visible after confirmation</span>
               </div>
             </div>
           </div>

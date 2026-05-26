@@ -1,4 +1,4 @@
-﻿import { useRef, useState } from "react";
+﻿import { useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -73,6 +73,7 @@ export default function AddListing() {
   // Step 3
   const [description, setDescription] = useState("");
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -82,6 +83,18 @@ export default function AddListing() {
 
   // Check if user is verified (for agents)
   const isVerified = me?.user.verification_status === "verified" || isLandlordFlow;
+  const imageUrls = useMemo(
+    () => mediaUrls.filter((url) => !/\.(mp4|mov|webm|m4v|ogg|avi|mkv)(\?|$)/i.test(url)),
+    [mediaUrls],
+  );
+  const orderedMediaUrls = useMemo(() => {
+    if (!coverImageUrl || !imageUrls.includes(coverImageUrl)) {
+      return mediaUrls;
+    }
+
+    const remaining = mediaUrls.filter((url) => url !== coverImageUrl);
+    return [coverImageUrl, ...remaining];
+  }, [coverImageUrl, imageUrls, mediaUrls]);
 
   // Fetch agent's actual listings
   const { data: listingsData } = useQuery({
@@ -115,13 +128,19 @@ export default function AddListing() {
     try {
       setSubmitting(true);
       setSaveSuccess(false);
+
+      if (imageUrls.length === 0) {
+        toast.error("Add at least one image before publishing this listing.");
+        return;
+      }
+
       const payload = {
         title,
         price: Number(String(price).replace(/[^0-9]/g, "")) || 0,
         location,
         exact_address: address || location,
         description,
-        images: mediaUrls,
+        images: orderedMediaUrls,
         contact_name: "Verinest User",
         contact_phone: "+2340000000000",
         is_service_apartment: listingType === "shortlet",
@@ -152,7 +171,13 @@ export default function AddListing() {
     try {
       setUploadingMedia(true);
       const uploaded = await Promise.all(Array.from(files).map((file) => uploadToCloudinary(file, "property")));
-      setMediaUrls((prev) => [...prev, ...uploaded.map((item) => item.secureUrl)]);
+      const uploadedUrls = uploaded.map((item) => item.secureUrl);
+      setMediaUrls((prev) => [...prev, ...uploadedUrls]);
+      setCoverImageUrl((prev) => {
+        if (prev) return prev;
+        const firstImage = uploadedUrls.find((url) => !/\.(mp4|mov|webm|m4v|ogg|avi|mkv)(\?|$)/i.test(url));
+        return firstImage ?? prev;
+      });
       toast.success(`${uploaded.length} file${uploaded.length === 1 ? "" : "s"} uploaded`);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to upload property media";
@@ -166,8 +191,23 @@ export default function AddListing() {
   };
 
   const handleRemoveMedia = (urlToRemove: string) => {
-    setMediaUrls((prev) => prev.filter((url) => url !== urlToRemove));
+    const remaining = mediaUrls.filter((url) => url !== urlToRemove);
+    setMediaUrls(remaining);
+    if (coverImageUrl === urlToRemove) {
+      const nextImage = remaining.find((url) => !/\.(mp4|mov|webm|m4v|ogg|avi|mkv)(\?|$)/i.test(url));
+      setCoverImageUrl(nextImage ?? null);
+    }
     toast.success("Image removed");
+  };
+
+  const handleSetCoverImage = (url: string) => {
+    if (/\.(mp4|mov|webm|m4v|ogg|avi|mkv)(\?|$)/i.test(url)) {
+      toast.error("Only images can be used as the cover photo.");
+      return;
+    }
+
+    setCoverImageUrl(url);
+    toast.success("Cover photo updated");
   };
 
   const progress = (currentStep / steps.length) * 100;
@@ -469,7 +509,7 @@ export default function AddListing() {
                       >
                         {uploadingMedia ? <div className="flex justify-center"><OrbitLoader size="sm" /></div> : <ImagePlus className="h-10 w-10 mx-auto text-muted-foreground/40" />}
                         <p className="text-sm text-muted-foreground mt-2">{uploadingMedia ? "Uploading media..." : "Drag & drop or click to upload"}</p>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">Images and videos upload directly to Cloudinary</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">Upload at least one image. Videos are optional, but only an image can be the cover photo.</p>
                       </button>
                       <input
                         ref={mediaInputRef}
@@ -483,6 +523,7 @@ export default function AddListing() {
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                           {mediaUrls.map((url) => {
                             const isVideo = /\.(mp4|mov|webm|m4v)(\?|$)/i.test(url);
+                            const isCover = !isVideo && coverImageUrl === url;
                             return (
                               <div key={url} className="group relative overflow-hidden rounded-xl border border-border/60 bg-muted/20">
                                 {isVideo ? (
@@ -490,11 +531,25 @@ export default function AddListing() {
                                 ) : (
                                   <img src={url} alt="Property media" className="h-28 w-full object-cover" />
                                 )}
+                                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-2 pb-2 pt-6">
+                                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/90">
+                                    {isVideo ? "Video" : isCover ? "Cover photo" : "Image"}
+                                  </span>
+                                  {!isVideo && !isCover && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSetCoverImage(url)}
+                                      className="rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-slate-900 transition hover:bg-white"
+                                    >
+                                      Set cover
+                                    </button>
+                                  )}
+                                </div>
                                 <button
                                   onClick={() => handleRemoveMedia(url)}
                                   className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                                   type="button"
-                                  title="Remove image"
+                                  title="Remove media"
                                 >
                                   <X className="w-4 h-4 text-white" />
                                 </button>
@@ -502,6 +557,11 @@ export default function AddListing() {
                             );
                           })}
                         </div>
+                      )}
+                      {imageUrls.length === 0 && (
+                        <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                          This listing cannot be published until at least one image is uploaded.
+                        </p>
                       )}
                     </div>
 
@@ -585,6 +645,15 @@ export default function AddListing() {
                       </div>
                     )}
 
+                    {coverImageUrl && (
+                      <div className="p-3 rounded-lg bg-muted/30 border border-border/40">
+                        <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Cover photo</p>
+                        <div className="mt-2 overflow-hidden rounded-lg border border-border/50">
+                          <img src={coverImageUrl} alt="Selected cover photo" className="h-40 w-full object-cover" />
+                        </div>
+                      </div>
+                    )}
+
                     {boost && (
                       <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 flex items-center gap-2">
                         <Rocket className="h-4 w-4 text-primary" />
@@ -598,9 +667,13 @@ export default function AddListing() {
                           toast.error("You must complete your verification before listing properties");
                           return;
                         }
+                        if (imageUrls.length === 0) {
+                          toast.error("Add at least one image and choose a cover photo before publishing.");
+                          return;
+                        }
                         void handleSubmitListing();
                       }} 
-                      disabled={submitting || !isVerified} 
+                      disabled={submitting || !isVerified || imageUrls.length === 0} 
                       className="w-full h-11 text-sm font-medium gap-2"
                     >
                       {submitting ? (
