@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Plus, MoreHorizontal, Building2, MapPin, Eye, Inbox, Filter, Grid3x3, List, Bed, Bath, Star } from "lucide-react";
+import { Search, Plus, MoreHorizontal, Building2, MapPin, Eye, Inbox, Filter, Grid3x3, List, Bed, Bath, Star, PencilLine } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
+import { EditPropertyModal } from "@/components/EditPropertyModal";
 import { PropertyStatusModal } from "@/components/PropertyStatusModal";
 import { agentApi, formatCompactCurrency, getPendingPropertyRating, getPropertyImage, titleCase } from "@/lib/api";
 
@@ -31,6 +33,7 @@ const typeStyles: Record<string, string> = {
 export default function Listings() {
   useSearchFocus();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const { data = [], isLoading } = useQuery({
     queryKey: ["/agent/properties"],
@@ -39,10 +42,12 @@ export default function Listings() {
   const listings = useMemo(() => data.map((listing: any, index: number) => ({
     id: listing.id,
     title: listing.title ?? "Listing",
-    type: listing.is_service_apartment ? "Short-let" : "Rent",
+    type: listing.listing_type === "sale" ? "Sale" : listing.is_service_apartment || listing.listing_type === "shortlet" ? "Short-let" : "Rent",
     price: `${formatCompactCurrency(Number(listing.price ?? 0))}/yr`,
     location: listing.location ?? "Unknown location",
     status: titleCase(String(listing.status ?? "draft")),
+    rawStatus: String(listing.status ?? "draft"),
+    statusLockedUntil: listing.statusLockedUntil ?? listing.status_locked_until ?? null,
     views: Number(listing.viewCount ?? listing.view_count ?? 0),
     offers: Number(listing.offerCount ?? listing.offer_count ?? 0),
     beds: Number((listing.title ?? "").match(/(\d+)/)?.[1] ?? 2),
@@ -58,8 +63,10 @@ export default function Listings() {
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [view, setView] = useState<"grid" | "table">("grid");
   const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
   const [selectedListingStatus, setSelectedListingStatus] = useState<string>("");
+  const [selectedListingLock, setSelectedListingLock] = useState<string | null>(null);
 
   useEffect(() => {
     setSearch(searchParams.get("q") ?? "");
@@ -72,6 +79,22 @@ export default function Listings() {
       listing.type.toLowerCase().includes(search.toLowerCase()),
   );
   const active = filtered.filter((listing) => listing.status === "Active");
+
+  const refreshListings = () => {
+    queryClient.invalidateQueries({ queryKey: ["/agent/properties"] });
+  };
+
+  const openStatusModal = (listing: (typeof listings)[number]) => {
+    setSelectedListingId(listing.id);
+    setSelectedListingStatus(listing.rawStatus);
+    setSelectedListingLock(listing.statusLockedUntil);
+    setStatusModalOpen(true);
+  };
+
+  const openEditModal = (listingId: string) => {
+    setSelectedListingId(listingId);
+    setEditModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -196,10 +219,28 @@ export default function Listings() {
                                 <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {listing.views} views</span>
                                 <span>{listing.offers} offers</span>
                               </div>
-                              <div className="flex gap-1">
-                                <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={(event) => { event.stopPropagation(); setSelectedListingId(listing.id); setSelectedListingStatus(listing.status.toLowerCase().replace(" ", "_")); setStatusModalOpen(true); }}>Change Status</Button>
-                                <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button>
-                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 w-7 px-0"
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
+                                  <DropdownMenuItem onClick={() => openEditModal(listing.id)}>
+                                    <PencilLine className="mr-2 h-4 w-4" />
+                                    Edit property
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => openStatusModal(listing)}>
+                                    <Building2 className="mr-2 h-4 w-4" />
+                                    Change status
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </div>
                         </div>
@@ -267,7 +308,25 @@ export default function Listings() {
                                   )}
                                 </div>
                               </TableCell>
-                              <TableCell className="flex gap-2"><Button size="sm" variant="outline" onClick={(event) => { event.stopPropagation(); setSelectedListingId(listing.id); setSelectedListingStatus(listing.status.toLowerCase().replace(" ", "_")); setStatusModalOpen(true); }}>Change</Button><Button variant="ghost" size="icon" onClick={(event) => { event.stopPropagation(); navigate(`/provider/listings/${listing.id}`); }}><MoreHorizontal className="h-4 w-4" /></Button></TableCell>
+                              <TableCell>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" onClick={(event) => event.stopPropagation()}>
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
+                                    <DropdownMenuItem onClick={() => openEditModal(listing.id)}>
+                                      <PencilLine className="mr-2 h-4 w-4" />
+                                      Edit property
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => openStatusModal(listing)}>
+                                      <Building2 className="mr-2 h-4 w-4" />
+                                      Change status
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </TableCell>
                             </TableRow>
                           );
                         })}
@@ -281,17 +340,19 @@ export default function Listings() {
         })}
       </Tabs>
 
-      {/* Status Change Modal */}
+      <EditPropertyModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        propertyId={selectedListingId}
+      />
       {selectedListingId && (
         <PropertyStatusModal
           open={statusModalOpen}
           onOpenChange={setStatusModalOpen}
           propertyId={selectedListingId}
           currentStatus={selectedListingStatus}
-          onStatusUpdated={() => {
-            // Refetch listings after status update
-            window.location.reload();
-          }}
+          currentLockedUntil={selectedListingLock}
+          onStatusUpdated={refreshListings}
         />
       )}
     </div>
