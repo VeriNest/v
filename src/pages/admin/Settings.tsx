@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader"
 import { DashboardSettingsSection, DashboardSettingsRow } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { useAvatar } from "@/contexts/AvatarContext";
-import { authApi, clearStoredSession } from "@/lib/api";
+import { adminApi, authApi, clearStoredSession } from "@/lib/api";
 import { InlineSpinner } from "@/components/Loaders";
 import {
   Activity,
@@ -72,10 +72,43 @@ export default function AdminSettings() {
   const { avatarUrl, setAvatarUrl } = useAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [termsVersion, setTermsVersion] = useState("");
+  const [privacyVersion, setPrivacyVersion] = useState("");
+  const [effectiveAt, setEffectiveAt] = useState("");
+  const [changeSummary, setChangeSummary] = useState("");
 
   const { data: activity = [], isLoading: isLoadingActivity } = useQuery({
     queryKey: ["/auth/activity"],
     queryFn: () => authApi.getActivity(10),
+  });
+  const { data: policyMetadata, isLoading: isLoadingPolicyMetadata } = useQuery({
+    queryKey: ["/admin/legal/policies/meta"],
+    queryFn: () => adminApi.getPolicyMetadata(),
+  });
+
+  useEffect(() => {
+    if (!policyMetadata) return;
+    setTermsVersion(policyMetadata.termsVersion);
+    setPrivacyVersion(policyMetadata.privacyVersion);
+    setEffectiveAt(policyMetadata.effectiveAt ? new Date(new Date(policyMetadata.effectiveAt).getTime() - new Date(policyMetadata.effectiveAt).getTimezoneOffset() * 60_000).toISOString().slice(0, 16) : "");
+    setChangeSummary(policyMetadata.changeSummary);
+  }, [policyMetadata]);
+
+  const updatePolicyMetadataMutation = useMutation({
+    mutationFn: () =>
+      adminApi.updatePolicyMetadata({
+        termsVersion: termsVersion.trim(),
+        privacyVersion: privacyVersion.trim(),
+        effectiveAt: effectiveAt ? new Date(effectiveAt).toISOString() : undefined,
+        changeSummary: changeSummary.trim(),
+      }),
+    onSuccess: () => {
+      toast.success("Policy metadata updated");
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to update policy metadata";
+      toast.error(message);
+    },
   });
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -275,6 +308,35 @@ export default function AdminSettings() {
               <div className="flex justify-end pt-4">
                 <Button>Save Configuration</Button>
               </div>
+            </div>
+          </DashboardSettingsSection>
+
+          <DashboardSettingsSection
+            title="Legal Policy Metadata"
+            description="Manage the live Terms and Privacy versions that users accept during signup and reaccept on major updates."
+          >
+            <div className="grid grid-cols-1 gap-4 px-6 pb-6 pt-2 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">Terms Version</label>
+                <Input value={termsVersion} onChange={(e) => setTermsVersion(e.target.value)} placeholder="2026.05" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-foreground">Privacy Version</label>
+                <Input value={privacyVersion} onChange={(e) => setPrivacyVersion(e.target.value)} placeholder="2026.05" />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-sm font-medium text-foreground">Effective At</label>
+                <Input type="datetime-local" value={effectiveAt} onChange={(e) => setEffectiveAt(e.target.value)} />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <label className="text-sm font-medium text-foreground">User Change Summary</label>
+                <Input value={changeSummary} onChange={(e) => setChangeSummary(e.target.value)} placeholder="Tell users what changed in this release." />
+              </div>
+            </div>
+            <div className="flex justify-end px-6 pb-6">
+              <Button disabled={isLoadingPolicyMetadata || updatePolicyMetadataMutation.isPending} onClick={() => updatePolicyMetadataMutation.mutate()}>
+                {updatePolicyMetadataMutation.isPending ? <><InlineSpinner variant="solid" /> Saving...</> : "Save Legal Metadata"}
+              </Button>
             </div>
           </DashboardSettingsSection>
         </TabsContent>

@@ -16,6 +16,7 @@ import {
   Bed,
   Bath,
 } from "lucide-react";
+import { PageSeo } from "@/components/seo/PageSeo";
 
 const steps = [
   {
@@ -131,6 +132,11 @@ const featured = [
 const Rent = () => {
   return (
     <div className="min-h-screen bg-background">
+      <PageSeo
+        title="Rent Homes in Nigeria"
+        description="Discover rental homes, compare verified providers, and move faster from search to scheduled viewing on Verinest."
+        canonicalPath="/rent"
+      />
       <Navbar />
 
       <section className="bg-secondary/30 px-6 pb-20 pt-28 lg:px-16 xl:px-20">

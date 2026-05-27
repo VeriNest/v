@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { PageSeo } from "@/components/seo/PageSeo";
 
 const values = [
   {
@@ -76,6 +77,11 @@ const missionPoints = [
 const About = () => {
   return (
     <div className="min-h-screen bg-background">
+      <PageSeo
+        title="About Verinest"
+        description="Learn how Verinest helps seekers, agents, and landlords move through a clearer, more trusted rental workflow."
+        canonicalPath="/about"
+      />
       <Navbar />
 
       <section className="bg-secondary/30 px-6 pb-20 pt-28 lg:px-16 xl:px-20">

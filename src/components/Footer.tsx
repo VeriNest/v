@@ -26,10 +26,10 @@ const quickLinks = [
 ];
 
 const legalLinks = [
-  { label: "Privacy Policy", to: "/about" },
-  { label: "Terms of Service", to: "/about" },
-  { label: "Cookie Policy", to: "/about" },
-  { label: "Sitemap", to: "/" },
+  { label: "Privacy Policy", to: "/privacy" },
+  { label: "Terms of Service", to: "/terms" },
+  { label: "Safety Tips", to: "/contact" },
+  { label: "Sitemap", to: "/sitemap.xml" },
 ];
 
 const Footer = () => {
@@ -104,8 +104,8 @@ const Footer = () => {
               </div>
               <div className="flex gap-3 items-center">
                 <Phone className="w-4 h-4 text-primary shrink-0" />
-                <a href="tel:+2349876543210" className="text-sm text-white/35 hover:text-white/70 transition-colors">
-                  +234 98765 43210
+                <a href="tel:+2349138852657" className="text-sm text-white/35 hover:text-white/70 transition-colors">
+                  +234 9138852657
                 </a>
               </div>
               <div className="flex gap-3 items-center">

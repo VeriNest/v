@@ -29,6 +29,7 @@ import {
   Heart,
 } from "lucide-react";
 import { getPendingPropertyRating, getPropertyImage, propertiesApi, seekerApi, getStoredSession } from "@/lib/api";
+import { PageSeo } from "@/components/seo/PageSeo";
 
 type UiProperty = {
   id: string;
@@ -196,6 +197,11 @@ const Properties = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageSeo
+        title="Browse Verified Properties"
+        description="Search verified property listings across Nigeria by location, budget, and listing type on Verinest."
+        canonicalPath="/properties"
+      />
       <Navbar />
 
       <section className="bg-secondary/30 px-6 pb-16 pt-28 lg:px-16 xl:px-20">

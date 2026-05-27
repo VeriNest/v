@@ -12,7 +12,9 @@ import NotFound from "./pages/NotFound.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
 import About from "./pages/About.tsx";
 import Contact from "./pages/Contact.tsx";
+import PrivacyPage from "./pages/Privacy.tsx";
 import RentPage from "./pages/Rent.tsx";
+import TermsPage from "./pages/Terms.tsx";
 import PropertiesPage from "./pages/Properties.tsx";
 import PropertyDetailPage from "./pages/PropertyDetail.tsx";
 
@@ -69,6 +71,7 @@ import ListingDetail from "./pages/provider/ListingDetail.tsx";
 import DashboardSearch from "./pages/shared/DashboardSearch.tsx";
 import { ThemeProvider } from "@/components/theme-provider";
 import ScrollToTop from "@/components/router/ScrollToTop";
+import DisputesPage from "./pages/Disputes";
 const queryClient = new QueryClient();
 
 const MarketingThemeScope = () => (
@@ -102,7 +105,9 @@ const App = () => (
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/rent" element={<RentPage />} />
+            <Route path="/terms" element={<TermsPage />} />
             <Route path="/properties" element={<PropertiesPage />} />
             <Route path="/properties/:id" element={<PropertyDetailPage />} />
           </Route>
@@ -134,6 +139,7 @@ const App = () => (
               <Route path="bookings" element={<Bookings />} />
               <Route path="viewings" element={<Viewings />} />
               <Route path="saved" element={<Saved />} />
+              <Route path="disputes" element={<DisputesPage />} />
               <Route path="settings" element={<SeekerSettings />} />
             </Route>
 
@@ -148,6 +154,7 @@ const App = () => (
               <Route path="listings/:id" element={<ListingDetail />} />
               <Route path="listings/new" element={<AddListing />} />
               <Route path="payouts" element={<Payouts />} />
+              <Route path="disputes" element={<DisputesPage />} />
               <Route path="calendar" element={<ProviderCalendar />} />
               <Route path="settings" element={<ProviderSettings />} />
             </Route>
@@ -164,6 +171,7 @@ const App = () => (
               <Route path="maintenance" element={<LandlordMaintenance />} />
               <Route path="maintenance/new" element={<LandlordNewMaintenanceIssue />} />
               <Route path="calendar" element={<LandlordCalendar />} />
+              <Route path="disputes" element={<DisputesPage />} />
               <Route path="settings" element={<LandlordSettings />} />
             </Route>
           </Route>

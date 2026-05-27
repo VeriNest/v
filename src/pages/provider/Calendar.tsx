@@ -90,6 +90,21 @@ export default function ProviderCalendar() {
       toast.error(message);
     },
   });
+
+  const confirmScheduleMutation = useMutation({
+    mutationFn: (bookingId: string) => agentApi.confirmBookingSchedule(bookingId),
+    onSuccess: () => {
+      toast.success("Schedule confirmed! Seeker can now see your contact details.");
+      queryClient.invalidateQueries({ queryKey: ["/agent/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/seeker/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/agent/calendar"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to confirm schedule";
+      toast.error(message);
+    },
+  });
+
   const createDisputeMutation = useMutation({
     mutationFn: (payload: { id: string; disputeType: string; title: string; description: string }) =>
       agentApi.createBookingDispute(payload.id, {
@@ -186,6 +201,12 @@ export default function ProviderCalendar() {
           </Card>
         ))}
       </div>
+
+      <Card className="border border-amber-500/20 bg-amber-500/10 shadow-sm">
+        <CardContent className="p-4 text-sm leading-6 text-amber-900 dark:text-amber-200">
+          Keep confirmations, reschedules, and dispute evidence inside Verinest. Until in-app escrow launches, off-platform payment arrangements remain outside Verinest payment protection.
+        </CardContent>
+      </Card>
 
       <Tabs value={filter} className="space-y-4">
         <DashboardControlRow
@@ -323,6 +344,21 @@ export default function ProviderCalendar() {
                     </div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
+                      {booking.status === "Pending" ? (
+                        <>
+                          <Button
+                            size="sm"
+                            className="bg-emerald-600 hover:bg-emerald-700"
+                            disabled={confirmScheduleMutation.isPending}
+                            onClick={() => confirmScheduleMutation.mutate(booking.id)}
+                          >
+                            ✓ Confirm Schedule
+                          </Button>
+                          <div className="w-full text-xs text-amber-600 italic">
+                            ⚠️ Confirming will reveal your contact details and property location to the seeker
+                          </div>
+                        </>
+                      ) : null}
                       {isBookingPassed(booking.scheduledAt) ? (
                         <>
                           {booking.status === "Confirmed" && isBookingOneHourPast(booking.scheduledAt) && booking.seekerOutcome && !booking.providerOutcome ? (

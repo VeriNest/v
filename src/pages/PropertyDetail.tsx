@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getPropertyImage, getStoredSession, propertiesApi, seekerApi } from "@/lib/api";
 import { CommentSection } from "@/components/CommentSection";
 import { MessageSquare, CalendarDays, Heart, MapPin, ShieldCheck } from "lucide-react";
+import { PageSeo } from "@/components/seo/PageSeo";
 
 const videoExtensions = [".mp4", ".mov", ".webm", ".ogg", ".m4v", ".avi", ".mkv"];
 
@@ -205,6 +206,14 @@ export default function PropertyDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {data && (
+        <PageSeo
+          title={`${String(data.title ?? "Property")} in ${String(data.location ?? "Nigeria")}`}
+          description={String(data.description ?? `Explore ${String(data.title ?? "this property")} listed on Verinest.`)}
+          canonicalPath={`/properties/${id}`}
+          image={propertyImage}
+        />
+      )}
       <Navbar />
       <section className="px-6 pb-16 pt-24 lg:px-16 xl:px-20">
         <MarketingShell>
