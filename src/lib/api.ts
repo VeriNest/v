@@ -487,7 +487,7 @@ export const verificationApi = {
 
 export const propertiesApi = {
   listPublic: (params?: Record<string, string | number | undefined>) => apiRequest<{ items: Array<Record<string, unknown>>; total: number; page: number; per_page: number } | Array<Record<string, unknown>>>(`/properties${buildQuery(params)}` , undefined, false),
-  getById: (id: string) => apiRequest<Record<string, unknown>>(`/properties/${id}`, undefined, false),
+  getById: (id: string) => apiRequest<Record<string, unknown>>(`/properties/${id}`),
   reviews: (id: string) => apiRequest<Array<Record<string, unknown>>>(`/properties/${id}/reviews`, undefined, false),
   listAgent: () => apiRequest<Array<Record<string, unknown>>>("/agent/properties"),
   createAgent: (payload: Record<string, unknown>) => apiRequest<Record<string, unknown>>("/agent/properties", { method: "POST", body: JSON.stringify(payload) }),
