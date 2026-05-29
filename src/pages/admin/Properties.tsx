@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { Search, MoreHorizontal, Building2, MapPin, Plus, Filter } from "lucide-react";
+import { Search, MoreHorizontal, Building2, MapPin, Plus, Filter, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,21 @@ import { useSearchFocus } from "@/hooks/use-search-focus";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { adminApi, getPropertyListingType } from "@/lib/api";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const statusStyles: Record<string, { color: string; bg: string; dot: string }> = {
   Published: { color: "text-emerald-700 dark:text-emerald-300", bg: "bg-emerald-500/10 border-emerald-500/20 dark:bg-emerald-500/15 dark:border-emerald-500/30", dot: "bg-emerald-500" },
@@ -38,9 +53,12 @@ export const properties = [] as any[];
 
 export default function Properties() {
   useSearchFocus();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const { data } = useQuery({ queryKey: ["/admin/properties"], queryFn: () => adminApi.properties() });
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
+  const [deletePassword, setDeletePassword] = useState("");
   const rows = data?.items ?? [];
 
   useEffect(() => {
@@ -59,6 +77,23 @@ export default function Properties() {
     date: property.created_at || property.createdAt ? new Date(String(property.created_at ?? property.createdAt)).toLocaleDateString() : "",
     type: getPropertyListingType(property) === "sale" ? "Sale" : getPropertyListingType(property) === "shortlet" ? "Short-let" : "Rent",
   })), [rows]);
+
+  const deletePropertyMutation = useMutation({
+    mutationFn: () => {
+      if (!deleteTarget) throw new Error("No property selected");
+      return adminApi.deleteProperty(deleteTarget.id, { password: deletePassword });
+    },
+    onSuccess: (response) => {
+      toast.success(response.message ?? "Property deleted");
+      setDeleteTarget(null);
+      setDeletePassword("");
+      void queryClient.invalidateQueries({ queryKey: ["/admin/properties"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to delete property";
+      toast.error(message);
+    },
+  });
 
   const filtered = properties.filter((property) =>
     property.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -145,7 +180,19 @@ export default function Properties() {
                                 </p>
                               ) : null}
                             </div>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0"><MoreHorizontal className="h-4 w-4" /></Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
+                                <DropdownMenuItem onClick={() => setDeleteTarget({ id: property.id, title: property.title })}>
+                                  <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                                  Delete property
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -203,7 +250,21 @@ export default function Properties() {
                                 </span>
                               </td>
                               <td className="text-muted-foreground text-sm py-3 px-4">{property.date}</td>
-                              <td className="py-3 px-4"><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></td>
+                              <td className="py-3 px-4">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => setDeleteTarget({ id: property.id, title: property.title })}>
+                                      <Trash2 className="mr-2 h-4 w-4 text-destructive" />
+                                      Delete property
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </td>
                             </tr>
                           );
                         })}
@@ -216,6 +277,59 @@ export default function Properties() {
           );
         })}
       </Tabs>
+
+      <Dialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteTarget(null);
+            setDeletePassword("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete property</DialogTitle>
+            <DialogDescription>
+              Enter your login password to permanently delete{deleteTarget ? ` “${deleteTarget.title}”` : " this property"}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">Login password</label>
+            <Input
+              type="password"
+              value={deletePassword}
+              onChange={(event) => setDeletePassword(event.target.value)}
+              placeholder="Enter your current password"
+            />
+            <p className="text-xs text-muted-foreground">
+              This action removes the property and its related records where configured to cascade.
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setDeleteTarget(null);
+                setDeletePassword("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={!deleteTarget || deletePassword.trim().length < 6 || deletePropertyMutation.isPending}
+              onClick={() => void deletePropertyMutation.mutate()}
+            >
+              {deletePropertyMutation.isPending ? "Deleting..." : "Delete property"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -19,6 +19,7 @@ export type AuthPayload = {
   token: string;
   refresh_token: string;
   user: SessionUser;
+  csrf_token?: string;
 };
 
 export type AuthMeResponse = {
@@ -338,6 +339,21 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return data as T;
 }
 
+/**
+ * Extract CSRF token from verinest_csrf cookie
+ */
+function getCsrfTokenFromCookie(): string | null {
+  if (typeof window === "undefined") return null;
+  const cookies = document.cookie.split(";");
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split("=");
+    if (name === "verinest_csrf") {
+      return decodeURIComponent(value);
+    }
+  }
+  return null;
+}
+
 async function fetchWithToken(path: string, init: RequestInit | undefined, token?: string | null) {
   const headers = new Headers(init?.headers ?? {});
   if (!headers.has("Content-Type") && init?.body && !(init.body instanceof FormData)) {
@@ -346,6 +362,16 @@ async function fetchWithToken(path: string, init: RequestInit | undefined, token
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
   }
+  
+  // Inject CSRF token for state-changing requests (POST, PATCH, DELETE)
+  const method = init?.method?.toUpperCase() ?? "GET";
+  if (["POST", "PATCH", "DELETE", "PUT"].includes(method)) {
+    const csrfToken = getCsrfTokenFromCookie();
+    if (csrfToken) {
+      headers.set("x-csrf-token", csrfToken);
+    }
+  }
+  
   return fetch(`${API_PREFIX}${path}`, {
     ...init,
     headers,
@@ -599,6 +625,11 @@ export const adminApi = {
     normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/users${buildQuery({ page: 1, per_page: 100, ...params })}`)),
   properties: async (params?: { page?: number; per_page?: number }) =>
     normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/properties${buildQuery({ page: 1, per_page: 100, ...params })}`)),
+  deleteProperty: (id: string, payload: { password: string }) =>
+    apiRequest<{ success: boolean; message: string }>(`/admin/properties/${id}`, {
+      method: "DELETE",
+      body: JSON.stringify(payload),
+    }),
   transactions: async (params?: { page?: number; per_page?: number }) =>
     normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/transactions${buildQuery({ page: 1, per_page: 100, ...params })}`)),
   disputes: async (params?: { page?: number; per_page?: number }) =>
