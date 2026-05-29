@@ -346,9 +346,15 @@ function getCsrfTokenFromCookie(): string | null {
   if (typeof window === "undefined") return null;
   const cookies = document.cookie.split(";");
   for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split("=");
-    if (name === "verinest_csrf") {
-      return decodeURIComponent(value);
+    const trimmed = cookie.trim();
+    if (trimmed.startsWith("verinest_csrf=")) {
+      const value = trimmed.substring("verinest_csrf=".length);
+      // Decode the value in case it's URL-encoded
+      try {
+        return decodeURIComponent(value);
+      } catch {
+        return value;
+      }
     }
   }
   return null;
@@ -363,12 +369,15 @@ async function fetchWithToken(path: string, init: RequestInit | undefined, token
     headers.set("Authorization", `Bearer ${token}`);
   }
   
-  // Inject CSRF token for state-changing requests (POST, PATCH, DELETE)
+  // Inject CSRF token for state-changing requests (POST, PATCH, DELETE, PUT)
   const method = init?.method?.toUpperCase() ?? "GET";
   if (["POST", "PATCH", "DELETE", "PUT"].includes(method)) {
     const csrfToken = getCsrfTokenFromCookie();
     if (csrfToken) {
       headers.set("x-csrf-token", csrfToken);
+    } else {
+      // Log warning if CSRF token is missing for state-changing request
+      console.warn(`CSRF token not found in cookie for ${method} ${path}`);
     }
   }
   
