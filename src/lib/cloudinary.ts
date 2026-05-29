@@ -17,9 +17,60 @@ const PRESETS: Record<CloudinaryUploadKind, string> = {
   property: import.meta.env.VITE_CLOUDINARY_PROPERTY_PRESET ?? "verinest_portfolio",
 };
 
+async function compressImageFile(file: File): Promise<File> {
+  if (!file.type.startsWith("image/")) {
+    return file;
+  }
+
+  const image = await loadImage(file);
+  const maxWidth = 1920;
+  const maxHeight = 1920;
+  const scale = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
+  const width = Math.max(1, Math.round(image.width * scale));
+  const height = Math.max(1, Math.round(image.height * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) return file;
+
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.drawImage(image, 0, 0, width, height);
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, "image/webp", 0.88);
+  });
+
+  if (!blob) {
+    return file;
+  }
+
+  const baseName = file.name.replace(/\.[^.]+$/, "");
+  return new File([blob], `${baseName}.webp`, { type: "image/webp" });
+}
+
+function loadImage(file: File): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Failed to load image for compression"));
+    };
+    image.src = url;
+  });
+}
+
 export async function uploadToCloudinary(file: File, kind: CloudinaryUploadKind): Promise<CloudinaryUploadResult> {
+  const uploadFile = await compressImageFile(file);
   const form = new FormData();
-  form.append("file", file);
+  form.append("file", uploadFile);
   form.append("upload_preset", PRESETS[kind]);
 
   const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, {

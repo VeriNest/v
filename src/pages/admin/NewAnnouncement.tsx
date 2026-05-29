@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   AlertTriangle,
@@ -22,7 +22,6 @@ import {
 import { DashboardHistoryRow } from "@/components/dashboard/DashboardHistoryRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
-import { announcements } from "./Announcements";
 import { adminApi } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,6 +54,7 @@ const typeOptions = [
 
 export default function NewAnnouncement() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [submitted, setSubmitted] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [title, setTitle] = useState("");
@@ -64,6 +64,10 @@ export default function NewAnnouncement() {
   const [delivery, setDelivery] = useState("in-app");
   const [pushEnabled, setPushEnabled] = useState(true);
   const [schedule, setSchedule] = useState("");
+  const { data: announcementData } = useQuery({
+    queryKey: ["/admin/announcements"],
+    queryFn: () => adminApi.announcements(),
+  });
 
   const publishMutation = useMutation({
     mutationFn: () =>
@@ -75,6 +79,7 @@ export default function NewAnnouncement() {
     onSuccess: () => {
       toast.success("Announcement published successfully");
       setSubmitted(true);
+      void queryClient.invalidateQueries({ queryKey: ["/admin/announcements"] });
     },
     onError: (error) => {
       const errorMsg = error instanceof Error ? error.message : "Failed to publish announcement";
@@ -92,6 +97,7 @@ export default function NewAnnouncement() {
     if (currentStep === 2) return message.trim().length > 20 && delivery.length > 0;
     return true;
   }, [audience, currentStep, delivery, message, title, type]);
+  const announcements = announcementData?.items ?? [];
 
   if (submitted) {
     return (
