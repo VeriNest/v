@@ -78,6 +78,25 @@ export type PolicyMetadata = {
   updatedAt: string;
 };
 
+export type HealthResponse = {
+  status: string;
+  service: string;
+  timestamp: string;
+};
+
+export type NeedAnalyticsResponse = {
+  totalNeeds: number;
+  answeredNeeds: number;
+  openNeeds: number;
+  responseCount: number;
+  answerRate: number;
+  monthlyTrend: Array<{
+    month: string;
+    needsCreated: number;
+    needsAnswered: number;
+  }>;
+};
+
 export type NotificationItem = {
   id: string;
   kind: string;
@@ -86,6 +105,18 @@ export type NotificationItem = {
   actionUrl?: string | null;
   readAt?: string | null;
   createdAt: string;
+};
+
+export type AnnouncementItem = {
+  id: string;
+  title: string;
+  body: string;
+  audience: string;
+  status: string;
+  createdAt: string;
+  publishedAt?: string | null;
+  createdByName?: string | null;
+  createdByRole?: string | null;
 };
 
 export type CommentAuthor = {
@@ -181,6 +212,20 @@ function normalizePaginatedResponse<T>(raw: Record<string, unknown>, fallbackIte
     total: Number(raw.total ?? items.length),
     page: Number(raw.page ?? 1),
     perPage: Number(raw.perPage ?? raw.per_page ?? (items.length || 20)),
+  };
+}
+
+function normalizeAnnouncement(raw: Record<string, unknown>): AnnouncementItem {
+  return {
+    id: String(raw.id ?? ""),
+    title: String(raw.title ?? "Announcement"),
+    body: String(raw.body ?? ""),
+    audience: String(raw.audience ?? "all"),
+    status: String(raw.status ?? "published"),
+    createdAt: String(raw.created_at ?? raw.createdAt ?? ""),
+    publishedAt: typeof raw.published_at === "string" ? raw.published_at : typeof raw.publishedAt === "string" ? raw.publishedAt : null,
+    createdByName: typeof raw.created_by_name === "string" ? raw.created_by_name : typeof raw.createdByName === "string" ? raw.createdByName : null,
+    createdByRole: typeof raw.created_by_role === "string" ? raw.created_by_role : typeof raw.createdByRole === "string" ? raw.createdByRole : null,
   };
 }
 
@@ -346,9 +391,15 @@ function getCsrfTokenFromCookie(): string | null {
   if (typeof window === "undefined") return null;
   const cookies = document.cookie.split(";");
   for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split("=");
-    if (name === "verinest_csrf") {
-      return decodeURIComponent(value);
+    const trimmed = cookie.trim();
+    if (trimmed.startsWith("verinest_csrf=")) {
+      const value = trimmed.substring("verinest_csrf=".length);
+      // Decode the value in case it's URL-encoded
+      try {
+        return decodeURIComponent(value);
+      } catch {
+        return value;
+      }
     }
   }
   return null;
@@ -363,12 +414,15 @@ async function fetchWithToken(path: string, init: RequestInit | undefined, token
     headers.set("Authorization", `Bearer ${token}`);
   }
   
-  // Inject CSRF token for state-changing requests (POST, PATCH, DELETE)
+  // Inject CSRF token for state-changing requests (POST, PATCH, DELETE, PUT)
   const method = init?.method?.toUpperCase() ?? "GET";
   if (["POST", "PATCH", "DELETE", "PUT"].includes(method)) {
     const csrfToken = getCsrfTokenFromCookie();
     if (csrfToken) {
       headers.set("x-csrf-token", csrfToken);
+    } else {
+      // Log warning if CSRF token is missing for state-changing request
+      console.warn(`CSRF token not found in cookie for ${method} ${path}`);
     }
   }
   
@@ -493,6 +547,7 @@ export const authApi = {
     apiRequest<Array<{ action: string; resource_type: string | null; method: string; timestamp: string }>>(`/auth/activity?limit=${limit}`),
   updateAvatar: (avatarUrl: string) =>
     apiRequest<AuthMeResponse>("/users/avatar", { method: "PATCH", body: JSON.stringify({ avatarUrl }) }),
+  health: () => apiRequest<HealthResponse>("/health", undefined, false),
 };
 
 export const onboardingApi = {
@@ -621,6 +676,7 @@ export const landlordApi = {
 
 export const adminApi = {
   overview: () => apiRequest<Record<string, unknown>>("/admin/metrics/overview"),
+  needAnalytics: () => apiRequest<NeedAnalyticsResponse>("/admin/reports/needs"),
   users: async (params?: { page?: number; per_page?: number }) =>
     normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/users${buildQuery({ page: 1, per_page: 100, ...params })}`)),
   properties: async (params?: { page?: number; per_page?: number }) =>
@@ -663,6 +719,17 @@ export const adminApi = {
       method: "PATCH",
       body: JSON.stringify(payload),
     }),
+};
+
+export const announcementsApi = {
+  list: async (params?: { page?: number; per_page?: number }) => {
+    const raw = await apiRequest<Record<string, unknown>>(`/announcements${buildQuery({ page: 1, per_page: 50, ...params })}`);
+    const normalizedItems = Array.isArray(raw.items)
+      ? (raw.items as Array<Record<string, unknown>>).map((item) => normalizeAnnouncement(item))
+      : [];
+    return normalizePaginatedResponse<AnnouncementItem>({ ...raw, items: normalizedItems });
+  },
+  get: async (id: string) => normalizeAnnouncement(await apiRequest<Record<string, unknown>>(`/announcements/${id}`)),
 };
 
 export const usersApi = {
