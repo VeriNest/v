@@ -18,6 +18,7 @@ import RentPage from "./pages/Rent.tsx";
 import TermsPage from "./pages/Terms.tsx";
 import PropertiesPage from "./pages/Properties.tsx";
 import PropertyDetailPage from "./pages/PropertyDetail.tsx";
+import AnnouncementsPage from "./pages/Announcements.tsx";
 
 // Admin
 import AdminLayout from "./components/admin/AdminLayout.tsx";
@@ -116,6 +117,8 @@ const App = () => (
 
           {/* Admin Dashboard */}
           <Route element={<DashboardThemeScope />}>
+            <Route path="/announcements" element={<AnnouncementsPage />} />
+            <Route path="/announcements/:id" element={<AnnouncementsPage />} />
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="search" element={<DashboardSearch role="admin" />} />

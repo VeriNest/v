@@ -41,7 +41,7 @@ import { useDashboardLayout, type DashboardWidgetSize } from "@/hooks/use-dashbo
 import { useDashboardLoadingSnapshot } from "@/hooks/use-dashboard-loading-snapshot";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { toSearchId } from "@/lib/search-id";
-import { adminApi, formatCompactCurrency } from "@/lib/api";
+import { adminApi, authApi, formatCompactCurrency } from "@/lib/api";
 
 const typeStyles: Record<string, string> = {
   property: "bg-primary/10 text-primary",
@@ -71,6 +71,14 @@ export default function Dashboard() {
   const [editing, setEditing] = useState(false);
   const loading = useDashboardLoadingSnapshot();
   const { data, isLoading } = useQuery({ queryKey: ["/admin/metrics/overview"], queryFn: () => adminApi.overview() });
+  const { data: health } = useQuery({
+    queryKey: ["/health"],
+    queryFn: () => authApi.health(),
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+  });
   const revenueData = [];
   const propertyData = [];
   const stats = [
@@ -231,25 +239,29 @@ export default function Dashboard() {
               <div className="mt-4 rounded-xl border border-border/40 bg-accent/50 p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Platform Health</span>
-                  <DashboardStatusBadge tone="success">Healthy</DashboardStatusBadge>
+                  <DashboardStatusBadge tone={health?.status === "ok" ? "success" : "warning"}>
+                    {health?.status === "ok" ? "Healthy" : "Checking"}
+                  </DashboardStatusBadge>
                 </div>
                 <div className="space-y-2.5">
                   <div>
                     <div className="mb-1 flex justify-between text-xs">
-                      <span className="text-muted-foreground">Server uptime</span>
-                      <span className="font-medium text-foreground">99.98%</span>
+                      <span className="text-muted-foreground">Last check</span>
+                      <span className="font-medium text-foreground">
+                        {health?.timestamp ? new Date(health.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Pending"}
+                      </span>
                     </div>
                     <div className="h-1.5 overflow-hidden rounded-full bg-border/60">
-                      <div className="h-full w-[99.98%] rounded-full bg-emerald-500" />
+                      <div className={`h-full rounded-full ${health?.status === "ok" ? "w-[100%] bg-emerald-500" : "w-[45%] bg-amber-500"}`} />
                     </div>
                   </div>
                   <div>
                     <div className="mb-1 flex justify-between text-xs">
-                      <span className="text-muted-foreground">API response</span>
-                      <span className="font-medium text-foreground">124ms</span>
+                      <span className="text-muted-foreground">Service</span>
+                      <span className="font-medium text-foreground">{health?.service ?? "verinest-backend"}</span>
                     </div>
                     <div className="h-1.5 overflow-hidden rounded-full bg-border/60">
-                      <div className="h-full w-[85%] rounded-full bg-primary" />
+                      <div className={`h-full rounded-full ${health?.status === "ok" ? "w-[90%] bg-primary" : "w-[45%] bg-destructive"}`} />
                     </div>
                   </div>
                   </div>
