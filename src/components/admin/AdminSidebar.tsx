@@ -1,4 +1,4 @@
-import { Home, BarChart3, Users, Building2, AlertCircle, AlertTriangle, Settings, ChevronLeft, LogOut, LayoutDashboard, Megaphone, CreditCard, ShieldCheck, Flag } from "lucide-react";
+import { Home, BarChart3, Users, Building2, AlertCircle, AlertTriangle, Settings, ChevronLeft, LogOut, LayoutDashboard, Megaphone, CreditCard, ShieldCheck, Flag, Mail } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ const mainItems = [
   { title: "Property Reports", url: "/admin/property-reports", icon: Flag },
   { title: "Verifications", url: "/admin/verifications", icon: ShieldCheck },
   { title: "Reports", url: "/admin/reports", icon: BarChart3 },
+  { title: "Messages", url: "/admin/messages", icon: Mail },
   { title: "Announcements", url: "/admin/announcements", icon: Megaphone },
 ];
 

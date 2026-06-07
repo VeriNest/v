@@ -70,6 +70,10 @@ function propertyPricePeriod(property: Record<string, unknown>) {
   return "/year";
 }
 
+function normalizeTypeFilter(value: string) {
+  return value.toLowerCase().replace(/[\s_-]+/g, "");
+}
+
 const Properties = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -174,11 +178,12 @@ const Properties = () => {
 
   const filtered = allProperties.filter((property) => {
     const normalizedListingType = property.type.toLowerCase().replace(/\s+/g, "-");
+    const normalizedFilter = normalizeTypeFilter(typeFilter);
     const matchesType =
-      typeFilter === "all" ||
-      normalizedListingType === typeFilter ||
-      property.propertyType.includes(typeFilter) ||
-      property.title.toLowerCase().includes(typeFilter.replace(/-/g, " "));
+      normalizedFilter === "all" ||
+      normalizedListingType.replace(/-/g, "") === normalizedFilter ||
+      property.propertyType.replace(/-/g, "").includes(normalizedFilter) ||
+      property.title.toLowerCase().includes(typeFilter.toLowerCase().replace(/-/g, " "));
 
     const range = BUDGET_RANGES[budgetFilter];
     const matchesBudget = !range ||
@@ -190,7 +195,7 @@ const Properties = () => {
 
   const typeOptions = Array.from(
     new Set([
-      ...allProperties.map((property) => property.type),
+      ...allProperties.map((property) => property.type.toLowerCase()),
       ...(typeFilter !== "all" ? [typeFilter] : []),
     ]),
   );
@@ -231,7 +236,11 @@ const Properties = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      {typeOptions.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                      {typeOptions.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option === "short-let" ? "Short-let" : option.charAt(0).toUpperCase() + option.slice(1)}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <Select value={budgetFilter} onValueChange={setBudgetFilter}>

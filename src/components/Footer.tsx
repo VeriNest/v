@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Twitter, Linkedin, Youtube, MapPin, Phone, Mail } from "lucide-react";
+import { Facebook, Twitter, MapPin, Phone, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -9,11 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const socialLinks = [
-  { label: "Facebook", href: "/contact", icon: Facebook },
-  { label: "Instagram", href: "/contact", icon: Instagram },
-  { label: "Twitter", href: "/contact", icon: Twitter },
-  { label: "LinkedIn", href: "/contact", icon: Linkedin },
-  { label: "YouTube", href: "/contact", icon: Youtube },
+  { label: "Facebook", href: "https://facebook.com/profile.php?id=61581053168889", icon: Facebook },
+  { label: "Twitter", href: "https://twitter.com/verinest_org", icon: Twitter },
 ];
 
 const quickLinks = [
@@ -70,14 +67,16 @@ const Footer = () => {
             </p>
             <div className="flex items-center gap-3">
               {socialLinks.map(({ label, href, icon: Icon }) => (
-                <Link
+                <a
                   key={label}
-                  to={href}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
                   aria-label={label}
                   className="w-9 h-9 rounded-full border border-white/10 flex items-center justify-center text-white/35 hover:text-white/70 hover:border-white/25 transition-colors"
                 >
                   <Icon className="w-4 h-4" />
-                </Link>
+                </a>
               ))}
             </div>
           </div>
