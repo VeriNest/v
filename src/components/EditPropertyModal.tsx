@@ -18,10 +18,15 @@ type EditPropertyModalProps = {
 };
 
 const VIDEO_EXTENSIONS = [".mp4", ".mov", ".webm", ".ogg", ".m4v", ".avi", ".mkv"];
+const MIN_PROPERTY_PRICE = 50_000;
 
 function isVideoUrl(url: string) {
   const normalized = url.split("?")[0].toLowerCase();
   return VIDEO_EXTENSIONS.some((extension) => normalized.endsWith(extension));
+}
+
+function parsePriceValue(value: string) {
+  return Number(String(value).replace(/[^0-9]/g, "")) || 0;
 }
 
 export function EditPropertyModal({ open, onOpenChange, propertyId }: EditPropertyModalProps) {
@@ -62,6 +67,8 @@ export function EditPropertyModal({ open, onOpenChange, propertyId }: EditProper
     return Math.max(1, Math.floor(existing / 3));
   }, [data]);
 
+  const originalPrice = Number(data?.price ?? 0);
+
   const handleUploadMedia = async (files: FileList | null) => {
     if (!files?.length) return;
     try {
@@ -99,12 +106,18 @@ export function EditPropertyModal({ open, onOpenChange, propertyId }: EditProper
       return;
     }
 
+    const parsedPrice = parsePriceValue(price);
+    if (parsedPrice < MIN_PROPERTY_PRICE && parsedPrice !== originalPrice) {
+      toast.error(`Price must be at least NGN ${MIN_PROPERTY_PRICE.toLocaleString("en-NG")}.`);
+      return;
+    }
+
     try {
       setSaving(true);
       const response = await agentApi.updateProperty(propertyId, {
         title: title.trim(),
         description: description.trim(),
-        price: Number(String(price).replace(/[^0-9]/g, "")) || 0,
+        price: parsedPrice,
         images: orderedMediaUrls,
       });
       queryClient.invalidateQueries({ queryKey: ["/agent/properties"] });
@@ -157,10 +170,11 @@ export function EditPropertyModal({ open, onOpenChange, propertyId }: EditProper
                 value={price}
                 onChange={(event) => setPrice(event.target.value)}
                 inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="2500000"
               />
               <p className="text-xs text-muted-foreground">
-                Lower prices update immediately. If you increase the price, the backend may hold it for admin review.
+                Lower prices update immediately. Minimum allowed is NGN {MIN_PROPERTY_PRICE.toLocaleString("en-NG")}. If you increase the price, the backend may hold it for admin review.
               </p>
             </div>
 

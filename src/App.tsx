@@ -32,6 +32,7 @@ import PropertyReports from "./pages/admin/PropertyReports.tsx";
 import AdminVerifications from "./pages/admin/Verifications.tsx";
 import AdminAnnouncements from "./pages/admin/Announcements.tsx";
 import NewAnnouncement from "./pages/admin/NewAnnouncement.tsx";
+import AdminMessages from "./pages/admin/Messages.tsx";
 import AdminSettings from "./pages/admin/Settings.tsx";
 import LandlordLayout from "./components/landlord/LandlordLayout.tsx";
 import LandlordDashboard from "./pages/landlord/Dashboard.tsx";
@@ -129,6 +130,7 @@ const App = () => (
               <Route path="property-reports" element={<PropertyReports />} />
               <Route path="verifications" element={<AdminVerifications />} />
               <Route path="reports" element={<AdminReports />} />
+              <Route path="messages" element={<AdminMessages />} />
               <Route path="announcements" element={<AdminAnnouncements />} />
               <Route path="announcements/new" element={<NewAnnouncement />} />
               <Route path="settings" element={<AdminSettings />} />

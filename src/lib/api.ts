@@ -119,6 +119,25 @@ export type AnnouncementItem = {
   createdByRole?: string | null;
 };
 
+export type ContactMessageItem = {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+  isRead: boolean;
+  readAt?: string | null;
+};
+
+export type ContactMessagesResponse = {
+  messages: ContactMessageItem[];
+  total: number;
+  unread: number;
+  limit: number;
+  offset: number;
+};
+
 export type CommentAuthor = {
   author_name: string;
   author_role: string;
@@ -226,6 +245,19 @@ function normalizeAnnouncement(raw: Record<string, unknown>): AnnouncementItem {
     publishedAt: typeof raw.published_at === "string" ? raw.published_at : typeof raw.publishedAt === "string" ? raw.publishedAt : null,
     createdByName: typeof raw.created_by_name === "string" ? raw.created_by_name : typeof raw.createdByName === "string" ? raw.createdByName : null,
     createdByRole: typeof raw.created_by_role === "string" ? raw.created_by_role : typeof raw.createdByRole === "string" ? raw.createdByRole : null,
+  };
+}
+
+function normalizeContactMessage(raw: Record<string, unknown>): ContactMessageItem {
+  return {
+    id: String(raw.id ?? ""),
+    name: String(raw.name ?? "Anonymous"),
+    email: String(raw.email ?? ""),
+    subject: String(raw.subject ?? "Contact message"),
+    message: String(raw.message ?? ""),
+    createdAt: String(raw.created_at ?? raw.createdAt ?? ""),
+    isRead: Boolean(raw.is_read ?? raw.isRead ?? false),
+    readAt: typeof raw.read_at === "string" ? raw.read_at : typeof raw.readAt === "string" ? raw.readAt : null,
   };
 }
 
@@ -695,6 +727,21 @@ export const adminApi = {
   announcements: async (params?: { page?: number; per_page?: number }) =>
     normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/announcements${buildQuery({ page: 1, per_page: 100, ...params })}`)),
   createAnnouncement: (payload: { title: string; body: string; audience: string }) => apiRequest<Record<string, unknown>>("/admin/announcements", { method: "POST", body: JSON.stringify(payload) }),
+  contactMessages: async () => {
+    const raw = await apiRequest<Record<string, unknown>>("/admin/contact-messages");
+    const messages = Array.isArray(raw.messages)
+      ? (raw.messages as Array<Record<string, unknown>>).map((item) => normalizeContactMessage(item))
+      : [];
+    return {
+      messages,
+      total: Number(raw.total ?? messages.length),
+      unread: Number(raw.unread ?? 0),
+      limit: Number(raw.limit ?? messages.length),
+      offset: Number(raw.offset ?? 0),
+    } satisfies ContactMessagesResponse;
+  },
+  contactMessage: async (id: string) => normalizeContactMessage(await apiRequest<Record<string, unknown>>(`/admin/contact-messages/${id}`)),
+  markContactMessageRead: async (id: string) => normalizeContactMessage(await apiRequest<Record<string, unknown>>(`/admin/contact-messages/${id}/read`, { method: "PATCH" })),
   verifications: async (params?: { page?: number; per_page?: number }) =>
     normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/verifications${buildQuery({ page: 1, per_page: 100, ...params })}`)),
   verificationDetail: (id: string) => apiRequest<Record<string, unknown>>(`/admin/verifications/${id}/detail`),
@@ -703,7 +750,7 @@ export const adminApi = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
-  updateVerification: (id: string, payload: { status: string; rejectionReason?: string; notes?: string }) =>
+  updateVerification: (id: string, payload: { status: "approved" | "rejected"; rejectionReason?: string; notes?: string }) =>
     apiRequest<Record<string, unknown>>(`/admin/verifications/${id}`, {
       method: "PATCH",
       body: JSON.stringify({
@@ -730,6 +777,22 @@ export const announcementsApi = {
     return normalizePaginatedResponse<AnnouncementItem>({ ...raw, items: normalizedItems });
   },
   get: async (id: string) => normalizeAnnouncement(await apiRequest<Record<string, unknown>>(`/announcements/${id}`)),
+};
+
+export const contactApi = {
+  create: (payload: { name: string; email: string; subject: string; message: string }) =>
+    fetch(`${API_ROOT}/admin/contact-message`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    }).then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to send contact message (${response.status})`);
+      }
+      return;
+    }),
 };
 
 export const usersApi = {

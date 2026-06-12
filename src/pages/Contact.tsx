@@ -10,6 +10,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { PageSeo } from "@/components/seo/PageSeo";
+import { contactApi } from "@/lib/api";
 
 const contactInfo = [
   {
@@ -75,18 +76,7 @@ const Contact = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/contact-message", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
-
+      await contactApi.create(formData);
       toast.success("Message sent successfully! We'll get back to you within one business day.");
       setFormData({ name: "", email: "", subject: "", message: "" });
       

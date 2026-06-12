@@ -1,4 +1,4 @@
-import { LayoutDashboard, Building2, Users, CreditCard, Settings, MoreHorizontal } from "lucide-react";
+import { LayoutDashboard, Building2, Users, CreditCard, Settings, MoreHorizontal, Mail } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,7 @@ const moreTabs = [
   { icon: AlertTriangle, label: "Disputes", to: "/admin/disputes" },
   { icon: ShieldCheck, label: "Verifications", to: "/admin/verifications" },
   { icon: BarChart3, label: "Reports", to: "/admin/reports" },
+  { icon: Mail, label: "Messages", to: "/admin/messages" },
   { icon: Megaphone, label: "Announcements", to: "/admin/announcements" },
   { icon: Settings, label: "Settings", to: "/admin/settings" },
   { icon: ChevronLeft, label: "Back to Site", to: "/" },

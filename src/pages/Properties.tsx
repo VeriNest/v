@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
@@ -38,14 +38,17 @@ type UiProperty = {
   price: string;
   rawPrice: number;
   period: string;
-  beds: number;
-  baths: number;
+  beds: number | null;
+  baths: number | null;
+  bedroomLabel: string;
   sqft: string;
   rating: number;
   views: number;
   match: number;
   type: string;
   propertyType: string;
+  propertyCategory: string;
+  isLand: boolean;
   image: string;
 };
 
@@ -70,6 +73,19 @@ function propertyPricePeriod(property: Record<string, unknown>) {
   return "/year";
 }
 
+function normalizeTypeFilter(value: string) {
+  return value.toLowerCase().replace(/[\s_-]+/g, "");
+}
+
+function isLandListing(property: Record<string, unknown>) {
+  const category = String((property as any).propertyCategory ?? (property as any).property_category ?? "").toLowerCase();
+  const type = String((property as any).propertyType ?? (property as any).property_type ?? "").toLowerCase();
+  const listingType = String((property as any).listingType ?? (property as any).listing_type ?? "").toLowerCase();
+  const title = String((property as any).title ?? "").toLowerCase();
+  const haystack = [category, type, listingType, title].join(" ");
+  return /\b(land|plot|acre|parcel|lot|landed)\b/.test(haystack);
+}
+
 const Properties = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -89,7 +105,7 @@ const Properties = () => {
     setPage(1);
   }, [searchParams]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ["public-properties", search, page],
     queryFn: () => propertiesApi.listPublic({ 
       location: search || undefined,
@@ -145,20 +161,47 @@ const Properties = () => {
   };
 
   // Handle both paginated and non-paginated responses
-  const propertiesData = Array.isArray(data) ? data : (data?.items ?? []);
+  const propertiesData = useMemo(
+    () => (Array.isArray(data) ? data : (data?.items ?? [])),
+    [data],
+  );
   const total = !Array.isArray(data) && data?.total ? data.total : propertiesData.length;
-  const totalPages = Math.ceil(total / pageSize);
+  const [loadedProperties, setLoadedProperties] = useState<any[]>([]);
+  const hasMoreProperties = propertiesData.length === pageSize;
+
+  useEffect(() => {
+    if (page <= 1) {
+      setLoadedProperties(propertiesData);
+      return;
+    }
+
+    setLoadedProperties((current) => {
+      const seen = new Set(current.map((item) => String(item.id)));
+      const next = [...current];
+      for (const item of propertiesData) {
+        const id = String(item.id);
+        if (!seen.has(id)) {
+          seen.add(id);
+          next.push(item);
+        }
+      }
+      return next;
+    });
+  }, [page, propertiesData]);
+
+  const displayProperties = page > 1 ? loadedProperties : propertiesData;
 
   const allProperties = useMemo<UiProperty[]>(
-    () => propertiesData.map((property, index) => ({
+    () => displayProperties.map((property, index) => ({
       id: String(property.id),
       title: String(property.title ?? "Property"),
       location: String(property.location ?? "Unknown location"),
       price: `NGN ${Number(property.price ?? 0).toLocaleString("en-NG")}`,
       rawPrice: Number(property.price ?? 0),
       period: propertyPricePeriod(property),
-      beds: Number((property.title as string | undefined)?.match(/(\d+)/)?.[1] ?? 2),
-      baths: Number((property.title as string | undefined)?.match(/(\d+)/)?.[1] ?? 2),
+      beds: Number((property as any).bedrooms ?? (property as any).bedrooms_count ?? 0) || null,
+      baths: Number((property as any).bathrooms ?? 0) || null,
+      bedroomLabel: String((property as any).bedroomsLabel ?? (property as any).bedrooms_label ?? "").trim(),
       sqft: "--",
       rating: getPendingPropertyRating(property),
       views: Number((property as any).viewCount ?? (property as any).view_count ?? 0),
@@ -167,18 +210,23 @@ const Properties = () => {
       propertyType: String((property as any).propertyType ?? (property as any).property_type ?? property.title ?? "")
         .toLowerCase()
         .replace(/\s+/g, "-"),
+      propertyCategory: String((property as any).propertyCategory ?? (property as any).property_category ?? "")
+        .toLowerCase()
+        .replace(/\s+/g, "-"),
+      isLand: isLandListing(property),
       image: getPropertyImage(property.images, index),
     })),
-    [propertiesData],
+    [displayProperties],
   );
 
   const filtered = allProperties.filter((property) => {
     const normalizedListingType = property.type.toLowerCase().replace(/\s+/g, "-");
+    const normalizedFilter = normalizeTypeFilter(typeFilter);
     const matchesType =
-      typeFilter === "all" ||
-      normalizedListingType === typeFilter ||
-      property.propertyType.includes(typeFilter) ||
-      property.title.toLowerCase().includes(typeFilter.replace(/-/g, " "));
+      normalizedFilter === "all" ||
+      normalizedListingType.replace(/-/g, "") === normalizedFilter ||
+      property.propertyType.replace(/-/g, "").includes(normalizedFilter) ||
+      property.title.toLowerCase().includes(typeFilter.toLowerCase().replace(/-/g, " "));
 
     const range = BUDGET_RANGES[budgetFilter];
     const matchesBudget = !range ||
@@ -190,7 +238,7 @@ const Properties = () => {
 
   const typeOptions = Array.from(
     new Set([
-      ...allProperties.map((property) => property.type),
+      ...allProperties.map((property) => property.type.toLowerCase()),
       ...(typeFilter !== "all" ? [typeFilter] : []),
     ]),
   );
@@ -231,7 +279,11 @@ const Properties = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      {typeOptions.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                      {typeOptions.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option === "short-let" ? "Short-let" : option.charAt(0).toUpperCase() + option.slice(1)}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <Select value={budgetFilter} onValueChange={setBudgetFilter}>
@@ -296,8 +348,20 @@ const Properties = () => {
                       </div>
                     </div>
                     <div className="mb-4 flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1"><Bed className="h-4 w-4" />{property.beds}</span>
-                      <span className="flex items-center gap-1"><Bath className="h-4 w-4" />{property.baths}</span>
+                      {property.isLand ? (
+                        <span className="flex items-center gap-1"><Home className="h-4 w-4" />Land</span>
+                      ) : (
+                        <>
+                          <span className="flex items-center gap-1">
+                            <Bed className="h-4 w-4" />
+                            {property.bedroomLabel || (property.beds === 0 ? "Studio" : `${property.beds ?? 0} ${Number(property.beds ?? 0) === 1 ? "Bed" : "Beds"}`)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Bath className="h-4 w-4" />
+                            {property.baths ?? 0} {Number(property.baths ?? 0) === 1 ? "Bath" : "Baths"}
+                          </span>
+                        </>
+                      )}
                       <span className="flex items-center gap-1"><Maximize className="h-4 w-4" />{property.sqft}</span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -345,8 +409,20 @@ const Properties = () => {
                           </div>
                         </div>
                         <div className="mb-4 flex items-center gap-6 text-muted-foreground">
-                          <span className="flex items-center gap-2"><Bed className="h-4 w-4" />{property.beds} Beds</span>
-                          <span className="flex items-center gap-2"><Bath className="h-4 w-4" />{property.baths} Baths</span>
+                          {property.isLand ? (
+                            <span className="flex items-center gap-2"><Home className="h-4 w-4" />Land</span>
+                          ) : (
+                            <>
+                              <span className="flex items-center gap-2">
+                                <Bed className="h-4 w-4" />
+                                {property.bedroomLabel || (property.beds === 0 ? "Studio" : `${property.beds ?? 0} ${Number(property.beds ?? 0) === 1 ? "Bed" : "Beds"}`)}
+                              </span>
+                              <span className="flex items-center gap-2">
+                                <Bath className="h-4 w-4" />
+                                {property.baths ?? 0} {Number(property.baths ?? 0) === 1 ? "Bath" : "Baths"}
+                              </span>
+                            </>
+                          )}
                           <span className="flex items-center gap-2"><Maximize className="h-4 w-4" />{property.sqft} sqft</span>
                         </div>
                       </div>
@@ -379,37 +455,15 @@ const Properties = () => {
             </div>
           )}
           
-          {totalPages > 1 && (
-            <div className="mt-12 flex items-center justify-center gap-2">
+          {hasMoreProperties && (
+            <div className="mt-12 flex items-center justify-center">
               <Button
                 variant="outline"
-                disabled={page === 1}
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={isFetching}
+                onClick={() => setPage((p) => p + 1)}
+                className="min-w-44"
               >
-                Previous
-              </Button>
-              <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const pageNum = page > 3 ? page - 2 + i : i + 1;
-                  if (pageNum > totalPages) return null;
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={pageNum === page ? "default" : "outline"}
-                      onClick={() => setPage(pageNum)}
-                      className="h-10 w-10 rounded-lg p-0"
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
-              </div>
-              <Button
-                variant="outline"
-                disabled={page === totalPages}
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              >
-                Next
+                {isFetching ? "Loading more..." : "Show more properties"}
               </Button>
             </div>
           )}

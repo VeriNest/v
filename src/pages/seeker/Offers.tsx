@@ -97,6 +97,7 @@ export default function Offers() {
         provider: offer.providerName ?? titleCase(offer.providerRole),
         providerPhone: offer.providerPhone ?? "",
         providerImageUrl: offer.providerImageUrl ?? "",
+        canViewAgentProfile: Boolean(offer.canViewAgentProfile ?? offer.can_view_agent_profile ?? false),
         role: titleCase(offer.providerRole ?? "agent"),
         price: `${offer.offerPriceCurrency ?? "NGN"} ${Number(offer.offerPriceAmount ?? 0).toLocaleString("en-NG")}/${offer.offerPricePeriod ?? "year"}`,
         trust: "Verified",
@@ -371,11 +372,15 @@ function OfferCard({
         ) : null}
 
         <div className="flex gap-2">
-          {offer.providerUserId ? (
+          {offer.providerUserId && offer.canViewAgentProfile ? (
             <Button size="sm" variant="outline" asChild>
               <Link to={`/seeker/agents/${offer.providerUserId}`}>View agent</Link>
             </Button>
-          ) : null}
+          ) : (
+            <div className="text-xs text-muted-foreground">
+              Agent profile unlocks after a confirmed visit.
+            </div>
+          )}
           <Button
             size="sm"
             className="gap-1.5"
