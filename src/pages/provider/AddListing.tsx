@@ -45,6 +45,12 @@ const statusStyles: Record<string, { color: string; bg: string; dot: string }> =
   Pending: { color: "text-amber-700 dark:text-amber-300", bg: "bg-amber-500/10 border-amber-500/20 dark:bg-amber-500/15 dark:border-amber-500/30", dot: "bg-amber-500" },
 };
 
+const MIN_PROPERTY_PRICE = 50_000;
+
+function parsePriceValue(value: string) {
+  return Number(String(value).replace(/[^0-9]/g, "")) || 0;
+}
+
 export default function AddListing() {
   const navigate = useNavigate();
   const locationState = useLocation();
@@ -134,9 +140,15 @@ export default function AddListing() {
         return;
       }
 
+      const parsedPrice = parsePriceValue(price);
+      if (parsedPrice < MIN_PROPERTY_PRICE) {
+        toast.error(`Enter the full asking price. Minimum allowed is NGN ${MIN_PROPERTY_PRICE.toLocaleString("en-NG")}.`);
+        return;
+      }
+
       const payload = {
         title,
-        price: Number(String(price).replace(/[^0-9]/g, "")) || 0,
+        price: parsedPrice,
         location,
         exact_address: address || location,
         description,
@@ -214,7 +226,7 @@ export default function AddListing() {
 
   const canAdvance = () => {
     if (currentStep === 1) return listingType && bedrooms && title.length > 0;
-    if (currentStep === 2) return location.length > 0 && price.length > 0;
+    if (currentStep === 2) return location.length > 0 && parsePriceValue(price) >= MIN_PROPERTY_PRICE;
     return true;
   };
 
@@ -433,10 +445,12 @@ export default function AddListing() {
                           className="pl-8"
                           value={price}
                           onChange={(e) => setPrice(e.target.value)}
+                          inputMode="numeric"
+                          pattern="[0-9]*"
                         />
                       </div>
                       <p className="text-[11px] text-muted-foreground">
-                        {listingType === "shortlet" ? "Price per night in Naira" : listingType === "sale" ? "Total sale price in Naira" : "Annual rent in Naira"}
+                        {listingType === "shortlet" ? "Price per night in Naira" : listingType === "sale" ? "Total sale price in Naira" : "Annual rent in Naira"} · Minimum NGN {MIN_PROPERTY_PRICE.toLocaleString("en-NG")}
                       </p>
                     </div>
 

@@ -197,11 +197,11 @@ export default function AdminVerifications() {
   }, [selectedVerificationDetail, selectedVerificationId]);
 
   const updateVerificationMutation = useMutation({
-    mutationFn: ({ id, status, notes }: { id: string; status: string; notes?: string }) =>
+    mutationFn: ({ id, status, notes }: { id: string; status: "approved" | "rejected"; notes?: string }) =>
       adminApi.updateVerification(id, { status, notes, rejectionReason: status === "rejected" ? notes : undefined }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["/admin/verifications"] });
-      toast.success(variables.status === "verified" ? "Verification approved" : "Verification rejected");
+      toast.success(variables.status === "approved" ? "Verification approved" : "Verification rejected");
       setSelectedVerificationId(null);
       setReviewNotes("");
     },
@@ -334,7 +334,7 @@ export default function AdminVerifications() {
                     <Button
                       size="sm"
                       className="h-8 gap-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-                      onClick={() => updateVerificationMutation.mutate({ id: v.id, status: "verified" })}
+                      onClick={() => updateVerificationMutation.mutate({ id: v.id, status: "approved" })}
                       disabled={updateVerificationMutation.isPending}
                     >
                       <CheckCircle2 className="h-3 w-3" /> Approve
@@ -522,7 +522,7 @@ export default function AdminVerifications() {
             </Button>
             <Button
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
-              onClick={() => selectedVerification && updateVerificationMutation.mutate({ id: selectedVerification.id, status: "verified", notes: reviewNotes })}
+              onClick={() => selectedVerification && updateVerificationMutation.mutate({ id: selectedVerification.id, status: "approved", notes: reviewNotes })}
               disabled={!selectedVerification || updateVerificationMutation.isPending}
             >
               <CheckCircle2 className="h-4 w-4" /> Approve

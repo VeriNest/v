@@ -261,12 +261,12 @@ function normalizeContactMessage(raw: Record<string, unknown>): ContactMessageIt
   };
 }
 
-const API_ROOT = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3001").replace(/\/$/, "");
+const API_ROOT = (import.meta.env.VITE_API_BASE_URL ?? "https://verinest.up.railway.app").replace(/\/$/, "");
 const API_PREFIX = `${API_ROOT}/api/v1`;
 const SESSION_KEY = "verinest_session";
 const KYC_STATUS_KEY = "verinest_kyc_status";
 const ROLE_KEY = "verinest_role";
-//"https://verinest.up.railway.app"
+//"http://localhost:3001"
 
 let refreshPromise: Promise<AuthPayload | null> | null = null;
 
@@ -750,7 +750,7 @@ export const adminApi = {
       method: "POST",
       body: JSON.stringify(payload),
     }),
-  updateVerification: (id: string, payload: { status: string; rejectionReason?: string; notes?: string }) =>
+  updateVerification: (id: string, payload: { status: "approved" | "rejected"; rejectionReason?: string; notes?: string }) =>
     apiRequest<Record<string, unknown>>(`/admin/verifications/${id}`, {
       method: "PATCH",
       body: JSON.stringify({
