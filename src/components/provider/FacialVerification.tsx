@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { FullscreenLoader, InlineSpinner, OrbitLoader } from "@/components/Loaders";
 import { Button } from "@/components/ui/button";
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { uploadToCloudinary, validateVerificationDocumentFile } from "@/lib/cloudinary";
 import { setStoredKycStatus, verificationApi } from "@/lib/api";
 
 interface FacialVerificationProps {
@@ -323,11 +323,15 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
   };
 
   const handleNinUpload = (file: File) => {
-    if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
-      toast.error("Please upload an image or PDF file");
-      return;
-    }
-    setNinFile(file);
+    void (async () => {
+      try {
+        await validateVerificationDocumentFile(file);
+        setNinFile(file);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Please upload a valid image or PDF file";
+        toast.error(message);
+      }
+    })();
   };
 
   const handleSubmitVerification = async () => {
@@ -351,6 +355,7 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
 
       let providerDocumentUrl: string | null = null;
       if ((userRole === "agent" || userRole === "landlord") && ninFile) {
+        await validateVerificationDocumentFile(ninFile);
         const uploadedDocument = await uploadToCloudinary(ninFile, "document");
         providerDocumentUrl = uploadedDocument.secureUrl;
         await verificationApi.addDocument(verification.id, {
@@ -361,9 +366,9 @@ export function FacialVerification({ userRole, onSuccess, onCancel }: FacialVeri
         });
       }
 
-      setStoredKycStatus("submitted");
+      setStoredKycStatus("pending");
       toast.success(userRole === "seeker" ? "Liveness check submitted successfully" : "Facial verification submitted successfully");
-      onSuccess?.(selfieUpload.secureUrl, providerDocumentUrl ?? "verified");
+      onSuccess?.(selfieUpload.secureUrl, providerDocumentUrl ?? undefined);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to submit verification";
       toast.error(message);

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, ShieldCheck, Clock, ShieldX, UserPlus, Filter, Ban, CheckCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,6 +17,7 @@ export const users = [] as any[];
 const verificationStyles: Record<string, { icon: typeof ShieldCheck; color: string; bg: string }> = {
   Verified: { icon: ShieldCheck, color: "text-emerald-600 dark:text-emerald-300", bg: "bg-emerald-500/10 border border-emerald-500/20 dark:bg-emerald-500/15 dark:border-emerald-500/30" },
   Pending: { icon: Clock, color: "text-amber-600 dark:text-amber-300", bg: "bg-amber-500/10 border border-amber-500/20 dark:bg-amber-500/15 dark:border-amber-500/30" },
+  Rejected: { icon: ShieldX, color: "text-red-600 dark:text-red-300", bg: "bg-red-500/10 border border-red-500/20 dark:bg-red-500/15 dark:border-red-500/30" },
   Unverified: { icon: ShieldX, color: "text-destructive", bg: "bg-destructive/10 border border-destructive/20" },
 };
 
@@ -43,6 +44,7 @@ function normalizeVerification(value?: string | null, emailVerified?: boolean) {
   const status = String(value ?? "").toLowerCase();
   if (["verified", "approved"].includes(status)) return "Verified";
   if (["submitted", "pending", "in_review"].includes(status)) return "Pending";
+  if (status === "rejected") return "Rejected";
   if (emailVerified) return "Verified";
   return "Unverified";
 }
@@ -64,9 +66,36 @@ export default function UsersPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [suspendingUserId, setSuspendingUserId] = useState<string | null>(null);
-  
-  const { data } = useQuery({ queryKey: ["/admin/users"], queryFn: () => adminApi.users() });
+  const [page, setPage] = useState(1);
+  const pageSize = 25;
+  const { data } = useQuery({
+    queryKey: ["/admin/users", page],
+    queryFn: () => adminApi.users({ page, per_page: pageSize }),
+  });
   const rows = data?.items ?? [];
+  const [loadedRows, setLoadedRows] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (page === 1) {
+      setLoadedRows(rows);
+      return;
+    }
+
+    setLoadedRows((current) => {
+      const seen = new Set(current.map((item) => String(item.id)));
+      const next = [...current];
+      for (const row of rows) {
+        const id = String(row.id);
+        if (!seen.has(id)) {
+          seen.add(id);
+          next.push(row);
+        }
+      }
+      return next;
+    });
+  }, [page, rows]);
+
+  const displayRows = page > 1 ? loadedRows : rows;
 
   const suspendUserMutation = useMutation({
     mutationFn: (userId: string) => adminApi.suspendUser(userId),
@@ -93,7 +122,7 @@ export default function UsersPage() {
       toast.error(message);
     },
   });
-  const users = useMemo(() => rows.map((u: any) => {
+  const users = useMemo(() => displayRows.map((u: any) => {
     const role = normalizeRole(u.role);
     return {
       id: u.id,
@@ -105,7 +134,8 @@ export default function UsersPage() {
       joined: u.created_at ? new Date(u.created_at).toLocaleDateString() : "",
       activity: u.is_banned ? "Suspended" : "Active now",
     };
-  }), [rows]);
+  }), [displayRows]);
+  const hasMoreUsers = rows.length === pageSize;
   const stats = useMemo(() => ({
     total: users.length,
     verified: users.filter((item) => item.verification === "Verified").length,
@@ -315,6 +345,19 @@ export default function UsersPage() {
                       </tbody>
                     </table>
                   </div>
+
+                  {hasMoreUsers && (
+                    <div className="mt-6 flex justify-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => setPage((current) => current + 1)}
+                        disabled={suspendUserMutation.isPending || unsuspendUserMutation.isPending}
+                        className="min-w-44"
+                      >
+                        {page > 1 && rows.length === 0 ? "Loading more..." : "Show more users"}
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

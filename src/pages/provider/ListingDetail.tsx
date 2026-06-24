@@ -19,7 +19,7 @@ import { DashboardSectionCard } from "@/components/dashboard/DashboardSectionCar
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { CommentSection } from "@/components/CommentSection";
 import { Button } from "@/components/ui/button";
-import { getPropertyImage, propertiesApi, titleCase, maskPhoneNumber } from "@/lib/api";
+import { getPropertyImage, isLandProperty, propertiesApi, titleCase, maskPhoneNumber } from "@/lib/api";
 
 const videoExtensions = [".mp4", ".mov", ".webm", ".ogg", ".m4v", ".avi", ".mkv"];
 
@@ -61,7 +61,7 @@ export default function ListingDetail() {
   });
 
   const gallery = useMemo(() => {
-    const media = Array.isArray(data?.images) && data.images.length ? data.images.map(String) : [getPropertyImage([], 0)];
+    const media = Array.isArray(data?.images) && data.images.length ? data.images.map(String) : [getPropertyImage([], 0, isLandProperty(data))];
     return media;
   }, [data]);
 

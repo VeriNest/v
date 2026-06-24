@@ -51,13 +51,25 @@ export default function SeekerLayout() {
                 <div className="hidden md:block">
                   <div className="flex items-center gap-1.5">
                     <p className="text-sm font-medium leading-none text-foreground">Tenant</p>
-                    {kycStatus === "submitted" ? (
+                    {kycStatus === "approved" ? (
                       <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                    ) : kycStatus === "pending" || kycStatus === "submitted" ? (
+                      <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
+                    ) : kycStatus === "rejected" ? (
+                      <ShieldAlert className="h-3.5 w-3.5 text-red-500" />
                     ) : (
                       <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground">{kycStatus === "submitted" ? "Verified" : "Unverified"}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {kycStatus === "approved"
+                      ? "Verified"
+                      : kycStatus === "pending" || kycStatus === "submitted"
+                        ? "Verification pending"
+                        : kycStatus === "rejected"
+                          ? "Verification rejected"
+                          : "Unverified"}
+                  </p>
                 </div>
               </Link>
             </div>

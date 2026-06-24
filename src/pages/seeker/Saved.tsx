@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import { Heart, MapPin, Star, Bed, Bath, ExternalLink, Grid3x3, List, Search, Calendar } from "lucide-react";
 import { useSearchFocus } from "@/hooks/use-search-focus";
-import { formatCompactCurrency, getPendingPropertyRating, getPropertyImage, seekerApi } from "@/lib/api";
+import { formatCompactCurrency, getPendingPropertyRating, getPropertyImage, isLandProperty, seekerApi } from "@/lib/api";
 
 export const saved = [] as any[];
 
@@ -29,7 +29,7 @@ export default function Saved() {
     match: 80 + (index % 20),
     beds: Number((item.title ?? "").match(/(\d+)/)?.[1] ?? 2),
     baths: Number((item.title ?? "").match(/(\d+)/)?.[1] ?? 2),
-    image: getPropertyImage(item.images, index),
+    image: getPropertyImage(item.images, index, isLandProperty(item)),
     savedDate: item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "Saved",
     views: Number(item.viewCount ?? item.view_count ?? 0),
   })), [data]);

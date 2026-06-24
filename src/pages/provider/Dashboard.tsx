@@ -42,7 +42,7 @@ import { Button } from "@/components/ui/button";
 import { useDashboardLayout, type DashboardWidgetSize } from "@/hooks/use-dashboard-layout";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { toSearchId } from "@/lib/search-id";
-import { agentApi, formatCompactCurrency, getPendingPropertyRating, getPropertyImage } from "@/lib/api";
+import { agentApi, formatCompactCurrency, getPendingPropertyRating, getPropertyImage, isLandProperty } from "@/lib/api";
 
 type WidgetDefinition = {
   id: string;
@@ -83,7 +83,7 @@ export default function ProviderDashboard() {
     views: Number(listing.viewCount ?? listing.view_count ?? 0),
     inquiries: Number(listing.offerCount ?? listing.offer_count ?? 0),
     rating: getPendingPropertyRating(listing),
-    image: getPropertyImage(listing.images, index),
+    image: getPropertyImage(listing.images, index, isLandProperty(listing)),
   }));
 
   const widgetDefinitions = useMemo<WidgetDefinition[]>(

@@ -56,16 +56,44 @@ export default function Properties() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get("q") ?? "");
-  const { data } = useQuery({ queryKey: ["/admin/properties"], queryFn: () => adminApi.properties() });
+  const [page, setPage] = useState(1);
+  const pageSize = 25;
+  const { data } = useQuery({
+    queryKey: ["/admin/properties", page],
+    queryFn: () => adminApi.properties({ page, per_page: pageSize }),
+  });
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
   const [deletePassword, setDeletePassword] = useState("");
   const rows = data?.items ?? [];
+  const [loadedRows, setLoadedRows] = useState<any[]>([]);
 
   useEffect(() => {
     setSearch(searchParams.get("q") ?? "");
   }, [searchParams]);
 
-  const properties = useMemo(() => rows.map((property: any) => ({
+  useEffect(() => {
+    if (page === 1) {
+      setLoadedRows(rows);
+      return;
+    }
+
+    setLoadedRows((current) => {
+      const seen = new Set(current.map((item) => String(item.id)));
+      const next = [...current];
+      for (const row of rows) {
+        const id = String(row.id);
+        if (!seen.has(id)) {
+          seen.add(id);
+          next.push(row);
+        }
+      }
+      return next;
+    });
+  }, [page, rows]);
+
+  const displayRows = page > 1 ? loadedRows : rows;
+
+  const properties = useMemo(() => displayRows.map((property: any) => ({
     id: property.id,
     title: property.title ?? "Property",
     agent: property.agent_name ?? property.agentName ?? property.owner_name ?? property.ownerName ?? "Unassigned",
@@ -76,7 +104,8 @@ export default function Properties() {
     openReportCount: Number(property.open_report_count ?? property.openReportCount ?? 0),
     date: property.created_at || property.createdAt ? new Date(String(property.created_at ?? property.createdAt)).toLocaleDateString() : "",
     type: getPropertyListingType(property) === "sale" ? "Sale" : getPropertyListingType(property) === "shortlet" ? "Short-let" : "Rent",
-  })), [rows]);
+  })), [displayRows]);
+  const hasMoreProperties = rows.length === pageSize;
 
   const deletePropertyMutation = useMutation({
     mutationFn: () => {
@@ -271,6 +300,18 @@ export default function Properties() {
                       </tbody>
                     </table>
                   </div>
+
+                  {hasMoreProperties && (
+                    <div className="mt-6 flex justify-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => setPage((current) => current + 1)}
+                        className="min-w-44"
+                      >
+                        {page > 1 && rows.length === 0 ? "Loading more..." : "Show more properties"}
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

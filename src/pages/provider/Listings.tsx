@@ -14,7 +14,7 @@ import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader"
 import { BackendLoadingIndicator } from "@/components/BackendLoadingIndicator";
 import { EditPropertyModal } from "@/components/EditPropertyModal";
 import { PropertyStatusModal } from "@/components/PropertyStatusModal";
-import { agentApi, formatCompactCurrency, getPendingPropertyRating, getPropertyImage, titleCase } from "@/lib/api";
+import { agentApi, formatCompactCurrency, getPendingPropertyRating, getPropertyImage, isLandProperty, titleCase } from "@/lib/api";
 
 export const initialListings = [] as any[];
 
@@ -54,7 +54,7 @@ export default function Listings() {
     baths: Number((listing.title ?? "").match(/(\d+)/)?.[1] ?? 2),
     rating: getPendingPropertyRating(listing),
     match: 80 + (index % 20),
-    image: getPropertyImage(listing.images, index),
+    image: getPropertyImage(listing.images, index, isLandProperty(listing)),
     ownerName: listing.owner_name,
     ownerPhone: listing.owner_phone,
     agentName: listing.agent_name,

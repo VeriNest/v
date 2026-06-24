@@ -51,6 +51,34 @@ async function compressImageFile(file: File): Promise<File> {
   return new File([blob], `${baseName}.webp`, { type: "image/webp" });
 }
 
+export async function validateImageFile(file: File): Promise<void> {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Please upload a valid image file");
+  }
+  await loadImage(file);
+}
+
+export async function validateVerificationDocumentFile(file: File): Promise<void> {
+  if (file.size <= 0) {
+    throw new Error("The selected file is empty");
+  }
+
+  if (file.type.startsWith("image/")) {
+    await loadImage(file);
+    return;
+  }
+
+  const looksLikePdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+  if (!looksLikePdf) {
+    throw new Error("Please upload a valid image or PDF document");
+  }
+
+  const signature = await file.slice(0, 5).text();
+  if (signature !== "%PDF-") {
+    throw new Error("Please upload a readable PDF document");
+  }
+}
+
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);

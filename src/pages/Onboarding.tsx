@@ -12,8 +12,8 @@ import { FullscreenLoader, OrbitLoader } from "@/components/Loaders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { authApi, dashboardPathForRole, getStoredSession, onboardingApi, resolveAuthenticatedPath, setStoredKycStatus, setStoredSession, verificationApi } from "@/lib/api";
-import { uploadToCloudinary } from "@/lib/cloudinary";
+import { authApi, dashboardPathForRole, getStoredSession, isVerificationApproved, onboardingApi, resolveAuthenticatedPath, setStoredKycStatus, setStoredSession, verificationApi } from "@/lib/api";
+import { uploadToCloudinary, validateVerificationDocumentFile } from "@/lib/cloudinary";
 import { FacialVerification } from "@/components/provider/FacialVerification";
 
 type Role = "seeker" | "agent" | "landlord";
@@ -124,7 +124,7 @@ export default function Onboarding() {
     }
 
     // Additional check: verify the backend confirms verification status
-    if (me?.verification?.status && me.verification.status.toLowerCase() !== "verified" && me.verification.status.toLowerCase() !== "approved") {
+    if (me?.verification?.status && !isVerificationApproved(me.verification.status)) {
       toast.error("Verification not yet approved by backend", {
         description: "Please wait a moment or refresh the page",
       });
@@ -265,7 +265,7 @@ export default function Onboarding() {
           mimeType: uploaded.mimeType,
         });
       }
-      setStoredKycStatus("submitted");
+      setStoredKycStatus("pending");
       await queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
       await queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] });
       await queryClient.invalidateQueries({ queryKey: ["/auth/me", "onboarding"] });
@@ -380,7 +380,7 @@ export default function Onboarding() {
         mimeType: selfie.mimeType,
       });
 
-      setStoredKycStatus("submitted");
+      setStoredKycStatus("pending");
       await queryClient.invalidateQueries({ queryKey: ["/auth/me"] });
       await queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] });
       await queryClient.invalidateQueries({ queryKey: ["/auth/me", "onboarding"] });
@@ -394,6 +394,7 @@ export default function Onboarding() {
   const handleDocUpload = async (docLabel: string, file: File) => {
     try {
       setUploadingDoc(docLabel);
+      await validateVerificationDocumentFile(file);
       const uploaded = await uploadToCloudinary(file, "document");
       setUploadedDocFiles((prev) => ({
         ...prev,
@@ -518,7 +519,7 @@ export default function Onboarding() {
                 user: {
                   ...parsed.user,
                   profilePhoto: photoUrl,
-                  verificationStatus: "verified",
+                  verificationStatus: "pending",
                 }
               });
             }
@@ -569,7 +570,7 @@ export default function Onboarding() {
                 mimeType: landlordOwnershipDoc.mimeType,
               });
 
-              setStoredKycStatus("submitted");
+              setStoredKycStatus("pending");
               await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ["/auth/me"] }),
                 queryClient.invalidateQueries({ queryKey: ["/auth/me", "access"] }),
@@ -1118,7 +1119,7 @@ export default function Onboarding() {
                 {role === "seeker"
                   ? "Start exploring properties or post what you need — verified agents will come to you."
                   : role === "agent"
-                    ? "Your profile is now verified with facial recognition. Start listing properties and connecting with verified tenants."
+                    ? "Your verification has been submitted. Start preparing listings while our team reviews your profile."
                     : "Your dashboard is ready. List your first property and start connecting with tenants."}
               </p>
             </div>

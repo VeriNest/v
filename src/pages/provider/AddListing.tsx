@@ -1,11 +1,11 @@
-﻿import { useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   MapPin, Calendar, CheckCircle2, ShieldCheck, FileText, Plus, ChevronRight,
   ChevronLeft, Eye, Rocket, ArrowRight, Building2, Sparkles, AlertCircle,
-  ImagePlus, Home, Bed, DollarSign, Tag, ShieldAlert, X
+  ImagePlus, Home, Bed, Bath, DollarSign, Tag, ShieldAlert, X
 } from "lucide-react";
 import { InlineSpinner, OrbitLoader } from "@/components/Loaders";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -20,7 +20,7 @@ import { Progress } from "@/components/ui/progress";
 import { DashboardHistoryRow } from "@/components/dashboard/DashboardHistoryRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
-import { landlordApi, propertiesApi, authApi } from "@/lib/api";
+import { landlordApi, propertiesApi, authApi, isVerificationApproved } from "@/lib/api";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
 const amenities = ["24hr Power", "Security", "Water Supply", "Parking", "Gated Estate", "Pet Friendly", "Furnished", "Swimming Pool", "Gym", "Serviced", "Elevator", "Balcony"];
@@ -51,6 +51,26 @@ function parsePriceValue(value: string) {
   return Number(String(value).replace(/[^0-9]/g, "")) || 0;
 }
 
+function bedroomSelectionToCount(value: string) {
+  if (value === "studio" || value === "self") return 0;
+  if (value === "5+") return 5;
+  return Number(value) || 0;
+}
+
+function bathroomSelectionToCount(value: string) {
+  if (value === "5+") return 5;
+  return Number(value) || 0;
+}
+
+function bedroomSelectionToLabel(value: string) {
+  if (value === "studio") return "Studio";
+  if (value === "self") return "Self-contain";
+  const count = bedroomSelectionToCount(value);
+  return `${count} Bedroom${count === 1 ? "" : "s"}`;
+}
+
+const LISTING_DRAFT_KEY = "verinest_listing_draft";
+
 export default function AddListing() {
   const navigate = useNavigate();
   const locationState = useLocation();
@@ -68,6 +88,7 @@ export default function AddListing() {
   // Step 1
   const [listingType, setListingType] = useState("rent");
   const [bedrooms, setBedrooms] = useState("2");
+  const [bathrooms, setBathrooms] = useState("1");
   const [title, setTitle] = useState("");
 
   // Step 2
@@ -86,9 +107,10 @@ export default function AddListing() {
   const [previousListings, setPreviousListings] = useState<any[]>([]);
   const mediaInputRef = useRef<HTMLInputElement>(null);
   const isLandlordFlow = locationState.pathname.startsWith("/landlord");
+  const draftHydratedRef = useRef(false);
 
   // Check if user is verified (for agents)
-  const isVerified = me?.user.verification_status === "verified" || isLandlordFlow;
+  const isVerified = isVerificationApproved(me?.user.verification_status) || isLandlordFlow;
   const imageUrls = useMemo(
     () => mediaUrls.filter((url) => !/\.(mp4|mov|webm|m4v|ogg|avi|mkv)(\?|$)/i.test(url)),
     [mediaUrls],
@@ -101,6 +123,78 @@ export default function AddListing() {
     const remaining = mediaUrls.filter((url) => url !== coverImageUrl);
     return [coverImageUrl, ...remaining];
   }, [coverImageUrl, imageUrls, mediaUrls]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(LISTING_DRAFT_KEY);
+      if (!raw) {
+        draftHydratedRef.current = true;
+        return;
+      }
+
+      const draft = JSON.parse(raw) as Record<string, unknown>;
+      setListingType(String(draft.listingType ?? "rent"));
+      setBedrooms(String(draft.bedrooms ?? "2"));
+      setBathrooms(String(draft.bathrooms ?? "1"));
+      setTitle(String(draft.title ?? ""));
+      setLocation(String(draft.location ?? ""));
+      setAddress(String(draft.address ?? ""));
+      setPrice(String(draft.price ?? ""));
+      setAvailableFrom(String(draft.availableFrom ?? ""));
+      setDescription(String(draft.description ?? ""));
+      setMediaUrls(Array.isArray(draft.mediaUrls) ? draft.mediaUrls.map(String) : []);
+      setCoverImageUrl(typeof draft.coverImageUrl === "string" ? draft.coverImageUrl : null);
+      setSelectedAmenities(Array.isArray(draft.selectedAmenities) ? draft.selectedAmenities.map(String) : []);
+      setBoost(Boolean(draft.boost ?? false));
+      if (typeof draft.currentStep === "number") {
+        setCurrentStep(Math.min(4, Math.max(1, draft.currentStep)));
+      }
+    } catch {
+      window.localStorage.removeItem(LISTING_DRAFT_KEY);
+    } finally {
+      draftHydratedRef.current = true;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !draftHydratedRef.current || submitted) return;
+    window.localStorage.setItem(
+      LISTING_DRAFT_KEY,
+      JSON.stringify({
+        listingType,
+        bedrooms,
+        bathrooms,
+        title,
+        location,
+        address,
+        price,
+        availableFrom,
+        description,
+        mediaUrls,
+        coverImageUrl,
+        selectedAmenities,
+        boost,
+        currentStep,
+      }),
+    );
+  }, [
+    listingType,
+    bedrooms,
+    bathrooms,
+    title,
+    location,
+    address,
+    price,
+    availableFrom,
+    description,
+    mediaUrls,
+    coverImageUrl,
+    selectedAmenities,
+    boost,
+    currentStep,
+    submitted,
+  ]);
 
   // Fetch agent's actual listings
   const { data: listingsData } = useQuery({
@@ -153,6 +247,10 @@ export default function AddListing() {
         exact_address: address || location,
         description,
         images: orderedMediaUrls,
+        bedrooms: bedroomSelectionToCount(bedrooms),
+        bathrooms: bathroomSelectionToCount(bathrooms),
+        bedrooms_label: bedroomSelectionToLabel(bedrooms),
+        property_category: listingType,
         contact_name: "Verinest User",
         contact_phone: "+2340000000000",
         is_service_apartment: listingType === "shortlet",
@@ -163,12 +261,16 @@ export default function AddListing() {
       } else {
         await propertiesApi.createAgent(payload);
       }
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem(LISTING_DRAFT_KEY);
+      }
       setSaveSuccess(true);
       setTimeout(() => setSubmitted(true), 1000);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to save listing";
       toast.error(message);
       setSaveSuccess(false);
+      toast.info("Your listing draft has been kept so you can continue later.");
     } finally {
       setSubmitting(false);
     }
@@ -225,7 +327,7 @@ export default function AddListing() {
   const progress = (currentStep / steps.length) * 100;
 
   const canAdvance = () => {
-    if (currentStep === 1) return listingType && bedrooms && title.length > 0;
+    if (currentStep === 1) return listingType && bedrooms && bathrooms && title.length > 0;
     if (currentStep === 2) return location.length > 0 && parsePriceValue(price) >= MIN_PROPERTY_PRICE;
     return true;
   };
@@ -245,7 +347,7 @@ export default function AddListing() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button onClick={() => { setSubmitted(false); setCurrentStep(1); setTitle(""); setLocation(""); setPrice(""); setDescription(""); setSelectedAmenities([]); setBoost(false); }} variant="outline" size="sm">Add Another</Button>
+          <Button onClick={() => { setSubmitted(false); setCurrentStep(1); setTitle(""); setLocation(""); setPrice(""); setDescription(""); setSelectedAmenities([]); setBoost(false); if (typeof window !== "undefined") window.localStorage.removeItem(LISTING_DRAFT_KEY); }} variant="outline" size="sm">Add Another</Button>
           <Button size="sm" onClick={() => navigate(isLandlordFlow ? "/landlord/properties" : "/provider/listings")}>View My Listings</Button>
         </div>
       </div>
@@ -382,6 +484,32 @@ export default function AddListing() {
                             onClick={() => setBedrooms(opt.value)}
                             className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
                               bedrooms === opt.value
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border/60 text-muted-foreground"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-foreground">Toilets / Bathrooms</label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { value: "0", label: "None" },
+                          { value: "1", label: "1 Toilet" },
+                          { value: "2", label: "2 Toilets" },
+                          { value: "3", label: "3 Toilets" },
+                          { value: "4", label: "4 Toilets" },
+                          { value: "5+", label: "5+ Toilets" },
+                        ].map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => setBathrooms(opt.value)}
+                            className={`px-4 py-2 rounded-lg border text-sm font-medium transition-all ${
+                              bathrooms === opt.value
                                 ? "border-primary bg-primary text-primary-foreground"
                                 : "border-border/60 text-muted-foreground"
                             }`}
@@ -623,6 +751,7 @@ export default function AddListing() {
                         { label: "Title", value: title || "Not specified" },
                         { label: "Type", value: listingType === "rent" ? "Rent (Long-term)" : listingType === "shortlet" ? "Short-let" : "Sale" },
                         { label: "Bedrooms", value: bedrooms === "studio" ? "Studio" : bedrooms === "self" ? "Self-contain" : `${bedrooms} Bedroom${bedrooms !== "1" ? "s" : ""}` },
+                        { label: "Toilets", value: bathrooms === "0" ? "None" : `${bathrooms} Toilet${bathrooms === "1" ? "" : "s"}` },
                         { label: "Location", value: location || "Not specified" },
                         { label: "Price", value: price ? `₦${price}/${listingType === "shortlet" ? "night" : listingType === "sale" ? "total" : "yr"}` : "Not set" },
                         { label: "Available", value: availableFrom || "Flexible" },

@@ -19,6 +19,7 @@ import { authApi, clearStoredSession } from "@/lib/api";
 export default function LandlordSettings() {
   const navigate = useNavigate();
   const { avatarUrl, setAvatarUrl } = useAvatar();
+  const kycStatus = localStorage.getItem("verinest_kyc_status");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const avatarUploadMutation = useAvatarUpload();
@@ -81,7 +82,21 @@ export default function LandlordSettings() {
           </div>
           <div className="flex shrink-0 flex-wrap justify-center gap-1.5 sm:justify-end">
             <DashboardStatusBadge tone="info">Landlord</DashboardStatusBadge>
-            <DashboardStatusBadge tone="success">Verified</DashboardStatusBadge>
+            <DashboardStatusBadge
+              tone={
+                kycStatus === "approved"
+                  ? "success"
+                  : kycStatus === "rejected"
+                    ? "danger"
+                    : "warning"
+              }
+            >
+              {kycStatus === "approved"
+                ? "Verified"
+                : kycStatus === "rejected"
+                  ? "Rejected"
+                  : "Pending"}
+            </DashboardStatusBadge>
           </div>
         </CardContent>
       </Card>

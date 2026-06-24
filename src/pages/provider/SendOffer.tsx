@@ -23,7 +23,7 @@ import {
 import { InlineSpinner } from "@/components/Loaders";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
-import { agentApi, formatCompactCurrency, getPropertyImage } from "@/lib/api";
+import { agentApi, formatCompactCurrency, getPropertyImage, isLandProperty } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -401,7 +401,7 @@ export default function SendOffer() {
                   <div className="rounded-lg border border-border/40 bg-muted/30 p-3">
                     <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Attached Listing Media</p>
                     <div className="mt-2 grid grid-cols-2 gap-3 md:grid-cols-3">
-                      {(selectedListingMedia.length > 0 ? selectedListingMedia : [getPropertyImage([], 0)]).map((mediaUrl, index) => (
+                      {(selectedListingMedia.length > 0 ? selectedListingMedia : [getPropertyImage([], 0, isLandProperty(selectedListingData))]).map((mediaUrl, index) => (
                         <div key={`review-${index}`} className="overflow-hidden rounded-lg border border-border/50 bg-background">
                           {isVideoUrl(mediaUrl) ? (
                             <video

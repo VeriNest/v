@@ -40,7 +40,7 @@ import { Button } from "@/components/ui/button";
 import { useDashboardLayout, type DashboardWidgetSize } from "@/hooks/use-dashboard-layout";
 import { useSearchFocus } from "@/hooks/use-search-focus";
 import { toSearchId } from "@/lib/search-id";
-import { formatCompactCurrency, getPropertyImage, seekerApi } from "@/lib/api";
+import { formatCompactCurrency, getPropertyImage, isLandProperty, seekerApi } from "@/lib/api";
 
 type WidgetDefinition = {
   id: string;
@@ -82,7 +82,7 @@ export default function SeekerDashboard() {
     name: item.title ?? "Saved property",
     location: item.location ?? "Unknown location",
     price: `${formatCompactCurrency(Number(item.price ?? 0))}/yr`,
-    img: getPropertyImage(item.images, index),
+    img: getPropertyImage(item.images, index, isLandProperty(item)),
   }));
 
   const widgetDefinitions = useMemo<WidgetDefinition[]>(

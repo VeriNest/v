@@ -17,7 +17,7 @@ export function KycAlertBanner({ variant }: KycAlertBannerProps) {
 
   const kycStatus = localStorage.getItem("verinest_kyc_status");
 
-  if (kycStatus === "submitted" || dismissed) return null;
+  if (kycStatus === "approved" || kycStatus === "pending" || kycStatus === "submitted" || dismissed) return null;
 
   const themeTone =
     variant === "seeker"

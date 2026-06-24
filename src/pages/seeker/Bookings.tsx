@@ -28,6 +28,7 @@ import { useSearchFocus } from "@/hooks/use-search-focus";
 import { formatCompactCurrency, reportsApi, seekerApi } from "@/lib/api";
 import { toast } from "sonner";
 import { InlineSpinner } from "@/components/Loaders";
+import { StateProgress, type ProgressStage } from "@/components/StateProgress";
 
 function titleForStatus(value?: string) {
   if (!value) return "Pending";
@@ -56,6 +57,64 @@ const bookingStatusStyles: Record<string, string> = {
   "Awaiting viewing": "bg-primary/10 text-primary border-primary/20",
   "Pending balance": "bg-amber-500/10 text-amber-700 border-amber-500/20 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30",
 };
+
+function bookingProgressStages(item: {
+  status: string;
+  scheduledDate: Date | null;
+  seekerOutcome: unknown;
+  providerOutcome: unknown;
+  outcomeResolution: unknown;
+  listingOutcomeApplied: boolean;
+}): ProgressStage[] {
+  const confirmed = item.status === "Confirmed";
+  const pastVisit = isBookingPassed(item.scheduledDate);
+  const oneHourPast = isBookingOneHourPast(item.scheduledDate);
+  const outcomeOpened = Boolean(item.seekerOutcome);
+  const resolved = Boolean(item.outcomeResolution);
+
+  if (!confirmed) {
+    return [
+      { label: "Request sent", description: "The provider now has your viewing request.", state: "current" },
+      { label: "Provider review", description: "Waiting for the host to approve the visit.", state: "upcoming" },
+      { label: "Visit confirmed", description: "A confirmed time and contact details appear here.", state: "upcoming" },
+      { label: "Outcome", description: "After the visit, confirm whether it worked out.", state: "upcoming" },
+    ];
+  }
+
+  if (resolved) {
+    return [
+      { label: "Request sent", description: "Your request was received and routed.", state: "complete" },
+      { label: "Visit confirmed", description: "The host approved the schedule.", state: "complete" },
+      { label: "Outcome confirmed", description: item.outcomeResolution === "conflict" ? "The case is under follow-up." : item.listingOutcomeApplied ? "Listing availability has been updated." : "Both sides confirmed the outcome.", state: "complete" },
+      { label: "Closed", description: "The booking has been resolved.", state: "complete" },
+    ];
+  }
+
+  if (oneHourPast && outcomeOpened) {
+    return [
+      { label: "Request sent", description: "Your request was received and routed.", state: "complete" },
+      { label: "Visit confirmed", description: "The host approved the schedule.", state: "complete" },
+      { label: pastVisit ? "Visit completed" : "Visit in progress", description: "The booking has reached the scheduled time.", state: "complete" },
+      { label: "Outcome pending", description: "Waiting for the provider to confirm or dispute.", state: "current" },
+    ];
+  }
+
+  if (oneHourPast) {
+    return [
+      { label: "Request sent", description: "Your request was received and routed.", state: "complete" },
+      { label: "Visit confirmed", description: "The host approved the schedule.", state: "complete" },
+      { label: pastVisit ? "Visit completed" : "Visit in progress", description: "The visit time has passed.", state: "complete" },
+      { label: "Confirm outcome", description: "You can now say whether the property was taken.", state: "current" },
+    ];
+  }
+
+  return [
+    { label: "Request sent", description: "Your request was received and routed.", state: "complete" },
+    { label: "Visit confirmed", description: "The host approved the schedule.", state: "current" },
+    { label: "Visit scheduled", description: "Your booking time is set.", state: "upcoming" },
+    { label: "Outcome pending", description: "You can confirm the result after the visit.", state: "upcoming" },
+  ];
+}
 
 function StatusTabs({
   counts,
@@ -360,6 +419,8 @@ export default function SeekerBookings() {
               <div className="rounded-xl border border-border/50 bg-secondary/15 px-3 py-2.5 text-xs text-muted-foreground">
                 {item.detail}
               </div>
+
+              <StateProgress stages={bookingProgressStages(item)} />
 
               {item.outcomeResolution ? (
                 <div className={`rounded-xl border px-3 py-2.5 text-xs ${
