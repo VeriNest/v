@@ -12,8 +12,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { getPropertyImage, getStoredSession, propertiesApi, seekerApi } from "@/lib/api";
+import { getPropertyImage, getStoredSession, isLandProperty, propertiesApi, seekerApi } from "@/lib/api";
 import { CommentSection } from "@/components/CommentSection";
+import { StateProgress } from "@/components/StateProgress";
 import { MessageSquare, CalendarDays, Heart, MapPin, ShieldCheck } from "lucide-react";
 import { PageSeo } from "@/components/seo/PageSeo";
 
@@ -101,7 +102,7 @@ export default function PropertyDetailPage() {
 
   const propertyImage = useMemo(() => {
     if (!data) return getPropertyImage([], 0);
-    return getPropertyImage(Array.isArray(data.images) ? data.images : [], 0);
+    return getPropertyImage(Array.isArray(data.images) ? data.images : [], 0, isLandProperty(data));
   }, [data]);
 
   useEffect(() => {
@@ -200,7 +201,7 @@ export default function PropertyDetailPage() {
     });
   };
 
-  const media = Array.isArray(data?.images) ? data.images : [getPropertyImage([], 0)];
+  const media = Array.isArray(data?.images) ? data.images : [getPropertyImage([], 0, isLandProperty(data))];
   const typeLabel = data ? listingTypeLabel(data as Record<string, unknown>) : "Rent";
   const priceLabel = data ? listingPriceLabel(data as Record<string, unknown>) : "per year";
 
@@ -328,6 +329,21 @@ export default function PropertyDetailPage() {
                 </div>
               </div>
             ) : null}
+
+            <div className="mt-5 rounded-[24px] border border-[#e8dbcc] bg-white/85 p-4 shadow-sm">
+              <div className="mb-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#8b7b6d]">Need progress</p>
+                <p className="mt-1 text-sm text-[#7d6e60]">This request follows the same traceable path every time.</p>
+              </div>
+              <StateProgress
+                stages={[
+                  { label: "Drafted", description: "You review the property and confirm your interest.", state: "current" },
+                  { label: "Sent to provider", description: "The request reaches the listing agent only.", state: "upcoming" },
+                  { label: "Provider responds", description: "The agent can reply or send an offer.", state: "upcoming" },
+                  { label: "Viewing booked", description: "A confirmed visit moves into the schedule.", state: "upcoming" },
+                ]}
+              />
+            </div>
           </div>
 
           <div className="space-y-5 p-6 sm:p-7">

@@ -317,9 +317,10 @@ export function setStoredKycStatus(status: string | null | undefined) {
 }
 
 export function mapVerificationStatusToBanner(status?: string | null) {
-  if (!status) return "skipped";
-  if (["submitted", "in_review", "pending"].includes(status)) return "submitted";
-  if (["approved", "verified"].includes(status)) return "submitted";
+  const normalized = String(status ?? "").toLowerCase();
+  if (!normalized) return "skipped";
+  if (["approved", "verified"].includes(normalized)) return "approved";
+  if (["submitted", "in_review", "pending"].includes(normalized)) return "pending";
   return "skipped";
 }
 
@@ -866,14 +867,29 @@ export function titleCase(value?: string | null) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-export function getPropertyImage(images?: unknown, fallbackIndex = 0) {
-  const fallbacks = [
-    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=600&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=600&h=400&fit=crop",
+export function isLandProperty(property?: Record<string, unknown> | null) {
+  if (!property) return false;
+  const category = String((property as any)?.propertyCategory ?? (property as any)?.property_category ?? "").toLowerCase();
+  const type = String((property as any)?.propertyType ?? (property as any)?.property_type ?? "").toLowerCase();
+  const listingType = String((property as any)?.listingType ?? (property as any)?.listing_type ?? "").toLowerCase();
+  const title = String((property as any)?.title ?? "").toLowerCase();
+  const haystack = [category, type, listingType, title].join(" ");
+  return /\b(land|plot|acre|parcel|lot|landed)\b/.test(haystack);
+}
+
+export function getPropertyImage(images?: unknown, fallbackIndex = 0, isLand = false) {
+  const landFallbacks = [
+    "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&h=400&fit=crop",
   ];
+  const fallbacks = isLand
+    ? landFallbacks
+    : [
+        "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=600&h=400&fit=crop",
+        "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=600&h=400&fit=crop",
+      ];
   if (Array.isArray(images)) {
     const url = images.find((value) => typeof value === "string" && !value.toLowerCase().endsWith(".mp4"));
     if (typeof url === "string") return url;

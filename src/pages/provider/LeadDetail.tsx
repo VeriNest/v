@@ -17,9 +17,10 @@ import {
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { DashboardSectionCard } from "@/components/dashboard/DashboardSectionCard";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
+import { StateProgress } from "@/components/StateProgress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { agentApi, formatCompactCurrency, getPropertyImage, titleCase } from "@/lib/api";
+import { agentApi, formatCompactCurrency, getPropertyImage, isLandProperty, titleCase } from "@/lib/api";
 
 const getUrgencyTone = (urgency: string) => {
   if (urgency === "High") return "danger";
@@ -65,7 +66,14 @@ export default function LeadDetail() {
   const targetPropertyImageUrl = getPropertyImage(
     [String(lead.targetPropertyImageUrl ?? seekerNeed.target_property_image_url ?? "")].filter(Boolean),
     0,
+    isLandProperty({ ...lead, ...seekerNeed }),
   );
+  const leadStages = [
+    { label: "Need received", description: "The seeker request is in your inbox.", state: "complete" as const },
+    { label: "Matched to you", description: targetPropertyId ? "The request is attached to a property you manage." : "The request was routed by state and filters.", state: "complete" as const },
+    { label: "Agent response", description: status === "Responded" ? "An offer or reply has been sent." : "Waiting for your reply.", state: status === "Responded" ? "complete" as const : "current" as const },
+    { label: "Viewing / follow-up", description: "The seeker can proceed to the next step after your response.", state: "upcoming" as const },
+  ];
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -110,6 +118,8 @@ export default function LeadDetail() {
             <DashboardStatusBadge tone={getUrgencyTone(urgency)}>{urgency}</DashboardStatusBadge>
             <span className="text-xs text-muted-foreground">Posted {lead.createdAt ? new Date(String(lead.createdAt)).toLocaleDateString() : "recently"}</span>
           </div>
+
+          <StateProgress stages={leadStages} />
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {[

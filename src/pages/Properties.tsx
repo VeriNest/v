@@ -28,7 +28,7 @@ import {
   Maximize,
   Heart,
 } from "lucide-react";
-import { getPendingPropertyRating, getPropertyImage, propertiesApi, seekerApi, getStoredSession } from "@/lib/api";
+import { getPendingPropertyRating, getPropertyImage, isLandProperty, propertiesApi, seekerApi, getStoredSession } from "@/lib/api";
 import { PageSeo } from "@/components/seo/PageSeo";
 
 type UiProperty = {
@@ -75,15 +75,6 @@ function propertyPricePeriod(property: Record<string, unknown>) {
 
 function normalizeTypeFilter(value: string) {
   return value.toLowerCase().replace(/[\s_-]+/g, "");
-}
-
-function isLandListing(property: Record<string, unknown>) {
-  const category = String((property as any).propertyCategory ?? (property as any).property_category ?? "").toLowerCase();
-  const type = String((property as any).propertyType ?? (property as any).property_type ?? "").toLowerCase();
-  const listingType = String((property as any).listingType ?? (property as any).listing_type ?? "").toLowerCase();
-  const title = String((property as any).title ?? "").toLowerCase();
-  const haystack = [category, type, listingType, title].join(" ");
-  return /\b(land|plot|acre|parcel|lot|landed)\b/.test(haystack);
 }
 
 const Properties = () => {
@@ -213,8 +204,8 @@ const Properties = () => {
       propertyCategory: String((property as any).propertyCategory ?? (property as any).property_category ?? "")
         .toLowerCase()
         .replace(/\s+/g, "-"),
-      isLand: isLandListing(property),
-      image: getPropertyImage(property.images, index),
+      isLand: isLandProperty(property),
+      image: getPropertyImage(property.images, index, isLandProperty(property)),
     })),
     [displayProperties],
   );
@@ -319,7 +310,9 @@ const Properties = () => {
           <div className="mb-10 flex items-end justify-between">
             <div>
               <p className="mb-2 font-mono text-xs font-medium uppercase tracking-[0.2em] text-primary">Results</p>
-              <p className="text-sm text-muted-foreground">{filtered.length} of {total} properties found</p>
+              <p className="text-sm text-muted-foreground">
+                {filtered.length} {filtered.length === 1 ? "property" : "properties"} shown
+              </p>
             </div>
           </div>
 

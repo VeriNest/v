@@ -16,7 +16,7 @@ import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader"
 import { DashboardSettingsRow, DashboardSettingsSection } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { ChangePasswordDialog } from "@/components/settings/ChangePasswordDialog";
-import { agentSettingsApi, authApi, onboardingApi, clearStoredSession } from "@/lib/api";
+import { agentSettingsApi, authApi, isVerificationApproved, onboardingApi, clearStoredSession } from "@/lib/api";
 import { uploadToCloudinary } from "@/lib/cloudinary";
 
 export default function ProviderSettings() {
@@ -206,8 +206,20 @@ export default function ProviderSettings() {
           </div>
           <div className="flex shrink-0 flex-wrap justify-center gap-1.5 sm:justify-end">
             <DashboardStatusBadge tone="info">Agent</DashboardStatusBadge>
-            <DashboardStatusBadge tone={me?.user.verification_status === "verified" ? "success" : "warning"}>
-              {me?.user.verification_status === "verified" ? "Verified" : "Pending"}
+            <DashboardStatusBadge
+              tone={
+                isVerificationApproved(me?.user.verification_status)
+                  ? "success"
+                  : String(me?.user.verification_status ?? "").toLowerCase() === "rejected"
+                    ? "danger"
+                    : "warning"
+              }
+            >
+              {isVerificationApproved(me?.user.verification_status)
+                ? "Verified"
+                : String(me?.user.verification_status ?? "").toLowerCase() === "rejected"
+                  ? "Rejected"
+                  : "Pending"}
             </DashboardStatusBadge>
           </div>
         </CardContent>
