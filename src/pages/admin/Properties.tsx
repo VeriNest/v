@@ -27,18 +27,26 @@ import {
 } from "@/components/ui/dialog";
 
 const statusStyles: Record<string, { color: string; bg: string; dot: string }> = {
-  Published: { color: "text-emerald-700 dark:text-emerald-300", bg: "bg-emerald-500/10 border-emerald-500/20 dark:bg-emerald-500/15 dark:border-emerald-500/30", dot: "bg-emerald-500" },
-  Hidden: { color: "text-muted-foreground", bg: "bg-muted border-border", dot: "bg-muted-foreground" },
-  PendingVerification: { color: "text-amber-700 dark:text-amber-300", bg: "bg-amber-500/10 border-amber-500/20 dark:bg-amber-500/15 dark:border-amber-500/30", dot: "bg-amber-500" },
-  Pending: { color: "text-amber-700 dark:text-amber-300", bg: "bg-amber-500/10 border-amber-500/20 dark:bg-amber-500/15 dark:border-amber-500/30", dot: "bg-amber-500" },
-  Rejected: { color: "text-destructive", bg: "bg-destructive/5 border-destructive/20", dot: "bg-destructive" },
-  Suspended: { color: "text-destructive", bg: "bg-destructive/5 border-destructive/20", dot: "bg-destructive" },
-  Draft: { color: "text-muted-foreground", bg: "bg-muted border-border", dot: "bg-muted-foreground" },
+  published: { color: "text-emerald-700 dark:text-emerald-300", bg: "bg-emerald-500/10 border-emerald-500/20 dark:bg-emerald-500/15 dark:border-emerald-500/30", dot: "bg-emerald-500" },
+  hidden: { color: "text-muted-foreground", bg: "bg-muted border-border", dot: "bg-muted-foreground" },
+  pending_verification: { color: "text-amber-700 dark:text-amber-300", bg: "bg-amber-500/10 border-amber-500/20 dark:bg-amber-500/15 dark:border-amber-500/30", dot: "bg-amber-500" },
+  pending_review: { color: "text-amber-700 dark:text-amber-300", bg: "bg-amber-500/10 border-amber-500/20 dark:bg-amber-500/15 dark:border-amber-500/30", dot: "bg-amber-500" },
+  pending: { color: "text-amber-700 dark:text-amber-300", bg: "bg-amber-500/10 border-amber-500/20 dark:bg-amber-500/15 dark:border-amber-500/30", dot: "bg-amber-500" },
+  verified: { color: "text-emerald-700 dark:text-emerald-300", bg: "bg-emerald-500/10 border-emerald-500/20 dark:bg-emerald-500/15 dark:border-emerald-500/30", dot: "bg-emerald-500" },
+  rejected: { color: "text-destructive", bg: "bg-destructive/5 border-destructive/20", dot: "bg-destructive" },
+  suspended: { color: "text-destructive", bg: "bg-destructive/5 border-destructive/20", dot: "bg-destructive" },
+  draft: { color: "text-muted-foreground", bg: "bg-muted border-border", dot: "bg-muted-foreground" },
 };
 
 function statusLabel(value?: string | null) {
-  if (!value) return "Draft";
-  return String(value).replace(/[_-]+/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+  const normalized = String(value ?? "draft").toLowerCase();
+  if (normalized === "pending_verification" || normalized === "pending_review" || normalized === "pending") return "Under Review";
+  if (normalized === "verified") return "Approved";
+  if (normalized === "published") return "Published";
+  if (normalized === "rejected") return "Rejected";
+  if (normalized === "hidden") return "Hidden";
+  if (normalized === "suspended") return "Suspended";
+  return String(value ?? "draft").replace(/[_-]+/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function priceLabel(property: any) {
@@ -64,6 +72,8 @@ export default function Properties() {
   });
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
   const [deletePassword, setDeletePassword] = useState("");
+  const [reviewTarget, setReviewTarget] = useState<{ id: string; title: string; decision: "approved" | "rejected" } | null>(null);
+  const [reviewNotes, setReviewNotes] = useState("");
   const rows = data?.items ?? [];
   const [loadedRows, setLoadedRows] = useState<any[]>([]);
 
@@ -73,7 +83,10 @@ export default function Properties() {
 
   useEffect(() => {
     if (page === 1) {
-      setLoadedRows(rows);
+      setLoadedRows((prev) => {
+        const same = prev.length === rows.length && prev.every((p, i) => String(p?.id) === String(rows[i]?.id));
+        return same ? prev : rows;
+      });
       return;
     }
 
@@ -100,9 +113,12 @@ export default function Properties() {
     price: priceLabel(property),
     location: property.location ?? "Unknown location",
     status: statusLabel(property.status),
+    rawStatus: String(property.status ?? "draft").toLowerCase(),
     reportCount: Number(property.report_count ?? property.reportCount ?? 0),
     openReportCount: Number(property.open_report_count ?? property.openReportCount ?? 0),
     date: property.created_at || property.createdAt ? new Date(String(property.created_at ?? property.createdAt)).toLocaleDateString() : "",
+    reviewDueAt: property.review_due_at ?? property.reviewDueAt ?? null,
+    reviewedByName: property.reviewed_by_name ?? property.reviewedByName ?? null,
     type: getPropertyListingType(property) === "sale" ? "Sale" : getPropertyListingType(property) === "shortlet" ? "Short-let" : "Rent",
   })), [displayRows]);
   const hasMoreProperties = rows.length === pageSize;
@@ -124,13 +140,39 @@ export default function Properties() {
     },
   });
 
+  const reviewPropertyMutation = useMutation({
+    mutationFn: () => {
+      if (!reviewTarget) throw new Error("No property selected");
+      return adminApi.reviewProperty(reviewTarget.id, {
+        decision: reviewTarget.decision,
+        reviewNotes: reviewNotes.trim(),
+      });
+    },
+    onSuccess: (response) => {
+      toast.success(response.message ?? "Property review updated");
+      setReviewTarget(null);
+      setReviewNotes("");
+      void queryClient.invalidateQueries({ queryKey: ["/admin/properties"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to update review";
+      toast.error(message);
+    },
+  });
+
   const filtered = properties.filter((property) =>
     property.title.toLowerCase().includes(search.toLowerCase()) ||
     property.agent.toLowerCase().includes(search.toLowerCase()) ||
     property.location.toLowerCase().includes(search.toLowerCase()),
   );
-  const active = filtered.filter((property) => property.status === "Published");
-  const pending = filtered.filter((property) => property.status.includes("Pending"));
+  const active = filtered.filter((property) => property.rawStatus === "published");
+  const pending = filtered.filter((property) => property.rawStatus === "pending_verification" || property.rawStatus === "pending_review" || property.rawStatus === "pending");
+  const formatReviewDue = (value: any) => {
+    if (!value) return null;
+    const date = new Date(String(value));
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toLocaleString();
+  };
 
   return (
     <div className="space-y-6">
@@ -195,7 +237,8 @@ export default function Properties() {
                 <CardContent className="p-3 sm:p-6 pt-0 sm:pt-0">
                   <div className="sm:hidden space-y-3">
                     {items.map((property) => {
-                      const status = statusStyles[property.status] ?? statusStyles.Draft;
+                      const status = statusStyles[property.rawStatus] ?? statusStyles.draft;
+                      const reviewDue = formatReviewDue(property.reviewDueAt);
                       return (
                         <div key={property.id} data-search-id={`admin-property-${property.id}`} className="p-3 rounded-lg border border-border/40 bg-background space-y-2">
                           <div className="flex items-start gap-2.5">
@@ -216,6 +259,22 @@ export default function Properties() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
+                                {(property.rawStatus === "pending_verification" || property.rawStatus === "pending_review" || property.rawStatus === "pending") && (
+                                  <>
+                                    <DropdownMenuItem onClick={() => {
+                                      setReviewTarget({ id: property.id, title: property.title, decision: "approved" });
+                                      setReviewNotes("");
+                                    }}>
+                                      Approve listing
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => {
+                                      setReviewTarget({ id: property.id, title: property.title, decision: "rejected" });
+                                      setReviewNotes("");
+                                    }}>
+                                      Reject listing
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                                 <DropdownMenuItem onClick={() => setDeleteTarget({ id: property.id, title: property.title })}>
                                   <Trash2 className="mr-2 h-4 w-4 text-destructive" />
                                   Delete property
@@ -232,6 +291,11 @@ export default function Properties() {
                               <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />{property.status}
                             </span>
                           </div>
+                          {reviewDue ? (
+                            <p className="text-[11px] text-muted-foreground">
+                              Review due by <span className="font-medium text-foreground">{reviewDue}</span>
+                            </p>
+                          ) : null}
                         </div>
                       );
                     })}
@@ -253,7 +317,8 @@ export default function Properties() {
                       </thead>
                       <tbody>
                         {items.map((property) => {
-                          const status = statusStyles[property.status] ?? statusStyles.Draft;
+                          const status = statusStyles[property.rawStatus] ?? statusStyles.draft;
+                          const reviewDue = formatReviewDue(property.reviewDueAt);
                           return (
                             <tr key={property.id} data-search-id={`admin-property-${property.id}`} className="border-b border-border/40">
                               <td className="py-3 px-4">
@@ -277,6 +342,9 @@ export default function Properties() {
                                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${status.bg} ${status.color}`}>
                                   <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />{property.status}
                                 </span>
+                                {reviewDue ? (
+                                  <div className="mt-1 text-[11px] text-muted-foreground">Review due by {reviewDue}</div>
+                                ) : null}
                               </td>
                               <td className="text-muted-foreground text-sm py-3 px-4">{property.date}</td>
                               <td className="py-3 px-4">
@@ -287,6 +355,22 @@ export default function Properties() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
+                                    {(property.rawStatus === "pending_verification" || property.rawStatus === "pending_review" || property.rawStatus === "pending") && (
+                                      <>
+                                        <DropdownMenuItem onClick={() => {
+                                          setReviewTarget({ id: property.id, title: property.title, decision: "approved" });
+                                          setReviewNotes("");
+                                        }}>
+                                          Approve listing
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => {
+                                          setReviewTarget({ id: property.id, title: property.title, decision: "rejected" });
+                                          setReviewNotes("");
+                                        }}>
+                                          Reject listing
+                                        </DropdownMenuItem>
+                                      </>
+                                    )}
                                     <DropdownMenuItem onClick={() => setDeleteTarget({ id: property.id, title: property.title })}>
                                       <Trash2 className="mr-2 h-4 w-4 text-destructive" />
                                       Delete property
@@ -367,6 +451,59 @@ export default function Properties() {
               onClick={() => void deletePropertyMutation.mutate()}
             >
               {deletePropertyMutation.isPending ? "Deleting..." : "Delete property"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(reviewTarget)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setReviewTarget(null);
+            setReviewNotes("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {reviewTarget?.decision === "approved" ? "Approve listing" : "Reject listing"}
+            </DialogTitle>
+            <DialogDescription>
+              {reviewTarget ? `Review “${reviewTarget.title}” before it is published.` : "Review this listing."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">Review notes</label>
+            <Input
+              value={reviewNotes}
+              onChange={(event) => setReviewNotes(event.target.value)}
+              placeholder={reviewTarget?.decision === "rejected" ? "Explain why the listing was rejected" : "Optional internal notes"}
+            />
+            <p className="text-xs text-muted-foreground">
+              Rejection requires notes. Approval will publish the listing immediately.
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setReviewTarget(null);
+                setReviewNotes("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              disabled={!reviewTarget || reviewPropertyMutation.isPending || (reviewTarget.decision === "rejected" && reviewNotes.trim().length < 3)}
+              onClick={() => void reviewPropertyMutation.mutate()}
+            >
+              {reviewPropertyMutation.isPending ? "Saving..." : reviewTarget?.decision === "approved" ? "Approve listing" : "Reject listing"}
             </Button>
           </DialogFooter>
         </DialogContent>

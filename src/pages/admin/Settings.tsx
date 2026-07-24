@@ -15,8 +15,9 @@ import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader"
 import { DashboardSettingsSection, DashboardSettingsRow } from "@/components/dashboard/DashboardSettingsSection";
 import { DashboardStatusBadge } from "@/components/dashboard/DashboardStatusBadge";
 import { useAvatar } from "@/contexts/AvatarContext";
-import { adminApi, authApi, clearStoredSession } from "@/lib/api";
+import { adminApi, authApi, clearStoredSession, titleCase } from "@/lib/api";
 import { InlineSpinner } from "@/components/Loaders";
+import { useAuthAccess } from "@/hooks/use-auth-access";
 import {
   Activity,
   Bell,
@@ -55,17 +56,7 @@ function formatRelativeTime(dateStr: string): string {
   return date.toLocaleDateString();
 }
 
-const adminTeam = [
-  { name: "Admin User", email: "admin@verinest.ng", role: "Super Admin", status: "Active", initials: "AD" },
-  { name: "Bola Tinubu", email: "bola@verinest.ng", role: "Moderator", status: "Active", initials: "BT" },
-  { name: "Chidi Eze", email: "chidi@verinest.ng", role: "Support", status: "Inactive", initials: "CE" },
-];
-
-const roleTone: Record<string, "info" | "success" | "neutral"> = {
-  "Super Admin": "info",
-  Moderator: "success",
-  Support: "neutral",
-};
+// Admin team will be populated dynamically from the backend
 
 export default function AdminSettings() {
   const navigate = useNavigate();
@@ -117,6 +108,59 @@ export default function AdminSettings() {
       const url = URL.createObjectURL(file);
       setAvatarUrl(url);
     }
+  };
+
+  // Fetch admin users for the Team tab and provide invite functionality
+  const { me } = useAuthAccess("admin");
+  const isSuperAdmin = (me?.user?.role ?? "") === "super_admin";
+
+  const { data: adminsResp, isLoading: isLoadingAdmins } = useQuery({
+    queryKey: ["/admin/users", "team"],
+    queryFn: () => adminApi.users({ page: 1, per_page: 200 }),
+  });
+
+  const adminTeam = (adminsResp?.items ?? [])
+    .filter((u: any) => u.role === "admin" || u.role === "super_admin")
+    .map((u: any) => ({
+      name: u.full_name ?? u.fullName ?? u.email,
+      email: u.email,
+      role: u.role === "super_admin" ? "Super Admin" : titleCase(String(u.role ?? "")),
+      status: u.is_banned ? "Inactive" : "Active",
+      initials: ((u.full_name ?? u.email) as string).split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase(),
+      avatarUrl: u.avatar_url ?? u.avatarUrl,
+      id: u.id,
+    }));
+
+  const roleToneFor = (r: string) => {
+    const k = String(r ?? "").toLowerCase();
+    if (k.includes("super")) return "info" as const;
+    if (k.includes("admin")) return "info" as const;
+    return "neutral" as const;
+  };
+
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+
+  const inviteMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const resp = await adminApi.users({ page: 1, per_page: 200 });
+      const found = (resp.items ?? []).find((i: any) => (i.email ?? "").toLowerCase() === email.toLowerCase());
+      if (!found) throw new Error("User not found. Ask them to sign up first.");
+      return adminApi.assignRole(found.id, "admin");
+    },
+    onSuccess: () => {
+      toast.success("Invitation sent / role assigned");
+      setInviteOpen(false);
+    },
+    onError: (err) => {
+      const msg = err instanceof Error ? err.message : "Unable to invite";
+      toast.error(msg);
+    },
+  });
+
+  const handleInvite = () => {
+    if (!inviteEmail) return toast.error("Enter an email to invite");
+    inviteMutation.mutate(inviteEmail.trim());
   };
 
   const handleDeleteAccount = async () => {
@@ -419,7 +463,10 @@ export default function AdminSettings() {
                   </div>
                   <CardDescription>Manage team members and their access levels.</CardDescription>
                 </div>
-                <Button size="sm" className="w-full gap-1.5 text-sm sm:w-auto">
+                <Button size="sm" className="w-full gap-1.5 text-sm sm:w-auto" onClick={() => {
+                  if (!isSuperAdmin) return toast.error("Only SuperAdmins can invite admins");
+                  setInviteOpen(true);
+                }}>
                   <Users className="h-3.5 w-3.5" /> Invite Member
                 </Button>
               </div>
@@ -443,7 +490,7 @@ export default function AdminSettings() {
                       </DashboardStatusBadge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <DashboardStatusBadge tone={roleTone[member.role]}>{member.role}</DashboardStatusBadge>
+                      <DashboardStatusBadge tone={roleToneFor(member.role)}>{member.role}</DashboardStatusBadge>
                       <div className="flex gap-1">
                         <Button variant="ghost" size="sm" className="h-7 text-xs">Edit</Button>
                         <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive">Remove</Button>
@@ -480,7 +527,7 @@ export default function AdminSettings() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <DashboardStatusBadge tone={roleTone[member.role]}>{member.role}</DashboardStatusBadge>
+                          <DashboardStatusBadge tone={roleToneFor(member.role)}>{member.role}</DashboardStatusBadge>
                         </TableCell>
                         <TableCell>
                           <DashboardStatusBadge tone={member.status === "Active" ? "success" : "neutral"}>
@@ -617,6 +664,27 @@ export default function AdminSettings() {
           </Card>
         </TabsContent>
       </Tabs>
+      {/* Invite Modal */}
+      {inviteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle>Invite Member</CardTitle>
+              <CardDescription>Enter the email of the existing user to grant admin access.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-foreground">Email</label>
+                <Input value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="user@example.com" />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => handleInvite()} disabled={inviteMutation.isLoading}>Invite</Button>
+                <Button variant="ghost" onClick={() => setInviteOpen(false)} disabled={inviteMutation.isLoading}>Cancel</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
