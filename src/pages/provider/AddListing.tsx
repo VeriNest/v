@@ -230,7 +230,7 @@ export default function AddListing() {
       setSaveSuccess(false);
 
       if (imageUrls.length === 0) {
-        toast.error("Add at least one image before publishing this listing.");
+        toast.error("Add at least one image before submitting this listing for review.");
         return;
       }
 
@@ -341,9 +341,9 @@ export default function AddListing() {
           <CheckCircle2 className="w-8 h-8 text-emerald-500" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-foreground">Listing Published Successfully!</h2>
+          <h2 className="text-xl font-bold text-foreground">Listing Submitted for Review!</h2>
           <p className="text-sm text-muted-foreground mt-1.5 max-w-sm">
-            {boost ? "Your listing has been boosted! " : ""}Your property is now visible to verified tenants looking for a match.
+            {boost ? "Your listing has been boosted! " : ""}Your property is now waiting for admin approval before it goes public.
           </p>
         </div>
         <div className="flex gap-3">
@@ -826,7 +826,7 @@ export default function AddListing() {
                       ) : !isVerified ? (
                         <><CheckCircle2 className="h-4 w-4" /> Verification Required</>
                       ) : (
-                        <><CheckCircle2 className="h-4 w-4" /> Publish Listing</>
+                        <><CheckCircle2 className="h-4 w-4" /> Submit for Review</>
                       )}
                     </Button>
                   </CardContent>

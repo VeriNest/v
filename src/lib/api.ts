@@ -1,6 +1,6 @@
 import { QueryFunctionContext } from "@tanstack/react-query";
 
-export type UserRole = "unassigned" | "seeker" | "agent" | "landlord" | "admin";
+export type UserRole = "unassigned" | "seeker" | "agent" | "landlord" | "admin" | "super_admin";
 
 export type SessionUser = {
   id: string;
@@ -356,6 +356,8 @@ export function dashboardPathForRole(role?: UserRole | null) {
       return "/landlord";
     case "admin":
       return "/admin";
+    case "super_admin":
+      return "/admin";
     default:
       return "/onboarding";
   }
@@ -372,7 +374,7 @@ export function hasCompletedOnboarding(payload?: AuthMeResponse | null) {
 export function needsOnboardingCompletion(payload?: AuthMeResponse | null) {
   if (!payload) return true;
   if (!payload.user.email_verified) return false;
-  if (payload.user.role === "admin") return false;
+  if (payload.user.role === "admin" || payload.user.role === "super_admin") return false;
   if (payload.user.role === "unassigned") return true;
   if (!hasCompletedOnboarding(payload)) return true;
   if (payload.user.role === "seeker") {
@@ -714,6 +716,14 @@ export const adminApi = {
     normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/users${buildQuery({ page: 1, per_page: 100, ...params })}`)),
   properties: async (params?: { page?: number; per_page?: number }) =>
     normalizePaginatedResponse<Record<string, unknown>>(await apiRequest<Record<string, unknown>>(`/admin/properties${buildQuery({ page: 1, per_page: 100, ...params })}`)),
+  reviewProperty: (id: string, payload: { decision: "approved" | "rejected"; reviewNotes?: string }) =>
+    apiRequest<Record<string, unknown>>(`/admin/properties/${id}/review`, {
+      method: "POST",
+      body: JSON.stringify({
+        decision: payload.decision,
+        reviewNotes: payload.reviewNotes,
+      }),
+    }),
   deleteProperty: (id: string, payload: { password: string }) =>
     apiRequest<{ success: boolean; message: string }>(`/admin/properties/${id}`, {
       method: "DELETE",
@@ -761,6 +771,7 @@ export const adminApi = {
     }),
   suspendUser: (userId: string) => apiRequest<Record<string, unknown>>(`/admin/users/${userId}/suspend`, { method: "POST", body: JSON.stringify({}) }),
   unsuspendUser: (userId: string) => apiRequest<Record<string, unknown>>(`/admin/users/${userId}/unsuspend`, { method: "POST", body: JSON.stringify({}) }),
+  assignRole: (userId: string, role: string) => apiRequest<Record<string, unknown>>(`/admin/users/${userId}/assign-role`, { method: "POST", body: JSON.stringify({ role }) }),
   getPolicyMetadata: () => apiRequest<PolicyMetadata>("/admin/legal/policies/meta"),
   updatePolicyMetadata: (payload: { termsVersion: string; privacyVersion: string; effectiveAt?: string; changeSummary: string }) =>
     apiRequest<PolicyMetadata>("/admin/legal/policies/meta", {

@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, ShieldCheck, Clock, ShieldX, UserPlus, Filter, Ban, CheckCircle } from "lucide-react";
+import { Search, ShieldCheck, Clock, ShieldX, UserPlus, Filter, Ban, CheckCircle, MoreVertical } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useSearchFocus } from "@/hooks/use-search-focus";
+import { useAuthAccess } from "@/hooks/use-auth-access";
 import { DashboardControlRow } from "@/components/dashboard/DashboardControlRow";
 import { DashboardPageHeader } from "@/components/dashboard/DashboardPageHeader";
 import { adminApi, titleCase } from "@/lib/api";
@@ -64,8 +66,11 @@ function avatarColorFor(value: string) {
 export default function UsersPage() {
   useSearchFocus();
   const queryClient = useQueryClient();
+  const { me } = useAuthAccess("admin");
+  const isSuperAdmin = me?.role === "super_admin";
   const [search, setSearch] = useState("");
   const [suspendingUserId, setSuspendingUserId] = useState<string | null>(null);
+  const [assignRoleState, setAssignRoleState] = useState<{ userId: string; targetRole: string | null } | null>(null);
   const [page, setPage] = useState(1);
   const pageSize = 25;
   const { data } = useQuery({
@@ -77,7 +82,10 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (page === 1) {
-      setLoadedRows(rows);
+      setLoadedRows((prev) => {
+        const same = prev.length === rows.length && prev.every((p, i) => String(p?.id) === String(rows[i]?.id));
+        return same ? prev : rows;
+      });
       return;
     }
 
@@ -122,6 +130,25 @@ export default function UsersPage() {
       toast.error(message);
     },
   });
+
+  const assignRoleMutation = useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: string }) => adminApi.assignRole(userId, role),
+    onSuccess: (data) => {
+      toast.success(`Role assigned successfully`);
+      setAssignRoleState(null);
+      queryClient.invalidateQueries({ queryKey: ["/admin/users"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to assign role";
+      toast.error(message);
+    },
+  });
+
+  const handleAssignRole = (newRole: string) => {
+    if (!assignRoleState) return;
+    assignRoleMutation.mutate({ userId: assignRoleState.userId, role: newRole });
+  };
+
   const users = useMemo(() => displayRows.map((u: any) => {
     const role = normalizeRole(u.role);
     return {
@@ -233,31 +260,45 @@ export default function UsersPage() {
                               <span className={`text-[10px] ${u.activity === "Active now" ? "text-emerald-600 font-medium" : "text-muted-foreground"}`}>{u.activity}</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            {u.activity === "Active now" ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                                onClick={() => suspendUserMutation.mutate(u.id)}
-                                disabled={suspendUserMutation.isPending}
-                              >
-                                <Ban className="h-3.5 w-3.5 mr-1" />
-                                Suspend
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                                <MoreVertical className="h-4 w-4" />
                               </Button>
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 text-xs text-emerald-600 hover:text-emerald-600 hover:bg-emerald-500/10"
-                                onClick={() => unsuspendUserMutation.mutate(u.id)}
-                                disabled={unsuspendUserMutation.isPending}
-                              >
-                                <CheckCircle className="h-3.5 w-3.5 mr-1" />
-                                Unsuspend
-                              </Button>
-                            )}
-                          </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              {isSuperAdmin && (
+                                <>
+                                  <DropdownMenuItem
+                                    onClick={() => setAssignRoleState({ userId: u.id, targetRole: null })}
+                                    className="cursor-pointer"
+                                  >
+                                    Assign Role
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                </>
+                              )}
+                              {u.activity === "Active now" ? (
+                                <DropdownMenuItem
+                                  onClick={() => suspendUserMutation.mutate(u.id)}
+                                  disabled={suspendUserMutation.isPending}
+                                  className="cursor-pointer text-destructive"
+                                >
+                                  <Ban className="h-3.5 w-3.5 mr-2" />
+                                  Suspend
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem
+                                  onClick={() => unsuspendUserMutation.mutate(u.id)}
+                                  disabled={unsuspendUserMutation.isPending}
+                                  className="cursor-pointer text-emerald-600"
+                                >
+                                  <CheckCircle className="h-3.5 w-3.5 mr-2" />
+                                  Unsuspend
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       );
                     })}
@@ -315,29 +356,45 @@ export default function UsersPage() {
                               </td>
                               <td className="text-muted-foreground text-sm py-3 px-4">{u.joined}</td>
                               <td className="py-3 px-4">
-                                {u.activity === "Active now" ? (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                                    onClick={() => suspendUserMutation.mutate(u.id)}
-                                    disabled={suspendUserMutation.isPending}
-                                  >
-                                    <Ban className="h-3.5 w-3.5 mr-1" />
-                                    Suspend
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-xs text-emerald-600 hover:text-emerald-600 hover:bg-emerald-500/10"
-                                    onClick={() => unsuspendUserMutation.mutate(u.id)}
-                                    disabled={unsuspendUserMutation.isPending}
-                                  >
-                                    <CheckCircle className="h-3.5 w-3.5 mr-1" />
-                                    Unsuspend
-                                  </Button>
-                                )}
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-48">
+                                    {isSuperAdmin && (
+                                      <>
+                                        <DropdownMenuItem
+                                          onClick={() => setAssignRoleState({ userId: u.id, targetRole: null })}
+                                          className="cursor-pointer"
+                                        >
+                                          Assign Role
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                      </>
+                                    )}
+                                    {u.activity === "Active now" ? (
+                                      <DropdownMenuItem
+                                        onClick={() => suspendUserMutation.mutate(u.id)}
+                                        disabled={suspendUserMutation.isPending}
+                                        className="cursor-pointer text-destructive"
+                                      >
+                                        <Ban className="h-3.5 w-3.5 mr-2" />
+                                        Suspend
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem
+                                        onClick={() => unsuspendUserMutation.mutate(u.id)}
+                                        disabled={unsuspendUserMutation.isPending}
+                                        className="cursor-pointer text-emerald-600"
+                                      >
+                                        <CheckCircle className="h-3.5 w-3.5 mr-2" />
+                                        Unsuspend
+                                      </DropdownMenuItem>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </td>
                             </tr>
                           );
@@ -351,7 +408,7 @@ export default function UsersPage() {
                       <Button
                         variant="outline"
                         onClick={() => setPage((current) => current + 1)}
-                        disabled={suspendUserMutation.isPending || unsuspendUserMutation.isPending}
+                        disabled={suspendUserMutation.isPending || unsuspendUserMutation.isPending || assignRoleMutation.isPending}
                         className="min-w-44"
                       >
                         {page > 1 && rows.length === 0 ? "Loading more..." : "Show more users"}
@@ -364,6 +421,39 @@ export default function UsersPage() {
           );
         })}
       </Tabs>
+
+      {/* Role Assignment Modal */}
+      {assignRoleState && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle>Assign Role</CardTitle>
+              <CardDescription>Select a new role for this user</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {["unassigned", "seeker", "agent", "landlord", "admin"].map((role) => (
+                <Button
+                  key={role}
+                  variant="outline"
+                  className="w-full justify-start text-left"
+                  onClick={() => handleAssignRole(role)}
+                  disabled={assignRoleMutation.isPending}
+                >
+                  {titleCase(role)}
+                </Button>
+              ))}
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => setAssignRoleState(null)}
+                disabled={assignRoleMutation.isPending}
+              >
+                Cancel
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

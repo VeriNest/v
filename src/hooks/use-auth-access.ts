@@ -43,8 +43,11 @@ export function useAuthAccess(expectedRole?: UserRole) {
       (location.pathname === expectedBasePath || location.pathname.startsWith(`${expectedBasePath}/`));
 
     if (expectedRole && data.user.role !== expectedRole) {
-      navigate(resolvedPath, { replace: true });
-      return;
+      // Allow super_admin to satisfy admin access so SuperAdmins don't get redirected away
+      if (!(expectedRole === "admin" && data.user.role === "super_admin")) {
+        navigate(resolvedPath, { replace: true });
+        return;
+      }
     }
 
     if (resolvedPath === "/onboarding" || resolvedPath.startsWith("/confirm-email")) {
