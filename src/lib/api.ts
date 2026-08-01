@@ -724,6 +724,10 @@ export const adminApi = {
         reviewNotes: payload.reviewNotes,
       }),
     }),
+  unpublishProperty: (id: string) =>
+    apiRequest<{ success: boolean; message: string }>(`/admin/properties/${id}/unpublish`, {
+      method: "POST",
+    }),
   deleteProperty: (id: string, payload: { password: string }) =>
     apiRequest<{ success: boolean; message: string }>(`/admin/properties/${id}`, {
       method: "DELETE",
