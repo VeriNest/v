@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { Search, MoreHorizontal, Building2, MapPin, Plus, Filter, Trash2 } from "lucide-react";
+import { Search, MoreHorizontal, Building2, MapPin, Plus, Filter, Trash2, EyeOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -149,13 +149,31 @@ export default function Properties() {
       });
     },
     onSuccess: (response) => {
-      toast.success(response.message ?? "Property review updated");
+      const message = typeof response === "object" && response && "message" in response && typeof response.message === "string"
+        ? response.message
+        : "Property review updated";
+      toast.success(message);
       setReviewTarget(null);
       setReviewNotes("");
       void queryClient.invalidateQueries({ queryKey: ["/admin/properties"] });
     },
     onError: (error) => {
       const message = error instanceof Error ? error.message : "Unable to update review";
+      toast.error(message);
+    },
+  });
+
+  const unpublishPropertyMutation = useMutation({
+    mutationFn: (id: string) => adminApi.unpublishProperty(id),
+    onSuccess: (response) => {
+      const message = typeof response === "object" && response && "message" in response && typeof response.message === "string"
+        ? response.message
+        : "Property unpublished";
+      toast.success(message);
+      void queryClient.invalidateQueries({ queryKey: ["/admin/properties"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Unable to unpublish property";
       toast.error(message);
     },
   });
@@ -275,6 +293,12 @@ export default function Properties() {
                                     </DropdownMenuItem>
                                   </>
                                 )}
+                                {property.rawStatus === "published" && (
+                                  <DropdownMenuItem onClick={() => void unpublishPropertyMutation.mutate(property.id)}>
+                                    <EyeOff className="mr-2 h-4 w-4" />
+                                    Unpublish listing
+                                  </DropdownMenuItem>
+                                )}
                                 <DropdownMenuItem onClick={() => setDeleteTarget({ id: property.id, title: property.title })}>
                                   <Trash2 className="mr-2 h-4 w-4 text-destructive" />
                                   Delete property
@@ -370,6 +394,12 @@ export default function Properties() {
                                           Reject listing
                                         </DropdownMenuItem>
                                       </>
+                                    )}
+                                    {property.rawStatus === "published" && (
+                                      <DropdownMenuItem onClick={() => void unpublishPropertyMutation.mutate(property.id)}>
+                                        <EyeOff className="mr-2 h-4 w-4" />
+                                        Unpublish listing
+                                      </DropdownMenuItem>
                                     )}
                                     <DropdownMenuItem onClick={() => setDeleteTarget({ id: property.id, title: property.title })}>
                                       <Trash2 className="mr-2 h-4 w-4 text-destructive" />
